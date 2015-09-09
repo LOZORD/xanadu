@@ -118,8 +118,50 @@ If speaking to an Easterner... (similar rule)
 Loses health faster (???)
 1/10 chance of addiction to opium
 
-### Special: Assassin
-4x gold winnings if everyone else dies
-Starts with revolver w/ 12 bullets
-Starts with 1 poison vial
-Starts with 1 opium vial
+## Modifiers
+
+### Killer
+  * Starts with revolver w/ 12 bullets
+  * Starts with 1 poison vial
+  * Starts with 1 opium vial
+
+### Immortal
+  * No decrease in Strength or Intelligence, unless Addicted or Poisoned
+  * Strength and Intelligence upgraded
+  * Can still be killed by bullets, knives, H2H, explosions, etc.
+
+### Psycho
+  * 2x gold winnings if everyone else dies
+
+### Racist
+  * 2x gold winnings if all other Allegiance dies
+
+### Cannibal
+  * N multiplier for N people eaten
+
+### Fatalist
+  * N multiplier for N people killed with Immortality
+
+### Pacifist
+  * 2x gold winnings if no players die
+
+### Rusky
+  * N multiplier for N games of Russian Roulette won
+  * Starts game with 18 Revolver bullets
+
+### Arsonist
+  * Starts with extra matches
+  * Starts with stick of dynamite
+  * N multiplier for N people killed with fire or explosive
+
+### Angel of Death
+  * 2x multiplier if list of survivors survive, list of targets die
+
+### Collector
+  * N multiplier for N unique items you end the game with
+
+### Scalper
+  * 2x gold winnings for scalping X, giving scalp to Y
+
+### Missionary
+  * 2x gold winnings for speaking a given phrase to every player
