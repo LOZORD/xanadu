@@ -5,55 +5,6 @@
     * Health
     * Strength
     * Intelligence
-  * Items
-    * Gold
-    * Revolver
-    * Revolver bullets
-    * Rifle
-    * Rifle bullets
-    * Torch
-    * Map
-    * Water jug
-    * Food box
-    * Camp supplies
-    * Pickaxe
-    * Knife
-    * Morphine
-    * Opium
-    * Medical kit
-    * Blacksmith tools
-    * Rope ladders
-    * Dynamite
-    * Poison antidote
-    * Gold ore
-    * Raw meat
-      * Food (all food can be poisoned)
-      * Gives health and strength
-    * Cooked meat
-      * Food
-    * Stew
-    * Water
-      * Gives Strength
-      * Can be poisoned
-    * Alph water
-      * Gives strength
-      * Gives Immortality
-      * Can be poisoned
-    * Honeydew
-      * Food
-      * Gives Immortality
-      * Can be poisoned
-    * Cave Leaf
-      * Non-poisonous ingredient
-      * Can't be distinguised
-      * Minor addiction relief
-    * General Tso's Nightshade
-      * Poisonous ingredient
-      * Can't be distinguised
-      * Minor addiction relief
-    * E-W Translation book
-    * Ancient Mongolian translation book
-    * Matches
   * Skills
 
 ## Classes
@@ -100,6 +51,7 @@
   * Requires translation
   * Starts with matches
   * Can carve up corpses
+  * Starts with a lot of food
 
 ### The Shaman
   * Can read hieroglyphics
@@ -129,6 +81,7 @@
   * Can set up camp
   * Starts with E-W translation book
   * Starts with Ancient Mongolian translation book
+  * Can update others' maps
 
 ### The Prof
   * Can read hieroglyphics
