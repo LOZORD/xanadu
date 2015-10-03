@@ -1,0 +1,2 @@
+class EquippableItem(BaseItem):
+  pass
