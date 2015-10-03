@@ -105,3 +105,5 @@ Honeydew and Alph water give Immortality.
   * Gold ore
     * Mined in the cave using knife or pickaxe
     * Must be converted into gold, otherwise worthless
+  * Scalp
+    * Associated player name/id
