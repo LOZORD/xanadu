@@ -107,3 +107,9 @@ Honeydew and Alph water give Immortality.
     * Must be converted into gold, otherwise worthless
   * Scalp
     * Associated player name/id
+  * Beast Corpse
+    * Appears after killing a beast
+  * Human Corpse
+    * Appears after killing a human
+  * Bag
+    * An item that is used to contain other items
