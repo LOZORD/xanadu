@@ -1,3 +1,4 @@
+from equippable_item import EquippableItem
 class RepairableItem(EquippableItem):
   def __init__(self, item_health):
     super(RepairableItem, self).__init__()

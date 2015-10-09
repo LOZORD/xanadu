@@ -1,0 +1,2 @@
+class BaseItem(object):
+  pass
