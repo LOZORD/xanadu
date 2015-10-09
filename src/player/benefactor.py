@@ -1,3 +1,4 @@
+from base_player import BasePlayer
 class Benefactor(BasePlayer):
   def __init__(self):
     super(Benefactor, self).__init__()
