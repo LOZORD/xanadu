@@ -8,6 +8,6 @@ class RepairableItem(EquippableItem):
     self.curr_health -= damage_amount
     return self.curr_health
 
-  def repair(self, repair_percent)
+  def repair(self, repair_percent):
     self.curr_health = self.max_health * repair_percent
     return self.curr_health

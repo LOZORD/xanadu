@@ -29,4 +29,4 @@ class BasePlayer(object):
     return self.stats.health > 0
 
   def is_dead(self):
-    return !self.is_alive()
+    return not self.is_alive()
