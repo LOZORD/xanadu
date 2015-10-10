@@ -1,3 +1,4 @@
+from player_stats import PlayerStats
 class BasePlayer(object):
   WESTERN_ALLEGIANCE = 1
   EASTERN_ALLEGIANCE = 2
