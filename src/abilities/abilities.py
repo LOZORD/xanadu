@@ -10,7 +10,7 @@ class Abilities(object):
     self.can_fillet = abilities.get('can_fillet', False)
     self.can_setup_camp = abilities.get('can_setup_camp', False)
     self.heal_amount = abilities.get('heal_amount', 0)
-    self.movement = abilities.get('movement', [])
+    self.movement_speed = abilities.get('movement_speed', 1)
     self.can_update_maps = abilities.get('can_update_maps', False)
     self.line_of_sight_diff = abilities.get('line_of_sight', 0)
     self.can_smelt = abilities.get('can_smelt', False)
