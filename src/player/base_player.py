@@ -1,5 +1,6 @@
 from player_stats import PlayerStats
-class BasePlayer(object):
+from abilities import Abilities
+class BasePlayer(object, PlayerStats, Abilities):
   WESTERN_ALLEGIANCE = 1
   EASTERN_ALLEGIANCE = 2
   def __init__(self, name, x, y, init_gold, modifiers, allegiance, abilities):
@@ -7,7 +8,6 @@ class BasePlayer(object):
     self.name = name
     self.x = x
     self.y = y
-    self.stats = PlayerStats()
     self.gold = init_gold
     self.inventory = []
     self.party = None
