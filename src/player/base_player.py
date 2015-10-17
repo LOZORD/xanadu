@@ -7,11 +7,11 @@ class BasePlayer(object, PlayerStats, Abilities):
   def __init__(self, **kwargs):
     self.uid = None # TODO
     self.name = kwargs['name']
+    self.party = None
     self.x = kwargs['x']
     self.y = kwargs['y']
     self.gold = kwargs['init_gold']
     self.inventory = []
-    self.party = None
     self.modifiers = kwargs['modifiers']
     self.allegiance = kwargs['allegiance']
 
