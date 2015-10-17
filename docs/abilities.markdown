@@ -58,7 +58,7 @@ The speed at which this player can move across terrain.
 `True | False`
 Whether or not this player can update other players' maps.
 
-## `line_of_sight_diff`
+## `line_of_sight`
 `0.50 - 2.00`
 Active line of sight for this player. Normal line of sight is `1.00`.
 
