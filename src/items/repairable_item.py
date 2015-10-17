@@ -2,8 +2,8 @@ from equippable_item import EquippableItem
 class RepairableItem(EquippableItem):
   def __init__(self, item_health):
     super(RepairableItem, self).__init__()
-    self.max_health   = item_health
-    self.curr_health  = item_health
+    self.max_health = item_health
+    self.curr_health = item_health
 
   def damage(self, damage_amount):
     self.curr_health -= damage_amount

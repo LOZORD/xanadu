@@ -26,7 +26,7 @@ class BasePlayer(object, PlayerStats, Abilities):
     self.join_party(some_party)
 
   def is_alive(self):
-    return self.stats.health > 0
+    return self.health > 0
 
   def is_dead(self):
     return not self.is_alive()

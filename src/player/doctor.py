@@ -1,6 +1,6 @@
 from base_player import BasePlayer
 
-class Doctor(Base_Player):
+class Doctor(BasePlayer):
   def __init__(self, **kwargs):
     super(Doctor, self).__init__(kwargs)
     self.inventory.extend(['morphine', 'opium', 'medical kits',
