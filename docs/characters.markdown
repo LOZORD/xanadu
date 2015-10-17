@@ -102,20 +102,20 @@
 ## Allegances
 
 ### Eastern
-Starts game with 2x hand-to-hand damage
-Can speak to any other Easterner without translation
-If speaking to a Westerner, needs to have someone in line of sight who can translate
-2x gold winnings if only Easterners survive
-1/4 chance of addiction to opium
+  * Starts game with 2x hand-to-hand damage
+  * Can speak to any other Easterner without translation
+  * If speaking to a Westerner, needs to have someone in line of sight who can translate
+  * 2x gold winnings if only Easterners survive
+  * 1/4 chance of addiction to opium
 
 ### Western
-Starts game with revolver (6 bullets)
-Starts game with 1.5x gold
-Can speak to any other Westerner without translation
-If speaking to an Easterner... (similar rule)
-2x gold winnings if only Westerners survive
-Loses health faster (???)
-1/10 chance of addiction to opium
+  * Starts game with revolver (6 bullets)
+  * Starts game with 1.5x gold
+  * Can speak to any other Westerner without translation
+  * If speaking to an Easterner... (similar rule)
+  * 2x gold winnings if only Westerners survive
+  * Loses health faster (???)
+  * 1/10 chance of addiction to opium
 
 ## Modifiers
 
