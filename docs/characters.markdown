@@ -5,7 +5,7 @@
     * Health
     * Strength
     * Intelligence
-  * Skills
+  * Abilities (see corresponding document)
 
 ## Classes
 
@@ -46,8 +46,7 @@
 ### The Knife (Chef)
   * Starts with knife
   * Can set up camp
-  * Can identify poisonous/non-poisonous food
-  * Only person who can cook raw food
+  * Can identify poisonous/non-poisonous plants
   * Requires translation
   * Starts with matches
   * Can carve up corpses
