@@ -8,4 +8,4 @@ class Shaman(BasePlayer):
     self.heal_amount = 0.5
     self.can_identify_poison = True
     self.craftables.extend(['poison'])
-    # TODO: how to get higher addiction rate?
+    self.addiction_probability = 0.75
