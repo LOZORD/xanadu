@@ -2,12 +2,14 @@
   "name": "xanadu",
   "version": "0.0.2",
   "description": "A game of loose alliances and breaking fast on honeydew.",
-  "main": "index.js",
+  "main": "server.js",
   "directories": {
     "doc": "docs"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "babel src -D -d lib",
+    "launch": "echo \"Open localhost:3000\" && node lib/server.js"
   },
   "repository": {
     "type": "git",
@@ -23,6 +25,8 @@
   },
   "homepage": "https://github.com/LOZORD/xanadu#readme",
   "devDependencies": {
+    "babel-cli": "^6.4.5",
+    "babel-preset-es2015": "^6.3.13",
     "babel-register": "^6.4.3",
     "express": "^4.13.4",
     "lodash": "^4.1.0",
