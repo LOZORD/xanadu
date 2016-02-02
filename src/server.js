@@ -1,11 +1,11 @@
 /* Main server code */
-let app = require('express')();
+let express = require('express');
+let app = express();
 let http = require('http').Server(app);
 let io = require('socket.io')(http);
+let path = require('path');
 
-app.get('/', (req, res) => {
-  res.sendFile(`${__dirname}/client.html`);
-});
+app.use(express.static(path.join(__dirname, 'client')));
 
 http.listen(3000, () => {
   console.log('listening on port 3000');
