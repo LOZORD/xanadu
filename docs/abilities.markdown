@@ -1,31 +1,31 @@
 # Abilities
 
-## `can_translate_modern`
-`True | False`
+## `canTranslateModern`
+`true | false`
 Whether or not this player can communicate (chat) with players with a different
 Allegiance.
 
-## `can_translate_ancient`
-`True | False`
+## `canTranslateAncient`
+`true | false`
 Whether or not this player can read the Ancient language.
 
-## `can_identify_poison`
-`True | False`
+## `canIdentifyPoison`
+`true | false`
 Whether or not this player can identify poisonous and non-poisonous plants. Once
 the poison has been cooked into a food or is somehow "hidden," it can no longer
 be distinguished by anyone, even the poisoner.
 
-## `is_hunter`
-`True | False`
+## `isHunter`
+`true | false`
 Whether or not this player is especially effective against attacking animals and beasts (does not include humans).
 
-## `repair_amount`
+## `repairAmount`
 `0.00 - 1.00`
 A percentage of how much this player can repair `Repairable` items. `1.00` means
 a player can repair an item to it's original quality. Any player, given a
 non-zero `repair_amount`, can repair any `Repairable` item.
 
-## `heal_amount`
+## `healAmount`
 `0.00 - 1.00`
 A percentage of how much this player can heal other players using healing items.
 `1.00` means a player can heal another player to full health.
@@ -35,14 +35,14 @@ A percentage of how much this player can heal other players using healing items.
 A list of items that this player can craft. When an item is crafted, it is
 spawned at full quality.
 
-## `can_fillet`
-`True | False`
+## `canFillet`
+`true | false`
 Whether or not this player can fillet corpses, beast or human. Whereas a corpse
 can be identified, a filleted corpse cannot be identified. It also provides raw
 meat.
 
-## `can_setup_camp`
-`True | False`
+## `canSetupCamp`
+`true | false`
 Whether or not this player can setup camp. Setting up camp is a
 non-instantaneous operation. A set-up camp includes:
 * tents for sleeping
@@ -50,18 +50,18 @@ non-instantaneous operation. A set-up camp includes:
 * cooking cauldron
 * [anything else?]
 
-## `movement_speed`
+## `movementSpeed` -- __DEPRECATED__
 `1.00-3.00`
 The speed at which this player can move across terrain.
 
-## `can_update_maps`
-`True | False`
+## `canUpdateMaps`
+`true | false`
 Whether or not this player can update other players' maps.
 
-## `line_of_sight`
-`0.50 - 2.00`
-Active line of sight for this player. Normal line of sight is `1.00`.
+## `lineOfSight`
+`1 [normal], 2 [improved], 3 [excellent]`
+Active line of sight for this player, as well as their hearing.
 
-## `can_smelt`
-`True | False`
+## `canSmelt`
+`true | false`
 Whether or not this player can smelt gold (or other) ores into ingot.
