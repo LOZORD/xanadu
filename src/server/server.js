@@ -10,7 +10,8 @@ const MAIN_NS = '/';
 const MAIN_ROOM = 'MAIN_ROOM';
 const MAX_SOCKETS_PER_ROOM = 8;
 
-app.use(express.static(path.join(__dirname, 'client')));
+// i.e. use lib/client/(index.html)
+app.use(express.static(path.join(__dirname, '..', 'client')));
 
 http.listen(3000, () => {
   console.log('listening on port 3000');

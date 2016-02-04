@@ -2,14 +2,14 @@
   "name": "xanadu",
   "version": "0.0.2",
   "description": "A game of loose alliances and breaking fast on honeydew.",
-  "main": "server.js",
+  "main": "src/server/server.js",
   "directories": {
     "doc": "docs"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "babel src -D -d lib",
-    "launch": "echo \"Open localhost:3000\" && node lib/server.js"
+    "launch": "echo \"Open localhost:3000\" && node lib/server/server.js"
   },
   "repository": {
     "type": "git",
