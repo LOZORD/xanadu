@@ -29,6 +29,7 @@
     "babel-preset-es2015": "^6.3.13",
     "babel-register": "^6.4.3",
     "express": "^4.13.4",
+    "invisible": "^0.4.1",
     "lodash": "^4.1.0",
     "socket.io": "^1.4.5"
   }
