@@ -30,6 +30,7 @@
     "babel-register": "^6.4.3",
     "express": "^4.13.4",
     "invisible": "^0.4.1",
+    "jquery": "^2.2.0",
     "lodash": "^4.1.0",
     "socket.io": "^1.4.5"
   }

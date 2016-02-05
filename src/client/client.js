@@ -1,5 +1,5 @@
 let socket = io();
 
-console.log('ALOHA!!!');
-
-console.log(socket);
+$(document).ready(() => {
+  $('body').append('socket and jquery are ready!');
+});

@@ -13,6 +13,11 @@ const MAX_SOCKETS_PER_ROOM = 8;
 // i.e. use lib/client/(index.html)
 app.use(express.static(path.join(__dirname, '..', 'client')));
 
+// for adding jquery to the client
+app.use('/jquery', express.static(path.join(
+        __dirname, '..', '..', 'node_modules', 'jquery', 'dist'
+)));
+
 http.listen(3000, () => {
   console.log('listening on port 3000');
 });
