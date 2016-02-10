@@ -13,9 +13,18 @@ const MAX_SOCKETS_PER_ROOM = 8;
 // i.e. use lib/client/(index.html)
 app.use(express.static(path.join(__dirname, '..', 'client')));
 
+const NODE_MODULES_DIR = path.join(
+    __dirname, '..', '..', 'node_modules'
+);
+
 // for adding jquery to the client
 app.use('/jquery', express.static(path.join(
-        __dirname, '..', '..', 'node_modules', 'jquery', 'dist'
+  NODE_MODULES_DIR, 'jquery', 'dist'
+)));
+
+// for adding bootstrap to the client
+app.use('/bootstrap', express.static(path.join(
+  NODE_MODULES_DIR, 'bootstrap', 'dist'
 )));
 
 http.listen(3000, () => {

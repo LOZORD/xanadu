@@ -2,3 +2,9 @@ body {
   font-family: Menlo, monospace;
   background-color: skyblue;
 }
+
+#parent-container {
+  border: 1px solid black;
+  width: 95vw;
+  height: 95vh;
+}
