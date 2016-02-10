@@ -8,3 +8,15 @@ body {
   width: 95vw;
   height: 95vh;
 }
+
+#left-half, #right-half {
+  height: 95vh;
+}
+
+#left-half {
+  border: 1px dashed gold;
+}
+
+#right-half {
+  border: 1px dotted red;
+}
