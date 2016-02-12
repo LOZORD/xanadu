@@ -11,6 +11,7 @@ body {
 
 #left-half, #right-half {
   height: 95vh;
+  padding: 0;
 }
 
 #left-half {
@@ -20,3 +21,41 @@ body {
 #right-half {
   border: 1px dotted red;
 }
+
+#form-wrapper {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+
+#main-input {
+  border: 0;
+  padding: 1.0vh 0;
+  width: 100%;
+  outline: none;
+  height: 5vh;
+}
+
+#messages-wrapper {
+  overflow-y: scroll;
+  height: 90vh;
+}
+
+#messages {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: scroll;
+}
+
+/*
+
+#messages li {
+  padding: 1vh 1.5vw;
+}
+
+#messages li:nth-child(odd) {
+  background-color: #pink;
+}
+*/
