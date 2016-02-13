@@ -5,6 +5,10 @@ let http = require('http').Server(app);
 let io = require('socket.io')(http);
 let path = require('path');
 let _ = require('lodash');
+//let Invisible = require('invisible');
+
+//let Player = Invisible.Person || require('../common/player');
+let Player = require('../common/player');
 
 const MAIN_NS = '/';
 const MAIN_ROOM = 'MAIN_ROOM';
@@ -62,6 +66,10 @@ io.on('connection', (socket) => {
 
 function acceptNewSocket(socket) {
   socket.join(MAIN_ROOM);
+  socket.player = new Player({
+    socket: socket
+    //TODO add game field
+  });
   socket.wasAcceptedByXanadu = true;
   let socketsInRoom = mainRoom ? mainRoom.length : 1;
   let spotsLeft = MAX_SOCKETS_PER_ROOM - socketsInRoom;
