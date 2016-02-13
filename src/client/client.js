@@ -17,6 +17,17 @@ $(document).ready(() => {
     }
   });
 
+  socket.on('request-name', () => {
+    addMessage('ADDED TO GAME');
+    // TODO: ask the player their name
+    // also create player object
+  });
+
+  socket.on('rejected-from-room', () => {
+    addMessage('GAME ROOM AT CAPACITY');
+    setTimeout(() => { window.location = 'http://example.com' }, 5000);
+  });
+
   let addMessage = (msg) => {
     messageOutput.append($('<li>').text(msg));
     messageOutput.parent().scrollTop(messageOutput.parent().height());
