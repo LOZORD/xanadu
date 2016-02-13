@@ -1,7 +1,10 @@
 let _ = require('lodash')
 
-class Character {
-  constructor(kwargs = {}) {
+class Character extends Animal {
+  constructor(args = {}) {
+
+    super(args);
+
     // Static enums
     this.classes = {
       UNDEFINED_CLASS: -1,
@@ -61,12 +64,12 @@ class Character {
     this.allegiance = this.allegiances.UNDEFINED_ALLEGIANCE;
 
     // Use (the child's) arguments
-    _.assignIn(this, kwargs);
+    _.assignIn(this, args);
   }
 }
 
 /* TODO
-Character.factory = (kwargs = {}) => {
+Character.factory = (args = {}) => {
   switch (className) {
   }
 };

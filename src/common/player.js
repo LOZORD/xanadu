@@ -1,5 +1,5 @@
 class Player {
-  constructor(args) {
+  constructor(args = {}) {
     this.socket = args.socket;
     this.character = {}; // TODO
   }

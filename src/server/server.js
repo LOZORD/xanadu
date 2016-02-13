@@ -34,6 +34,9 @@ http.listen(3000, () => {
 // TODO: a more elegant way to get this?
 let numSocketsInRoom = 0;
 
+// XXX: this will be held onto by this server's game
+let mainRoom = null;
+
 io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     // check if the socket was even in the main room
@@ -43,11 +46,15 @@ io.on('connection', (socket) => {
     console.log(`user ${ socket.id } disconnected`);
   });
 
+  //TODO: use mainRoom's number of keys now
   if (numSocketsInRoom < MAX_SOCKETS_PER_ROOM) {
     acceptNewSocket(socket);
   } else {
     rejectNewSocket(socket);
   }
+
+  //console.log(io.sockets.adapter.rooms);
+  mainRoom = mainRoom || io.sockets.adapter.rooms[MAIN_ROOM];
 });
 
 function acceptNewSocket(socket) {
@@ -57,6 +64,9 @@ function acceptNewSocket(socket) {
   let spotsLeft = MAX_SOCKETS_PER_ROOM - numSocketsInRoom;
   console.log(`\taccepting socket`);
   console.log(`\t${ spotsLeft } / ${ MAX_SOCKETS_PER_ROOM } spots left`);
+  // get the player's name (and any other info)
+  // when we get that data back, we will create a Player obj for them
+  // and then add them to the game TODO
   socket.emit('request-name');
 
   console.log(`socket ${ socket.id } joined room ${ MAIN_ROOM }`);
