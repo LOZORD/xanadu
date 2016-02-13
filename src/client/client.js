@@ -14,6 +14,10 @@ $(document).ready(() => {
     console.log(msg);
     if (msg) {
       addMessage(msg);
+
+      if (msg.startsWith(':')) {
+        sendSpecialCommand(msg);
+      }
     }
   });
 
@@ -32,6 +36,18 @@ $(document).ready(() => {
     messageOutput.append($('<li>').text(msg));
     messageOutput.parent().scrollTop(messageOutput.parent().height());
     input.focus();
+  };
+
+  let sendSpecialCommand = (msg) => {
+    //let specialCommandRegex = /:(\w+)\s([\w\s]+)/;
+    let specialCommandRegex = /^:(\w+)(.+)?$/;
+    let matches = msg.match(specialCommandRegex);
+    //console.log(matches);
+
+    socket.emit('special-command', {
+      keyword: matches[1],
+      payload: matches[2].trim()
+    });
   };
 
   input.focus();

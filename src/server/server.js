@@ -39,6 +39,10 @@ let mainRoom = null;
 io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log(`user ${ socket.id } disconnected`);
+
+    if (mainRoom && mainRoom.length === 0) {
+      mainRoom = null;
+    }
   });
 
   // if the room is empty or there is still room
@@ -50,6 +54,10 @@ io.on('connection', (socket) => {
 
   mainRoom = mainRoom || io.sockets.adapter.rooms[MAIN_ROOM];
   //console.log(mainRoom);
+
+  socket.on('special-command', (args) => {
+    console.log(args);
+  });
 });
 
 function acceptNewSocket(socket) {
