@@ -1,3 +1,4 @@
+let gen = require('random-seed');
 class Game {
   constructor(args = {}) {
     this.players = args.players || [];
@@ -6,6 +7,8 @@ class Game {
     this.hasStarted = false;
     this.hasEnded   = false;
     this.turnNumber = 0;
+    this.seed       = args.seed || Date.now();
+    this.rng        = gen(this.seed);
   }
   generateMap(N = 16) {
     // TODO: generate an NxN dungeon
@@ -16,6 +19,11 @@ class Game {
     });
 
     // generation logic would go here...
+  }
+  isAcceptingPlayers() {
+    return !this.hasStared;
+  }
+  play() {
   }
   update() {
     // the main update ("tick") logic will go here
