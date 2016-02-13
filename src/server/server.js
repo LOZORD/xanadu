@@ -31,37 +31,32 @@ http.listen(3000, () => {
   console.log('listening on port 3000');
 });
 
-// TODO: a more elegant way to get this?
-let numSocketsInRoom = 0;
-
 // XXX: this will be held onto by this server's game
+// having it be null is spooky, can we assign it something else?
+// possibly merge old value and new value
 let mainRoom = null;
 
 io.on('connection', (socket) => {
   socket.on('disconnect', () => {
-    // check if the socket was even in the main room
-    if (socket.wasAcceptedByXanadu) {
-      numSocketsInRoom--;
-    }
     console.log(`user ${ socket.id } disconnected`);
   });
 
-  //TODO: use mainRoom's number of keys now
-  if (numSocketsInRoom < MAX_SOCKETS_PER_ROOM) {
+  // if the room is empty or there is still room
+  if (!mainRoom || mainRoom.length < MAX_SOCKETS_PER_ROOM) {
     acceptNewSocket(socket);
   } else {
     rejectNewSocket(socket);
   }
 
-  //console.log(io.sockets.adapter.rooms);
   mainRoom = mainRoom || io.sockets.adapter.rooms[MAIN_ROOM];
+  //console.log(mainRoom);
 });
 
 function acceptNewSocket(socket) {
   socket.join(MAIN_ROOM);
   socket.wasAcceptedByXanadu = true;
-  numSocketsInRoom++;
-  let spotsLeft = MAX_SOCKETS_PER_ROOM - numSocketsInRoom;
+  let socketsInRoom = mainRoom ? mainRoom.length : 1;
+  let spotsLeft = MAX_SOCKETS_PER_ROOM - socketsInRoom;
   console.log(`\taccepting socket`);
   console.log(`\t${ spotsLeft } / ${ MAX_SOCKETS_PER_ROOM } spots left`);
   // get the player's name (and any other info)
