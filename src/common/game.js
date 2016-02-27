@@ -19,6 +19,8 @@ class Game {
     });
 
     // generation logic would go here...
+
+    
   }
   isAcceptingPlayers() {
     return !this.hasStared;
