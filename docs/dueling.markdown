@@ -82,9 +82,13 @@ Potentially, we can have bets.
 
 # IMPLEMENTATION
 PLAYER CLASS
+
 DUEL_PLAYER CLASS EXTENDS PLAYER (turn, gridPosition)
+
 ROOM GRID CLASS (room boundaries -- 1D array)
+
 GAME MANAGER CLASS (whetherPlaying, P1, P2, roomGrid) 
+
  * roll(duelPlayer p1, duelPlayer p2);
  * choice()
  * move()
