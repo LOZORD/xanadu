@@ -1,0 +1,3 @@
+/*
+Keeps track of game management information on the duel such as rolling and player choices.
+*/
