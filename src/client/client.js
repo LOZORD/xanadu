@@ -7,30 +7,19 @@ $(document).ready(() => {
   let form = $('#main-form');
   let input = $('#main-input');
 
+  input.focus();
+
   form.submit((event) => {
     event.preventDefault();
     let msg = input.val().trim();
     input.val('');
     console.log(msg);
-    if (msg) {
-      addMessage(msg);
-
-      if (msg.startsWith(':')) {
-        sendSpecialCommand(msg);
-      }
-    }
+    sendMessage(msg);
   });
 
-  socket.on('request-name', () => {
-    addMessage('ADDED TO GAME');
-    // TODO: ask the player their name
-    // also create player object
-  });
-
-  socket.on('rejected-from-room', () => {
-    addMessage('GAME ROOM AT CAPACITY');
-    setTimeout(() => { window.location = 'http://example.com' }, 5000);
-  });
+  let sendMessage = (msg) => {
+    socket.emit('message', msg);
+  };
 
   let addMessage = (msg) => {
     messageOutput.append($('<li>').text(msg));
@@ -38,17 +27,18 @@ $(document).ready(() => {
     input.focus();
   };
 
-  let sendSpecialCommand = (msg) => {
-    //let specialCommandRegex = /:(\w+)\s([\w\s]+)/;
-    let specialCommandRegex = /^:(\w+)(.+)?$/;
-    let matches = msg.match(specialCommandRegex);
-    //console.log(matches);
+  socket.on('rejected-from-room', () => {
+    addMessage('GAME ROOM AT CAPACITY');
+    setTimeout(() => { window.location = 'http://example.com' }, 5000);
+  });
 
-    socket.emit('special-command', {
-      keyword: matches[1],
-      payload: matches[2].trim()
-    });
-  };
+  socket.on('message', (data) => {
+    console.log('message', data);
+    addMessage(JSON.stringify(data));
+  });
 
-  input.focus();
+  // DEPRECATED
+  socket.on('update', (data) => {
+    console.log('update', data);
+  });
 });
