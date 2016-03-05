@@ -49,6 +49,18 @@ body {
   overflow-y: scroll;
 }
 
+li.via-echo {
+  color: white;
+}
+
+li.via-message {
+  color: black;
+}
+
+li.via-whipser {
+  color: magenta;
+}
+
 /*
 
 #messages li {
