@@ -39,7 +39,7 @@ class Game extends Emitter {
 
     player.echo(message);
 
-    if (player.state === Player.PLAYER_STATES.anon && !this.hasStarted) {
+    if (player.state === Player.PLAYER_STATES.ANON && !this.hasStarted) {
       //TODO: first check if name is unique
       player.name = message;
       player.state = Player.PLAYER_STATES.NAMED;
@@ -47,6 +47,7 @@ class Game extends Emitter {
       player.message(`Welcome to Xanadu ${ player.name }! Enter \`ready\` to start.`);
       player.broadcast(`${ player.name } has joined the game!`);
     } else if (player.state === Player.PLAYER_STATES.NAMED && !this.hasStarted) {
+      // TODO: fix pre-game chat (open to everyone/global/unlimited)
       if (message.toLowerCase() === 'ready') {
         player.state = Player.PLAYER_STATES.READY;
         player.message('The game will start when everyone is ready...');
@@ -68,6 +69,7 @@ class Game extends Emitter {
   }
 
   attemptToStart() {
+    console.log(this.players.map(player => [player.name, player.state]));
     if (this.players.every((player) => player.state === Player.PLAYER_STATES.READY)) {
       this.hasStarted = true;
       console.log('GAME STARTED!');

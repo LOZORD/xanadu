@@ -42,6 +42,8 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log(`user ${ socket.id } disconnected`);
 
+    _.remove(game.players, player => player.id() === socket.player.id());
+
     if (mainRoom && mainRoom.length === 0) {
       mainRoom = null;
     }
