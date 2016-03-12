@@ -156,7 +156,7 @@ class Game extends Emitter {
              throw 'unknown recipient';
            }
            let toName = split[1];
-           let toMessage = split.slice(2);
+           let toMessage = split.slice(2).join(' ');
            player.whisper(toMessage, toName);
            //player.echo(message);
            break;
