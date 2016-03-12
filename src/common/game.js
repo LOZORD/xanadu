@@ -1,11 +1,7 @@
 let gen = require('random-seed');
 let express = require('express');
-//let _app = express();
-//let _http = require('http').Server(_app);
-//let _io = require('socket.io')(_http);
 let path = require('path');
 let ioFunc = require('socket.io');
-let _http = require('http');
 let _ = require('lodash');
 let Emitter = require('events');
 let Player  = require('../common/player');
@@ -15,14 +11,8 @@ class Game extends Emitter {
     // set up server stuff
     this.expressApp = express();
     this.port = args.port || 3000;
-    /*
-    _http.listen(this.port, () => {
-      console.log(`GAME LISTENING ON PORT ${this.port}`);
-    });
-    */
     let serverElements = this.createServer();
     this.ns = args.ns || '/';
-    //this.room = args.room || 'MAIN_ROOM';
     this.maxPlayers = args.maxPlayers || 8;
 
     // stuff for the actual game
@@ -51,20 +41,12 @@ class Game extends Emitter {
     console.log('\t\tPLAYING...');
   }
   update() {
-    // the main update ("tick") logic will go here
+    // TODO: the main update ("tick") logic will go here
   }
-  /*
-  setupMap(socketRoom, map) {
-    //TODO
-    // for now, do nothing
-  }
-  */
   createServer() {
     //this.expressApp = express();
     let httpServer = _http.Server(this.expressApp);
     let io = ioFunc(httpServer);
-
-    //let pathToClientDir = [__dirname, '..', 'client'];
 
     // serve the client stuff
     this.expressApp.use(express.static(path.join(
@@ -113,7 +95,6 @@ class Game extends Emitter {
     };
   }
   acceptSocket(socket) {
-    // XXX: important? : socket.join(this.mainRoom);
     socket.player = new Player({
       socket: socket,
       game: this
