@@ -10,7 +10,7 @@ Contributions welcome.
 ```bash
 $ npm install
 # ...
-$ npm run build && npm run launch
+$ npm run now # builds and launches
 ```
 
 This project uses ES6 + Babel. Please follow that convention.

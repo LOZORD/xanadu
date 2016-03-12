@@ -49,6 +49,26 @@ body {
   overflow-y: scroll;
 }
 
+li.via-echo {
+  color: white;
+}
+
+li.via-message {
+  color: black;
+}
+
+li.via-whisper {
+  color: magenta;
+}
+
+li.via-broadcast {
+  color: yellow;
+}
+
+li.unknown-message-data-type {
+  color: firebrick;
+}
+
 /*
 
 #messages li {
