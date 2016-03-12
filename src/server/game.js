@@ -113,35 +113,79 @@ class Game extends Emitter {
   }
   message(player, message) {
 
+    // always echo the message back to the player
+    // TODO: move this to the bottom of the method
+    // we may want to echo in a different manner
+    // (e.g. whisper + style both to and from sockets)
     player.echo(message);
 
     if (player.state === Player.PLAYER_STATES.ANON && !this.hasStarted) {
       //TODO: first check if name is unique
       player.name = message;
       player.state = Player.PLAYER_STATES.NAMED;
-      //this.emit('player-named', player);
       player.message(`Welcome to Xanadu ${ player.name }! Enter \`ready\` to start.`);
       player.broadcast(`${ player.name } has joined the game!`, WITHOUT_NAME);
     } else if (player.state === Player.PLAYER_STATES.NAMED && !this.hasStarted) {
-      // TODO: fix pre-game chat (open to everyone/global/unlimited)
       if (message.toLowerCase() === 'ready') {
         player.state = Player.PLAYER_STATES.READY;
         player.message('The game will start when everyone is ready...');
         player.broadcast(`${ player.name } is ready!`, WITHOUT_NAME);
         this.attemptToStart();
       } else {
-        // anyone talk before the game starts
-        player.broadcast(message);
+        // anyone can talk to anyone before the game starts
+        this.handleMessage(message, player, {
+          defaultTo: 'broadcast'
+        });
       }
     } else if (player.state == Player.PLAYER_STATES.PLAYING && this.hasStarted) {
       this.handleMessage(message, player);
     } else {
-      return null;
+      // do nothing
     }
   }
-  handleMessage(message, player) {
-    // TODO
-    console.log('TODO: handleMessage', message, player);
+  handleMessage(message, player, kwargs = {}) {
+    // check if it's a special command
+    if (message.startsWith(':')) {
+      let split = message.split(' ');
+
+      let command = split[0];
+
+      switch (command) {
+        case ':to':
+           if (!split[1]) {
+             throw 'unknown recipient';
+           }
+           let toName = split[1];
+           let toMessage = split.slice(2);
+           player.whisper(toMessage, toName);
+           //player.echo(message);
+           break;
+        default:
+           throw 'unknown command type';
+      }
+    } else {
+      if (kwargs.defaultTo) {
+        switch (kwargs.defaultTo) {
+          case 'message':
+            player.message(message, kwargs.speaker);
+            break;
+          case 'echo': // XXX: echoed already... nec?
+            player.echo(message);
+            break;
+          case 'broadcast':
+            player.broadcast(message, kwargs.withName);
+            break;
+          case 'whisper':
+            player.whisper(message, kwargs.toName);
+            break;
+          default:
+            // do nothing
+            break;
+        }
+      } else {
+        // do nothing
+      }
+    }
   }
   attemptToStart() {
     console.log(this.players.map(player => [player.name, player.state]));

@@ -1,3 +1,5 @@
+let _ = require('lodash');
+
 /*
  * player states [LINEAR]
  *    anon
@@ -95,6 +97,19 @@ class Player {
       speaker: withName ? this.name : '',
       message: message,
       type: 'broadcast'
+    });
+  }
+
+  // player -> player
+  // XXX: is this unnec. b/c of .message func?
+  whisper (message, toName) {
+    toName = toName.toLowerCase();
+    let toPlayer = _.find(this.game.players,
+        (player) => player.name.toLowerCase() === toName);
+    toPlayer.socket.emit('message', {
+      speaker: this.name,
+      message: message,
+      type: 'whisper'
     });
   }
 }
