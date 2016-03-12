@@ -57,8 +57,16 @@ li.via-message {
   color: black;
 }
 
-li.via-whipser {
+li.via-whisper {
   color: magenta;
+}
+
+li.via-broadcast {
+  color: yellow;
+}
+
+li.unknown-message-data-type {
+  color: firebrick;
 }
 
 /*

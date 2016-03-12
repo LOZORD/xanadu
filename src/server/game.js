@@ -1,10 +1,12 @@
 let gen = require('random-seed');
+let http = require('http');
 let express = require('express');
 let path = require('path');
 let ioFunc = require('socket.io');
 let _ = require('lodash');
 let Emitter = require('events');
-let Player  = require('../common/player');
+let Player  = require('./player');
+let WITHOUT_NAME = false;
 class Game extends Emitter {
   constructor(args = {}) {
     super(args);
@@ -45,7 +47,7 @@ class Game extends Emitter {
   }
   createServer() {
     //this.expressApp = express();
-    let httpServer = _http.Server(this.expressApp);
+    let httpServer = http.Server(this.expressApp);
     let io = ioFunc(httpServer);
 
     // serve the client stuff
@@ -90,7 +92,7 @@ class Game extends Emitter {
     });
 
     return {
-      http: httpServer,
+      httpServer: httpServer,
       io: io
     };
   }
@@ -119,13 +121,13 @@ class Game extends Emitter {
       player.state = Player.PLAYER_STATES.NAMED;
       //this.emit('player-named', player);
       player.message(`Welcome to Xanadu ${ player.name }! Enter \`ready\` to start.`);
-      player.broadcast(`${ player.name } has joined the game!`);
+      player.broadcast(`${ player.name } has joined the game!`, WITHOUT_NAME);
     } else if (player.state === Player.PLAYER_STATES.NAMED && !this.hasStarted) {
       // TODO: fix pre-game chat (open to everyone/global/unlimited)
       if (message.toLowerCase() === 'ready') {
         player.state = Player.PLAYER_STATES.READY;
         player.message('The game will start when everyone is ready...');
-        player.broadcast(`${ player.name } is ready!`);
+        player.broadcast(`${ player.name } is ready!`, WITHOUT_NAME);
         this.attemptToStart();
       } else {
         // anyone talk before the game starts

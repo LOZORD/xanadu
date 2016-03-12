@@ -33,8 +33,12 @@ $(document).ready(() => {
     } else if (data.type === 'whisper') {
       ret.message = data.speaker + ' said: ' + ret.message;
       ret.classes.push('via-whisper');
+    } else if (data.type === 'broadcast') {
+      ret.message = `Let it be known that${ data.speaker ? ` ${ data.speaker } said` : '' }: ${ ret.message }`;
+      ret.classes.push('via-broadcast');
     } else {
-      console.err('unknown message data type');
+      console.log('unknown message data type');
+      ret.classes.push('unknown-message-data-type');
     }
 
     return ret;

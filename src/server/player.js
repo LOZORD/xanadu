@@ -51,8 +51,9 @@ class Player {
   }
 
   isDead() {
-    if ((this.state === PLAYER_STATES.DEAD) === (!this.isAlive())) {
-      console.err('INCONSISTENT DEATH STATE!!!');
+    // check for inconsistency bugs
+    if ((this.state === PLAYER_STATES.DEAD) !== (this.isAlive() === false)) {
+      console.log('INCONSISTENT DEATH STATE!!!');
     }
 
     return this.state === PLAYER_STATES.DEAD;
@@ -89,9 +90,9 @@ class Player {
   }
 
   // player -> all
-  broadcast (message) {
+  broadcast (message, withName = true) {
     this.socket.broadcast.emit('message', {
-      speaker: this.name,
+      speaker: withName ? this.name : '',
       message: message,
       type: 'broadcast'
     });
