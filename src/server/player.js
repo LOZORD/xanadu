@@ -1,4 +1,3 @@
-//let Invisible = require('invisible');
 /*
  * player states [LINEAR]
  *    anon
