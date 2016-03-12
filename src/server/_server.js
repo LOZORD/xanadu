@@ -1,3 +1,4 @@
+/* DEPRECATED -- SERVER CODE IN GAME CLASS */
 /* Main server code */
 let express = require('express');
 let app = express();
