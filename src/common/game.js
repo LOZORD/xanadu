@@ -1,12 +1,33 @@
 let gen = require('random-seed');
+let express = require('express');
+//let _app = express();
+//let _http = require('http').Server(_app);
+//let _io = require('socket.io')(_http);
+let path = require('path');
+let ioFunc = require('socket.io');
+let _http = require('http');
+let _ = require('lodash');
 let Emitter = require('events');
 let Player  = require('../common/player');
 class Game extends Emitter {
   constructor(args = {}) {
     super(args);
+    // set up server stuff
+    this.expressApp = express();
+    this.port = args.port || 3000;
+    /*
+    _http.listen(this.port, () => {
+      console.log(`GAME LISTENING ON PORT ${this.port}`);
+    });
+    */
+    let serverElements = this.createServer();
+    this.ns = args.ns || '/';
+    //this.room = args.room || 'MAIN_ROOM';
+    this.maxPlayers = args.maxPlayers || 8;
+
+    // stuff for the actual game
     this.players = args.players || [];
     this.map = this.generateMap();
-    this.setupMap(this.socketRoom, this.map);
     this.hasStarted = false;
     this.hasEnded   = false;
     this.turnNumber = 0;
@@ -27,13 +48,85 @@ class Game extends Emitter {
     return !this.hasStared;
   }
   play() {
+    console.log('\t\tPLAYING...');
   }
   update() {
     // the main update ("tick") logic will go here
   }
+  /*
   setupMap(socketRoom, map) {
     //TODO
     // for now, do nothing
+  }
+  */
+  createServer() {
+    //this.expressApp = express();
+    let httpServer = _http.Server(this.expressApp);
+    let io = ioFunc(httpServer);
+
+    //let pathToClientDir = [__dirname, '..', 'client'];
+
+    // serve the client stuff
+    this.expressApp.use(express.static(path.join(
+      __dirname, '..', 'client'
+    )));
+
+    const NODE_MODULES_DIR = path.join(
+      __dirname, '..', '..', 'node_modules'
+    );
+
+    this.expressApp.use('/jquery', express.static(path.join(
+      NODE_MODULES_DIR, 'jquery', 'dist'
+    )));
+
+    this.expressApp.use('/bootstrap', express.static(path.join(
+      NODE_MODULES_DIR, 'bootstrap', 'dist'
+    )));
+
+    httpServer.listen(this.port, () => {
+      console.log(`Xanadu game listening on port ${ this.port }`);
+    });
+
+    // now add the socket.io listeners
+    io.on('connection', (socket) => {
+      socket.on('disconnect', () => {
+        if (socket.player) {
+          console.log(`user ${ socket.player.id() + '--' + socket.player.name } disconnected`);
+        } else {
+          console.log(`anon user ${ socket.id } disconnected`);
+        }
+
+        // remove them from this list of players
+        _.remove(this.players, (player) => player.id() == socket.player.id());
+      });
+
+      if (this.players.length < this.maxPlayers) {
+        this.acceptSocket(socket);
+      } else {
+        this.rejectSocket(socket);
+      }
+    });
+
+    return {
+      http: httpServer,
+      io: io
+    };
+  }
+  acceptSocket(socket) {
+    // XXX: important? : socket.join(this.mainRoom);
+    socket.player = new Player({
+      socket: socket,
+      game: this
+    });
+    this.players.push(socket.player);
+    let spotsLeft = this.maxPlayers - this.players.length;
+    console.log('\taccepted socket');
+    console.log(`\t${ spotsLeft } / ${ this.maxPlayers } spots left`);
+    socket.emit('request-name'); // might not be nec.
+  }
+  rejectSocket(socket) {
+    console.log(`socket ${ socket.id } rejected -- game full`);
+    socket.emit('rejected-from-room');
   }
   message(player, message) {
 
@@ -63,11 +156,10 @@ class Game extends Emitter {
       return null;
     }
   }
-
   handleMessage(message, player) {
+    // TODO
     console.log('TODO: handleMessage', message, player);
   }
-
   attemptToStart() {
     console.log(this.players.map(player => [player.name, player.state]));
     if (this.players.every((player) => player.state === Player.PLAYER_STATES.READY)) {

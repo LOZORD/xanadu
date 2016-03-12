@@ -24,9 +24,10 @@ class Player {
   constructor(args = {}) {
     this.socket = args.socket;
     this.game   = args.game;
+    /*
     if (this.game) {
       this.game.players.push(this);
-    }
+    } */
     this.character = {}; // TODO
     this.state = PLAYER_STATES.ANON;
     // XXX this could be buggy (i.e. ANON && "has" name)
