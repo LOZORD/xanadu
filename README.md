@@ -1,10 +1,12 @@
 # XANADU
 
-A game of loose alliances and breaking fast on honeydew.
+A game of precarious alliances and [breaking fast on
+honeydew](https://en.wikipedia.org/wiki/Xanadu_(Rush_song)).
 
-Multiplayer Zork-like-Rogue-like game set in 1910's East Asia.
+Xanadu is a text-based [MUD](https://en.wikipedia.org/wiki/MUD) set in 1910's East Asia.
+The Xanadu game client runs in your everyday web browser.
 
-Contributions welcome.
+Contributions welcome!
 
 ## To run:
 ```bash
