@@ -1,30 +1,30 @@
-let _ = require('lodash')
+let _ = require('lodash');
+let Animal = require('../animal');
+
+const CLASSES = {
+  UNDEFINED_CLASS: -1,
+  BENEFACTOR:       0,
+  GUNSLINGER:       1,
+  EXCAVATOR:        2,
+  DOCTOR:           3,
+  CHEF:             4,
+  SHAMAN:           5,
+  CAVEMAN:          6,
+  CARTOGRAPHER:     7,
+  PROF:             8,
+  SMITH:            9
+};
+
+const ALLEGIANCES = {
+  UNDEFINED_ALLEGIANCE:  -1,
+  EASTERN:                0,
+  WESTERN:                1
+};
 
 class Character extends Animal {
   constructor(args = {}) {
 
     super(args);
-
-    // Static enums
-    this.classes = {
-      UNDEFINED_CLASS: -1,
-      BENEFACTOR:       0,
-      GUNSLINGER:       1,
-      EXCAVATOR:        2,
-      DOCTOR:           3,
-      CHEF:             4,
-      SHAMAN:           5,
-      CAVEMAN:          6,
-      CARTOGRAPHER:     7,
-      PROF:             8,
-      SMITH:            9
-    };
-
-    this.allegiances = {
-      UNDEFINED_ALLEGIANCE:  -1,
-      EASTERN:                0,
-      WESTERN:                1
-    };
 
     // Field groupings
     this.modifiers = {
@@ -54,25 +54,21 @@ class Character extends Animal {
       canSmelt:               false,
       repairAmount:           0.0,
       healAmount:             0.0,
-      lineOfSight:            1,
+      //lineOfSight:            1, applicable to all animals (called senseRadius)
       craftables:             []
     };
 
     // Fields w/o groups
-    this.name = 'DEFAULT_CHARACTER_NAME';
-    this.class = this.classes.UNDEFINED_CLASS;
-    this.allegiance = this.allegiances.UNDEFINED_ALLEGIANCE;
+    //this.name = 'DEFAULT_CHARACTER_NAME'; not nec.
+    this.characterClass = this.CLASSES.UNDEFINED_CLASS;
+    this.allegiance = this.ALLEGIANCES.UNDEFINED_ALLEGIANCE;
 
     // Use (the child's) arguments
     _.assignIn(this, args);
   }
 }
 
-/* TODO
-Character.factory = (args = {}) => {
-  switch (className) {
-  }
-};
-*/
+Character.CLASSES = CLASSES;
+Character.ALLEGIANCES = ALLEGIANCES;
 
-// TODO: use invisible and export...
+module.exports = Character;
