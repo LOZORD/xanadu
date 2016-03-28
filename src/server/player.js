@@ -34,9 +34,9 @@ class Player {
     // XXX this could be buggy (i.e. ANON && "has" name)
     this.name = args.name || '[NO NAME]';
     // add main listener
-    this.socket.on('message', (message) => {
-      console.log(message);
-      this.game.message(this, message);
+    this.socket.on('message', (messageObj) => {
+      console.log(messageObj);
+      this.game.message(this, messageObj);
     });
   }
 

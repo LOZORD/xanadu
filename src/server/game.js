@@ -111,7 +111,9 @@ class Game extends Emitter {
     console.log(`socket ${ socket.id } rejected -- game full`);
     socket.emit('rejected-from-room');
   }
-  message(player, message) {
+  message(player, messageObj) {
+    var message   = messageObj.msg;
+    var timeStamp = messageObj.ts;
 
     // always echo the message back to the player
     // TODO: move this to the bottom of the method
@@ -133,18 +135,22 @@ class Game extends Emitter {
         this.attemptToStart();
       } else {
         // anyone can talk to anyone before the game starts
-        this.handleMessage(message, player, {
+        this.handleMessage(messageObj, player, {
           defaultTo: 'broadcast'
         });
       }
     } else if (player.state == Player.PLAYER_STATES.PLAYING && this.hasStarted) {
-      this.handleMessage(message, player);
+      this.handleMessage(messageObj, player);
     } else {
       // do nothing
     }
   }
-  handleMessage(message, player, kwargs = {}) {
+  handleMessage(messageObj, player, kwargs = {}) {
     // check if it's a special command
+    var message   = messageObj.msg;
+    // XXX: do something with timeStamp
+    // e.g. to players attempt to grab the same item
+    //var timeStamp = messageObj.ts;
     if (message.startsWith(':')) {
       let split = message.split(' ');
 

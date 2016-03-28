@@ -18,7 +18,11 @@ $(document).ready(() => {
   });
 
   let sendMessage = (msg) => {
-    socket.emit('message', msg);
+    socket.emit('message', {
+      msg: msg,
+      ts: Date.now(),
+      id: socket.id
+    });
   };
 
   let processData = (data) => {
