@@ -6,6 +6,7 @@ let ioFunc = require('socket.io');
 let _ = require('lodash');
 let Emitter = require('events');
 let Player  = require('./player');
+let Room = require('./room');
 let WITHOUT_NAME = false;
 class Game extends Emitter {
   constructor(args = {}) {
@@ -27,14 +28,21 @@ class Game extends Emitter {
     this.rng        = gen(this.seed);
   }
   generateMap(N = 16) {
-    // TODO: generate an NxN dungeon
-    let oneDim = new Array(16);
 
-    oneDim.forEach((_elem, i) => {
-        oneDim[i] = new Array(16);
+    let map = new Array(N);
+
+    // TODO: use x, y instead
+    _.forEach(map, (__, index) => {
+      map[index] = new Array(N);
+
+      _.forEach(map[index], (____, roomSpot) => {
+        map[index][roomSpot] = new Room();
+      });
     });
 
-    // generation logic would go here...
+    // TODO: generation logic would go here...
+
+    return map;
   }
   isAcceptingPlayers() {
     return !this.hasStared;
@@ -198,6 +206,7 @@ class Game extends Emitter {
     if (this.players.every((player) => player.state === Player.PLAYER_STATES.READY)) {
       this.hasStarted = true;
       console.log('GAME STARTED!');
+      // TODO echo that game has started to the users
     }
   }
 }

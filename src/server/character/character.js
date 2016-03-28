@@ -60,8 +60,8 @@ class Character extends Animal {
 
     // Fields w/o groups
     //this.name = 'DEFAULT_CHARACTER_NAME'; not nec.
-    this.characterClass = this.CLASSES.UNDEFINED_CLASS;
-    this.allegiance = this.ALLEGIANCES.UNDEFINED_ALLEGIANCE;
+    this.characterClass = CLASSES.UNDEFINED_CLASS;
+    this.allegiance = ALLEGIANCES.UNDEFINED_ALLEGIANCE;
 
     // Use (the child's) arguments
     _.assignIn(this, args);

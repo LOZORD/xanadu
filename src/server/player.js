@@ -1,4 +1,5 @@
 let _ = require('lodash');
+let Character = require('./character/character');
 
 /*
  * player states [LINEAR]
@@ -29,7 +30,7 @@ class Player {
     if (this.game) {
       this.game.players.push(this);
     } */
-    this.character = {}; // TODO
+    this.character = new Character(); // TODO
     this.state = PLAYER_STATES.ANON;
     // XXX this could be buggy (i.e. ANON && "has" name)
     this.name = args.name || '[NO NAME]';
