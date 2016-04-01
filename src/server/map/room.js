@@ -1,10 +1,9 @@
-class Room {
-  // TODO: what about "blocked" rooms (i.e. rocks?)
+let Cell = require('./cell');
+
+class Room extends Cell {
   constructor(kwargs = {}) {
     this.animals  = kwargs.animals  || [];
     this.items    = kwargs.items    || [];
-    this.isTreasureRoom = kwargs.isTreasureRoom || false;
-    this.isEntrance = kwargs.isEntrance || false;
     this.x = kwargs.x || -1;
     this.y = kwargs.y || -1;
   }
