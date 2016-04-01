@@ -2,6 +2,7 @@ let Cell = require('./cell');
 
 class Room extends Cell {
   constructor(kwargs = {}) {
+    super(kwargs);
     this.animals  = kwargs.animals  || [];
     this.items    = kwargs.items    || [];
     this.x = kwargs.x || -1;
