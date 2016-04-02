@@ -6,7 +6,8 @@ let ioFunc = require('socket.io');
 let _ = require('lodash');
 let Emitter = require('events');
 let Player  = require('./player');
-let Room = require('./room');
+let Map = require('./map/map');
+let Room = require('./map/room');
 let WITHOUT_NAME = false;
 class Game extends Emitter {
   constructor(args = {}) {
@@ -17,41 +18,50 @@ class Game extends Emitter {
     let serverElements = this.createServer();
     this.ns = args.ns || '/';
     this.maxPlayers = args.maxPlayers || 8;
+    this.seed       = args.seed || Date.now();
+    this.rng        = gen(this.seed);
 
     // stuff for the actual game
     this.players = args.players || [];
-    this.map = this.generateMap();
+    this.map = new Map({
+      dimension: 16, // default to 16x16 grid
+      seed: this.seed,
+      rng:  this.rng
+    });
     this.hasStarted = false;
     this.hasEnded   = false;
     this.turnNumber = 0;
-    this.seed       = args.seed || Date.now();
-    this.rng        = gen(this.seed);
-  }
-  generateMap(N = 16) {
-
-    let map = new Array(N);
-
-    // TODO: use x, y instead
-    _.forEach(map, (__, index) => {
-      map[index] = new Array(N);
-
-      _.forEach(map[index], (____, roomSpot) => {
-        map[index][roomSpot] = new Room();
-      });
-    });
-
-    // TODO: generation logic would go here...
-
-    return map;
   }
   isAcceptingPlayers() {
     return !this.hasStared;
   }
-  play() {
-    console.log('\t\tPLAYING...');
-  }
   update() {
-    // TODO: the main update ("tick") logic will go here
+    this.turnNumber++;
+    let UPDATE_WAIT_TIME = 1000 * 10; // ten seconds
+    setTimeout(() => {
+      // TODO: figure out how to async'ly gather moves from players
+      this.performMoves();
+      // when we're done, update again!
+      this.update();
+    }, UPDATE_WAIT_TIME);
+  }
+  sortMoves(players) {
+    return _
+      .chain(players)
+      // 'capture' all player moves
+      .map((player) => ({ player: player, move: player.nextMove }))
+      // first sort by agility
+      .sortBy('player.character.agility')
+      // and then by time the move was made
+      .sortBy('move.timeStamp')
+      .value();
+  }
+  performMoves() {
+    let sortedMoveObjs = sortMoves(this.players);
+
+    _.forEach(sortedMoveObj, ({ player, move}) => {
+      player.character.perform(move);
+    });
   }
   createServer() {
     //this.expressApp = express();
@@ -206,7 +216,12 @@ class Game extends Emitter {
     if (this.players.every((player) => player.state === Player.PLAYER_STATES.READY)) {
       this.hasStarted = true;
       console.log('GAME STARTED!');
-      // TODO echo that game has started to the users
+      _.forEach(this.players, (player) => {
+        player.message('The game has begun!');
+      });
+
+      // start the game loop
+      this.update();
     }
   }
 }
