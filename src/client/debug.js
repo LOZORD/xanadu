@@ -1,3 +1,4 @@
+/* global io */
 let socket = io('/debug');
 
 $(document).ready(() => {
@@ -19,13 +20,3 @@ $(document).ready(() => {
 
   getData();
 });
-
-
-
-
-
-
-
-
-
-

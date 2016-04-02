@@ -1,3 +1,4 @@
+/* global io */
 let socket = io('/game');
 
 $(document).ready(() => {
