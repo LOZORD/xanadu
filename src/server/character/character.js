@@ -63,8 +63,24 @@ class Character extends Animal {
     this.characterClass = CLASSES.UNDEFINED_CLASS;
     this.allegiance = ALLEGIANCES.UNDEFINED_ALLEGIANCE;
 
+    this.nextMove = {
+      phrase: '',
+      timeStamp: 0
+    };
+
     // Use (the child's) arguments
     _.assignIn(this, args);
+  }
+  setNextMove(newMove) {
+    this.nextMove = newMove;
+  }
+  getNextMove() {
+    return this.nextMove;
+  }
+  performMove(move) {
+    // TODO:  implement this (@zthomae :3 )
+    // XXX:   might need to have a ref to the game object to do this right
+    console.log(`${ this.name } will perform "${ move }"`);
   }
 }
 

@@ -1,3 +1,4 @@
+let _ = require('lodash');
 let Cell = require('./cell');
 
 class Room extends Cell {
