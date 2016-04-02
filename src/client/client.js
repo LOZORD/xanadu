@@ -1,4 +1,4 @@
-let socket = io();
+let socket = io('/game');
 
 $(document).ready(() => {
   let parentContainer = $('#parent-container');

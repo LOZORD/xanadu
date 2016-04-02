@@ -79,8 +79,11 @@ class Game extends Emitter {
       console.log(`Xanadu game listening on port ${ this.port }`);
     });
 
+    // socket namespace for the game
+    var gameNS = io.of('/game');
+
     // now add the socket.io listeners
-    io.on('connection', (socket) => {
+    gameNS.on('connection', (socket) => {
       socket.on('disconnect', () => {
         if (socket.player) {
           console.log(`user ${ socket.player.id() + '--' + socket.player.name } disconnected`);
@@ -101,7 +104,7 @@ class Game extends Emitter {
 
     return {
       httpServer: httpServer,
-      io: io
+      io: gameNS
     };
   }
   acceptSocket(socket) {
