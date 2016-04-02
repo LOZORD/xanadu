@@ -116,7 +116,19 @@ class Player {
 
   // print debug info
   debugString () {
-    return `Name: ${ this.name }\nState: ${ this.state }\n`;
+    let debugObj = {
+      'Name':   this.name,
+      'State':  this.state,
+      'X Pos':  this.character.x,
+      'Y Pos':  this.character.y
+    };
+
+    return _
+      .chain(debugObj)
+      .toPairs()
+      .map(([key, val]) => key + ' : ' + val)
+      .join('\n')
+      .value();
   }
 }
 

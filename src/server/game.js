@@ -121,7 +121,7 @@ class Game extends Emitter {
     };
   }
   debugServer() {
-    console.log('\tDebugging on...');
+    console.log('\tDebugging is active!');
     var debugNS = this.io.of('/debug');
     debugNS.on('connection', (socket) => {
       socket.on('get', () => {
