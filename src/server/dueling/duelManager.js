@@ -41,3 +41,5 @@ class DuelManager {
   duelExit() {
   }
 }
+
+module.exports = DuelManager;

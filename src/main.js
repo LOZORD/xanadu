@@ -47,4 +47,5 @@ let parseArgs = function(argv) {
 };
 
 let args = parseArgs(process.argv);
-let myGame = new Game(args);
+
+(new Game(args));

@@ -1,7 +1,7 @@
 let socket = io('/game');
 
 $(document).ready(() => {
-  let parentContainer = $('#parent-container');
+  //let parentContainer = $('#parent-container');
   let messageOutput   = $('#messages');
 
   let form = $('#main-form');

@@ -5,3 +5,5 @@ class Barrier extends Cell {
     super(kwargs);
   }
 }
+
+module.exports = Barrier;
