@@ -7,7 +7,7 @@
     "doc": "docs"
   },
   "scripts": {
-    "lint": "node_modules/eslint/bin/eslint.js src || echo 'LINT OR FACE MY WRATH!'",
+    "lint": "node_modules/eslint/bin/eslint.js src",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "node_modules/babel-cli/bin/babel.js src -D -d dist",
     "launch": "echo \"Open localhost:3000\" && node dist/main.js",
