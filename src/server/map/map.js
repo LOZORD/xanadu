@@ -1,6 +1,8 @@
+let _ = require('lodash');
 let Cell    = require('./cell');
-let Room    = require('./room');
-let Barrier = require('./barrier');
+//let Room    = require('./room');
+//let Barrier = require('./barrier');
+// TODO treasure room and entrace/exit rooms
 
 class Map {
   constructor(kwargs = []) {
@@ -11,7 +13,7 @@ class Map {
 
     _.range(d, (y) => {
       _.range(d, (x) => {
-        this.cells[y][x] = new Room({
+        this.cells[y][x] = new Cell({
           x: x,
           y: y,
           map: this
@@ -25,10 +27,10 @@ class Map {
   hasCell(x, y) {
     let d = this.dimension;
     return (
-      0 <= i &&
-      i <  d &&
-      0 <= j &&
-      j <  d
+      0 <= x &&
+      x <  d &&
+      0 <= y &&
+      y <  d
     );
   }
   getCell(x, y) {

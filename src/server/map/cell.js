@@ -12,7 +12,8 @@ class Cell {
     this.y    = kwargs.y || -1;
   }
   neighbors() {
-    let cells = this.map.cells;
+    const x = this.x;
+    const y = this.y;
     let neighbors = {};
 
     // NW

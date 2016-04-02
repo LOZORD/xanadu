@@ -7,7 +7,6 @@ let _ = require('lodash');
 let Emitter = require('events');
 let Player  = require('./player');
 let Map = require('./map/map');
-let Room = require('./map/room');
 let WITHOUT_NAME = false;
 class Game extends Emitter {
   constructor(args = {}) {
@@ -15,7 +14,8 @@ class Game extends Emitter {
     // set up server stuff
     this.expressApp = express();
     this.port = args.port || 3000;
-    let serverElements = this.createServer();
+    // let serverElements = this.createServer(); -> unused
+    this.createServer();
     this.ns = args.ns || '/';
     this.maxPlayers = args.maxPlayers || 8;
     this.seed       = args.seed || Date.now();
@@ -57,9 +57,9 @@ class Game extends Emitter {
       .value();
   }
   performMoves() {
-    let sortedMoveObjs = sortMoves(this.players);
+    let sortedMoveObjs = this.sortMoves(this.players);
 
-    _.forEach(sortedMoveObj, ({ player, move}) => {
+    _.forEach(sortedMoveObjs, ({ player, move}) => {
       player.character.perform(move);
     });
   }
@@ -131,7 +131,7 @@ class Game extends Emitter {
   }
   message(player, messageObj) {
     var message   = messageObj.msg;
-    var timeStamp = messageObj.ts;
+    // var timeStamp = messageObj.ts; -> unused for now
 
     // always echo the message back to the player
     // TODO: move this to the bottom of the method
@@ -158,6 +158,7 @@ class Game extends Emitter {
         });
       }
     } else if (player.state == Player.PLAYER_STATES.PLAYING && this.hasStarted) {
+      // TODO: set the player's nextMove if not a special command
       this.handleMessage(messageObj, player);
     } else {
       // do nothing
@@ -175,7 +176,7 @@ class Game extends Emitter {
       let command = split[0];
 
       switch (command) {
-        case ':to':
+        case ':to': {
            if (!split[1]) {
              throw 'unknown recipient';
            }
@@ -184,27 +185,34 @@ class Game extends Emitter {
            player.whisper(toMessage, toName);
            //player.echo(message);
            break;
-        default:
+        }
+        default: {
            throw 'unknown command type';
+        }
       }
     } else {
       if (kwargs.defaultTo) {
         switch (kwargs.defaultTo) {
-          case 'message':
+          case 'message': {
             player.message(message, kwargs.speaker);
             break;
-          case 'echo': // XXX: echoed already... nec?
+          }
+          case 'echo': { // XXX: echoed already... nec?
             player.echo(message);
             break;
-          case 'broadcast':
+          }
+          case 'broadcast': {
             player.broadcast(message, kwargs.withName);
             break;
-          case 'whisper':
+          }
+          case 'whisper': {
             player.whisper(message, kwargs.toName);
             break;
-          default:
+          }
+          default: {
             // do nothing
             break;
+          }
         }
       } else {
         // do nothing

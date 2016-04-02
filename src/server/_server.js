@@ -1,5 +1,6 @@
 /* DEPRECATED -- SERVER CODE IN GAME CLASS */
 /* Main server code */
+/* eslint-disable */
 let express = require('express');
 let app = express();
 let http = require('http').Server(app);

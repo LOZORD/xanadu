@@ -1,7 +1,8 @@
+/* global io */
 let socket = io();
 
 $(document).ready(() => {
-  let parentContainer = $('#parent-container');
+  //let parentContainer = $('#parent-container');
   let messageOutput   = $('#messages');
 
   let form = $('#main-form');

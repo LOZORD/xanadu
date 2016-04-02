@@ -14,7 +14,7 @@ class Animal extends Entity {
     this.senseRadius  = args.senseRadius  || 1;
   }
   // TODO kwargs may contain combattan info and weapon used
-  damage(amount = 0, kwargs = {}) {
+  damage(amount = 0 /*, kwargs = {}*/) {
     this.health = _.max([0, this.health - amount]);
   }
   update(args) {

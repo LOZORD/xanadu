@@ -12,7 +12,7 @@ Contributions welcome!
 ```bash
 $ npm install
 # ...
-$ npm run now # builds and launches
+$ npm run now # lints, builds, and launches
 ```
 
 This project uses ES6 + Babel. Please follow that convention.
