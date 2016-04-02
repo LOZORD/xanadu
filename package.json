@@ -1,10 +1,12 @@
 {
   "name": "xanadu",
   "version": "0.0.2",
-  "description": "A game of loose alliances and breaking fast on honeydew.",
-  "main": "src/server/server.js",
+  "description": "A game of precarious alliances and breaking fast on honeydew.",
+  "main": "src/main.js",
   "directories": {
-    "doc": "docs"
+    "doc": "docs",
+    "lib": "src",
+    "bin": "dist"
   },
   "scripts": {
     "lint": "node_modules/eslint/bin/eslint.js src",
@@ -18,7 +20,7 @@
     "url": "git+https://github.com/LOZORD/xanadu.git"
   },
   "keywords": [
-    "game"
+    "game", "multiuser dungeon"
   ],
   "author": "Leo Rudberg",
   "license": "MIT",
@@ -38,5 +40,20 @@
     "lodash": "^4.1.0",
     "random-seed": "^0.3.0",
     "socket.io": "^1.4.5"
+  },
+  "babel": {
+    "presets": ["es2015"]
+  },
+  "eslintConfig": {
+    "parser": "babel-eslint",
+    "extends": "eslint:recommended",
+    "env": {
+      "browser": true,
+      "node": true,
+      "jquery": true
+    },
+    "rules": {
+      "no-console": 1
+    }
   }
 }
