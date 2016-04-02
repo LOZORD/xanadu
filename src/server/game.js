@@ -13,8 +13,14 @@ class Game extends Emitter {
     super(args);
     // set up server stuff
     this.expressApp = express();
+    this.httpServer = http.Server(this.expressApp);
+    this.io = ioFunc(this.httpServer);
     this.port = args.port || 3000;
     let serverElements = this.createServer();
+    let debug = args.debug || true;
+    if (debug) {
+      this.debugServer();
+    }
     this.ns = args.ns || '/';
     this.maxPlayers = args.maxPlayers || 8;
 
@@ -45,7 +51,7 @@ class Game extends Emitter {
     return map;
   }
   isAcceptingPlayers() {
-    return !this.hasStared;
+    return !this.hasStarted;
   }
   play() {
     console.log('\t\tPLAYING...');
@@ -55,8 +61,6 @@ class Game extends Emitter {
   }
   createServer() {
     //this.expressApp = express();
-    let httpServer = http.Server(this.expressApp);
-    let io = ioFunc(httpServer);
 
     // serve the client stuff
     this.expressApp.use(express.static(path.join(
@@ -75,12 +79,12 @@ class Game extends Emitter {
       NODE_MODULES_DIR, 'bootstrap', 'dist'
     )));
 
-    httpServer.listen(this.port, () => {
+    this.httpServer.listen(this.port, () => {
       console.log(`Xanadu game listening on port ${ this.port }`);
     });
 
     // socket namespace for the game
-    var gameNS = io.of('/game');
+    var gameNS = this.io.of('/game');
 
     // now add the socket.io listeners
     gameNS.on('connection', (socket) => {
@@ -103,9 +107,20 @@ class Game extends Emitter {
     });
 
     return {
-      httpServer: httpServer,
+      httpServer: this.httpServer,
       io: gameNS
     };
+  }
+  debugServer() {
+    console.log('\tDebugging on...');
+    var debugNS = this.io.of('/debug');
+    debugNS.on('connection', (socket) => {
+      socket.on('get', () => {
+        socket.emit('update', this.players.map((p) => {
+          return p.debugString();
+        }).join('\n'));
+      });
+    });
   }
   acceptSocket(socket) {
     socket.player = new Player({

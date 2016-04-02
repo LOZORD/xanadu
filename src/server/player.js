@@ -113,6 +113,11 @@ class Player {
       type: 'whisper'
     });
   }
+
+  // print debug info
+  debugString () {
+    return `Name: ${ this.name }\nState: ${ this.state }\n`;
+  }
 }
 
 Player.PLAYER_STATES = PLAYER_STATES;
