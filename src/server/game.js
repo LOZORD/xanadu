@@ -6,7 +6,7 @@ let ioFunc = require('socket.io');
 let _ = require('lodash');
 let Emitter = require('events');
 let Player  = require('./player');
-let Room = require('./room');
+let Room = require('./map/room');
 let WITHOUT_NAME = false;
 class Game extends Emitter {
   constructor(args = {}) {
