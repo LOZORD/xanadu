@@ -30,7 +30,9 @@ class Player {
     if (this.game) {
       this.game.players.push(this);
     } */
-    this.character = new Character(); // TODO
+    this.character = new Character({
+      player: this
+    }); // TODO
     this.state = PLAYER_STATES.ANON;
     // XXX this could be buggy (i.e. ANON && "has" name)
     this.name = args.name || '[NO NAME]';
