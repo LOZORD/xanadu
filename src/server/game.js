@@ -65,7 +65,7 @@ class Game extends Emitter {
     let sortedMoveObjs = this.sortMoves(this.players);
 
     _.forEach(sortedMoveObjs, ({ player, move}) => {
-      player.character.perform(move);
+      player.character.performMove(move);
     });
   }
   createServer() {
