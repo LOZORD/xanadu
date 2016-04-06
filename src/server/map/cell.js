@@ -2,7 +2,7 @@
 /* Things that extend Cell
   - Room
     - TreasureRoom (extends Room)
-    - EntranceRoom (extends Room)
+    - PassageRoom (extends Room)
   - Wall (a solid rock that can be excavated into a room)
 */
 class Cell {

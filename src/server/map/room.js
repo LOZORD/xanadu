@@ -17,6 +17,7 @@ class Room extends Cell {
     return _.filter(this.animals, (animal) => animal instanceof Character);
   }
   // TODO: this is for describing the room via the `:look` command
+  // TODO: might be good to refactor this into a 'pipe' structure when complete
   toString(observingCharacter) {
     let ret = ``;
 
@@ -40,6 +41,14 @@ class Room extends Cell {
       ret += ` there are also non-humans present`;
     } else {
       ret += `You are in a room with non-humans`;
+    }
+
+    if (this.items.length) {
+      ret += `. After looking around you see the following item(s)`;
+
+      let itemDescriptions = this.items.map((item) => item.toString());
+
+      ret += itemDescriptions.join(', ');
     }
 
     ret += '.';
