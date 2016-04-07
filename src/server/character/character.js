@@ -1,4 +1,4 @@
-let _ = require('lodash');
+//let _ = require('lodash');
 let Animal = require('../animal');
 
 const CLASSES = {
@@ -22,9 +22,9 @@ const ALLEGIANCES = {
 };
 
 class Character extends Animal {
-  constructor(args = {}) {
+  constructor(kwargs = {}) {
 
-    super(args);
+    super(kwargs);
 
     // Field groupings
     this.modifiers = {
@@ -69,7 +69,8 @@ class Character extends Animal {
     };
 
     // Use (the child's) arguments
-    _.assignIn(this, args);
+    //_.assignIn(this, args);
+    // Actually set up fields if this has any
   }
   setNextMove(newMove) {
     this.nextMove = newMove;
