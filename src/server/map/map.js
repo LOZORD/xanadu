@@ -16,7 +16,8 @@ class Map {
     this.seed = kwargs.seed;
     this.rng  = kwargs.rng;
     let d = this.dimension = kwargs.dimension;
-    let textMap = this.generateMap(this.rng, d);
+    const percentWalls = 50;
+    let textMap = this.generateMap(this.seed, d, percentWalls);
     console.log(textMap);
 
     this.cells = [[]];
