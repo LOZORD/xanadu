@@ -20,7 +20,8 @@
     "url": "git+https://github.com/LOZORD/xanadu.git"
   },
   "keywords": [
-    "game", "multiuser dungeon"
+    "game",
+    "multiuser dungeon"
   ],
   "author": "Leo Rudberg",
   "license": "MIT",
@@ -42,7 +43,9 @@
     "socket.io": "^1.4.5"
   },
   "babel": {
-    "presets": ["es2015"]
+    "presets": [
+      "es2015"
+    ]
   },
   "eslintConfig": {
     "parser": "babel-eslint",
@@ -55,5 +58,8 @@
     "rules": {
       "no-console": 1
     }
+  },
+  "dependencies": {
+    "fixed-2d-array": "^1.2.0"
   }
 }
