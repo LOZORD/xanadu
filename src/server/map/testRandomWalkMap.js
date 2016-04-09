@@ -1,6 +1,6 @@
 let proc = require('process');
 console.log(proc.argv);
-let RandomWalkGen = require('./drunkMap');
+let RandomWalkGen = require('./randomWalkMap');
 
 let stringifyMap = require('./stringifyMap');
 

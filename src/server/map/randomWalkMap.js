@@ -38,7 +38,7 @@ let RandomWalkMapGenerator = (seed, dim, percentBarrier) => {
   };
 
   let map = new F2DA(dim, dim, CELL_TYPES.BARRIER);
-  map.set(dim / 2, dim / 2, CELL_TYPES.ROOM);
+  map.set(dim / 2, dim / 2, CELL_TYPES.PASSAGE_ROOM);
 
   let numRooms = 1;
   let rng = new RNG(seed);
@@ -47,7 +47,12 @@ let RandomWalkMapGenerator = (seed, dim, percentBarrier) => {
   let rand, updatePos;
 
   let noUpdate = 0;
+  // XXX: might want to change this value
   const updateLimit = Math.floor(dim * dim / 4);
+
+  let treasureRoomPlaced = false;
+  const TREASURE_ROOM_THRESHOLD = 99;
+  const PASSAGE_ROOM_THRESHOLD = 98;
 
   // while insufficient number of rooms
   while (numRooms < minNumRooms) {
@@ -78,13 +83,34 @@ let RandomWalkMapGenerator = (seed, dim, percentBarrier) => {
 
     let possibleNewPos = combinePos(currPos, updatePos);
 
-    if (hasCell(possibleNewPos) && !onEdge(possibleNewPos)) { 
+    if (hasCell(possibleNewPos) && !onEdge(possibleNewPos)) {
       if (map.get(possibleNewPos.row, possibleNewPos.col) === CELL_TYPES.BARRIER) {
         currPos = possibleNewPos;
-        map.set(currPos.row, currPos.col, CELL_TYPES.ROOM);
+
+        /* randomly place either:
+         * (1) a room
+         * (2) a passage room
+         * (3) the treasure room (only placed once)
+         */
+
+        let roomTypeRand = rng.intBetween(0, 100);
+        let roomToPlace;
+
+        if (roomTypeRand >= TREASURE_ROOM_THRESHOLD && !treasureRoomPlaced) {
+          roomToPlace = CELL_TYPES.TREASURE_ROOM;
+          treasureRoomPlaced = true;
+        } else if (roomTypeRand >= PASSAGE_ROOM_THRESHOLD) {
+          roomToPlace = CELL_TYPES.PASSAGE_ROOM;
+        } else {
+          roomToPlace = CELL_TYPES.ROOM;
+        }
+
+        map.set(currPos.row, currPos.col, roomToPlace);
+
         numRooms++;
       } else {
         // XXX: might want to update to possibleNewPos anyway...
+        currPos = possibleNewPos;
         noUpdate++;
 
         if (noUpdate >= updateLimit) {
@@ -97,6 +123,7 @@ let RandomWalkMapGenerator = (seed, dim, percentBarrier) => {
         }
       }
     } else {
+      // do nothing
     }
   }
 
