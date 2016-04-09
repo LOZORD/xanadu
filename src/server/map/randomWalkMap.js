@@ -38,16 +38,43 @@ let RandomWalkMapGenerator = (seed, dim, percentBarrier) => {
   };
 
   // we want to lean towards placing the treasure room on the edge of the map
-  /*
   const weightRoomType = ({ row, col }, rand) => {
-    //let rowWeight = Math.abs( ((dim - 2)/2) - row ) / ((dim - 2)/2);
-    //let colWeight = Math.abs( ((dim - 2)/2) - col ) / ((dim - 2)/2);
 
-    //const weightFunc = (x) => ();
+    const linearRange = ([ x1, y1 ], [ x2, y2 ]) => {
+      // the `m` in y = mx + b
+      let slope = ((y2 - y1) * 1.0)/(x2 - x1);
 
-    return rand * rowWeight * colWeight;
+      // the `b` in y = mx + b
+      let intercept = y2 - (slope * x2);
+
+      return ((x) => slope * x + intercept);
+    };
+
+    // like an absval function
+    // full weight => 1
+    // no weight = 0
+    // since regular Rooms occupy the lower range of the threshold (see 133)
+    const weightFunc = (x) => {
+      let half = dim / 2.0;
+      if (x == half) {
+        return 0;
+      } else if (x < half) {
+        let beginRange = linearRange([ 1, 1 ], [ half, 0 ]);
+        return beginRange(x);
+      } else { // x > half
+        let endRange = linearRange([ half, 0 ], [ dim - 2, 0 ]);
+        return endRange(x);
+      }
+    };
+
+    let rowWeight = weightFunc(row);
+    let colWeight = weightFunc(col);
+    let weightWeight = 20;
+
+    console.log(row, col, rand, rand * rowWeight * colWeight * weightWeight);
+
+    return rand * (rowWeight * colWeight * weightWeight);
   };
-  */
 
   let map = new F2DA(dim, dim, CELL_TYPES.BARRIER);
   map.set(dim / 2, dim / 2, CELL_TYPES.PASSAGE_ROOM);
@@ -63,6 +90,8 @@ let RandomWalkMapGenerator = (seed, dim, percentBarrier) => {
   const updateLimit = Math.floor(dim * dim / 4);
 
   let treasureRoomPlaced = false;
+  let numPassageRooms = 1;
+  const MAX_PASSAGE_ROOMS = 10;
   const TREASURE_ROOM_THRESHOLD = 99;
   const PASSAGE_ROOM_THRESHOLD = 98;
 
@@ -107,14 +136,16 @@ let RandomWalkMapGenerator = (seed, dim, percentBarrier) => {
          * (3) the treasure room (only placed once)
          */
 
-        let roomTypeRand = rng.intBetween(0, 100);//weightRoomType(rng.intBetween(0, 100));
+        let roomTypeRand = weightRoomType(currPos, rng.intBetween(0, 100));
+        // FIXME: only want to weight towards TreasureRooms BUT NOT PassageRooms
         let roomToPlace;
 
         if (roomTypeRand >= TREASURE_ROOM_THRESHOLD && !treasureRoomPlaced) {
           roomToPlace = CELL_TYPES.TREASURE_ROOM;
           treasureRoomPlaced = true;
-        } else if (roomTypeRand >= PASSAGE_ROOM_THRESHOLD) {
+        } else if (roomTypeRand >= PASSAGE_ROOM_THRESHOLD && numPassageRooms < MAX_PASSAGE_ROOMS) {
           roomToPlace = CELL_TYPES.PASSAGE_ROOM;
+          numPassageRooms++;
         } else {
           roomToPlace = CELL_TYPES.ROOM;
         }
@@ -139,6 +170,10 @@ let RandomWalkMapGenerator = (seed, dim, percentBarrier) => {
     } else {
       // do nothing
     }
+  }
+
+  if (!treasureRoomPlaced) {
+    throw 'did not place treasure room';
   }
 
   return map;
