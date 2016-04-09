@@ -1,6 +1,8 @@
 /* Based off the following content:
  * http://www.roguebasin.com/index.php?title=Random_Walk_Cave_Generation
  */
+
+let PNOISE = require('./perlinNoise.js')
 let RNG = require('random-seed');
 let F2DA = require('fixed-2d-array');
 
@@ -66,6 +68,16 @@ let RandomWalkMapGenerator = (seed, dim, percentBarrier) => {
   const TREASURE_ROOM_THRESHOLD = 99;
   const PASSAGE_ROOM_THRESHOLD = 98;
 
+
+  let pRatio = 8;
+
+  let pRange = Math.ceil(dim/pRatio);
+
+  let pGridSize = pRange+1;
+
+  let perlinGrid = PNOISE.getPerlinGrid(rng, pGridSize);
+
+
   // while insufficient number of rooms
   while (numRooms < minNumRooms) {
     if (false && numRooms % 10 === 0) {
@@ -75,22 +87,34 @@ let RandomWalkMapGenerator = (seed, dim, percentBarrier) => {
     // take a random step in cardinal direction
     // don't want any diagonal paths
 
-    rand = rng.intBetween(0, 3);
+    let getWeight = function(pos, dr, dc){
+      return Math.ceil(Math.pow(4, 1 + perlinGrid.getValueForPoint({x: Math.min( pRange - 0.01,Math.max(0,(pos.col + dc) / pRatio)), 
+        y:  Math.min(pRange - 0.01, Math.max(0, (pos.row + dr)/ pRatio))})));
+    }
+
+    let upRange = getWeight(currPos,-1,0 );
+    let downRange = upRange + getWeight(currPos,1,0 );
+    let leftRange = downRange + getWeight(currPos,0,-1 );
+    let rightRange = leftRange = getWeight(currPos,-1,0 );
+
+
+
+    rand = rng.intBetween(1,leftRange);
 
     // TODO (Max H): add Perlin Noise smoothing here to `rand` based on `currPos`
 
-    if (rand === 0) {
+    if (rand <= upRange) {
       // North
-      updatePos = { row: 0, col: -1 };
-    } else if (rand === 1) {
-      // South
-      updatePos = { row: 0, col: 1 };
-    } else if (rand === 2) {
-      // West
       updatePos = { row: -1, col: 0 };
-    } else if (rand === 3) {
-      // East
+    } else if (rand  <= downRange) {
+      // South
       updatePos = { row: 1, col: 0 };
+    } else if (rand <= leftRange) {
+      // West
+      updatePos = { row: 0, col: -1 };
+    } else if (rand <= rightRange) {
+      // East
+      updatePos = { row: 0, col: 1 };
     } else {
       // do nothing
     }
