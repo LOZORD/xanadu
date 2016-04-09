@@ -1,7 +1,8 @@
-//let lodash = require('lodash');
+/* Based off the following content:
+ * http://www.roguebasin.com/index.php?title=Random_Walk_Cave_Generation
+ */
 let RNG = require('random-seed');
 let F2DA = require('fixed-2d-array');
-//let str = require('./stringifyMap');
 
 const CELL_TYPES = {
   ROOM: '_',
@@ -48,14 +49,12 @@ let RandomWalkMapGenerator = (seed, dim, percentBarrier) => {
   let noUpdate = 0;
   const updateLimit = Math.floor(dim * dim / 4);
 
-  console.log(numRooms, minNumRooms);
-
   // while insufficient number of rooms
-  // FIXME
   while (numRooms < minNumRooms) {
     if (false && numRooms % 10 === 0) {
       console.log(`numRooms: ${ numRooms } ||| minNumRooms: ${ minNumRooms }`);
     }
+
     // take a random step in cardinal direction
     // don't want any diagonal paths
 
@@ -63,46 +62,32 @@ let RandomWalkMapGenerator = (seed, dim, percentBarrier) => {
 
     if (rand === 0) {
       // North
-      //startingCell.row -= 1;
       updatePos = { row: 0, col: -1 };
-      //console.log('going north');
     } else if (rand === 1) {
       // South
-      //startingCell.row += 1;
       updatePos = { row: 0, col: 1 };
-      //console.log('going south');
     } else if (rand === 2) {
       // West
-      //startingCell.col -= 1;
       updatePos = { row: -1, col: 0 };
-      //console.log('going west');
     } else if (rand === 3) {
       // East
-      //startingCell.col += 1;
       updatePos = { row: 1, col: 0 };
-      //console.log('going east');
     } else {
-      console.log('unknown direction: ', rand);
-      updatePos = { row: 0, col: 0 };
+      // do nothing
     }
-
-    //console.log(str(map));
 
     let possibleNewPos = combinePos(currPos, updatePos);
 
-    //if (hasCell(possibleNewPos)) { // && !onEdge(possibleNewPos)) { 
     if (hasCell(possibleNewPos) && !onEdge(possibleNewPos)) { 
-      //console.log('possible new room');
       if (map.get(possibleNewPos.row, possibleNewPos.col) === CELL_TYPES.BARRIER) {
         currPos = possibleNewPos;
         map.set(currPos.row, currPos.col, CELL_TYPES.ROOM);
         numRooms++;
       } else {
-        //console.log('already a room');
+        // XXX: might want to update to possibleNewPos anyway...
         noUpdate++;
 
         if (noUpdate >= updateLimit) {
-          //return map;
           // jump somewhere new on the map
           currPos = {
             // i.e. not 0 or dim - 1
@@ -112,7 +97,6 @@ let RandomWalkMapGenerator = (seed, dim, percentBarrier) => {
         }
       }
     } else {
-      //console.log('disregarding cell');
     }
   }
 
