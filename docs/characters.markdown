@@ -3,8 +3,14 @@
 ## Preface
   * Stats
     * Health
+      - how much damage a player can take before death
     * Strength
+      - how much damage a player can cause in melee combat
+      - how much a player can carry
     * Intelligence
+      - allows player to accomplish certain tasks
+    * Agility
+      - determines ability to initiate, escape, and have precedence in combat
   * Abilities (see corresponding document)
 
 ## Classes

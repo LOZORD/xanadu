@@ -1,4 +1,5 @@
 class Entity {
+  // origin (0,0) is at NW corner of the map
   constructor(args = {}) {
     this.x = args.x || 0;
     this.y = args.y || 0;
@@ -25,3 +26,5 @@ class Entity {
     this.x += 1;
   }
 }
+
+module.exports = Entity;

@@ -1,30 +1,69 @@
-let socket = io();
+/* global io */
+let socket = io('/game');
 
 $(document).ready(() => {
-  let parentContainer = $('#parent-container');
+  //let parentContainer = $('#parent-container');
   let messageOutput   = $('#messages');
 
   let form = $('#main-form');
   let input = $('#main-input');
+
+  input.focus();
 
   form.submit((event) => {
     event.preventDefault();
     let msg = input.val().trim();
     input.val('');
     console.log(msg);
-    if (msg) {
-      addMessage(msg);
-
-      if (msg.startsWith(':')) {
-        sendSpecialCommand(msg);
-      }
-    }
+    sendMessage(msg);
   });
 
-  socket.on('request-name', () => {
-    addMessage('ADDED TO GAME');
-    // TODO: ask the player their name
-    // also create player object
+  let sendMessage = (msg) => {
+    socket.emit('message', {
+      msg: msg,
+      ts: Date.now(),
+      id: socket.id
+    });
+  };
+
+  let processData = (data) => {
+    var ret = {};
+    ret.message = data.message;
+    ret.classes = []; // in case we want to add multiple classes
+
+    if (data.type === 'echo') {
+      ret.classes.push('via-echo');
+    } else if (data.type === 'message') {
+      ret.classes.push('via-message');
+    } else if (data.type === 'whisper') {
+      ret.message = data.speaker + ' said: ' + ret.message;
+      ret.classes.push('via-whisper');
+    } else if (data.type === 'broadcast') {
+      ret.message = `Let it be known that${ data.speaker ? ` ${ data.speaker } said` : '' }: ${ ret.message }`;
+      ret.classes.push('via-broadcast');
+    } else {
+      console.log('unknown message data type');
+      ret.classes.push('unknown-message-data-type');
+    }
+
+    return ret;
+  };
+
+  let addMessage = (processedData) => {
+    var msg = processedData.message;
+    var classes = processedData.classes || [];
+    var newElem = $('<li>').text(msg);
+    if (processedData.classes) {
+      newElem.addClass(classes.join(' '));
+    }
+    messageOutput.append(newElem);
+    messageOutput.parent().scrollTop(messageOutput.parent().height());
+    input.focus();
+  };
+
+  // Basic welcome message
+  addMessage({
+    message: 'Please enter your name below...'
   });
 
   socket.on('rejected-from-room', () => {
@@ -32,23 +71,15 @@ $(document).ready(() => {
     setTimeout(() => { window.location = 'http://example.com' }, 5000);
   });
 
-  let addMessage = (msg) => {
-    messageOutput.append($('<li>').text(msg));
-    messageOutput.parent().scrollTop(messageOutput.parent().height());
-    input.focus();
-  };
+  socket.on('message', (data) => {
+    console.log('message', data);
+    var processedData = processData(data);
+    console.log(processedData);
+    addMessage(processedData);
+  });
 
-  let sendSpecialCommand = (msg) => {
-    //let specialCommandRegex = /:(\w+)\s([\w\s]+)/;
-    let specialCommandRegex = /^:(\w+)(.+)?$/;
-    let matches = msg.match(specialCommandRegex);
-    //console.log(matches);
-
-    socket.emit('special-command', {
-      keyword: matches[1],
-      payload: matches[2].trim()
-    });
-  };
-
-  input.focus();
+  // DEPRECATED
+  socket.on('update', (data) => {
+    console.log('update', data);
+  });
 });

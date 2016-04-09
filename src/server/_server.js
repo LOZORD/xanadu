@@ -1,13 +1,13 @@
+/* DEPRECATED -- SERVER CODE IN GAME CLASS */
 /* Main server code */
+/* eslint-disable */
 let express = require('express');
 let app = express();
 let http = require('http').Server(app);
 let io = require('socket.io')(http);
 let path = require('path');
 let _ = require('lodash');
-//let Invisible = require('invisible');
-
-//let Player = Invisible.Person || require('../common/player');
+let Game = require('../common/game');
 let Player = require('../common/player');
 
 const MAIN_NS = '/';
@@ -44,6 +44,8 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log(`user ${ socket.id } disconnected`);
 
+    _.remove(game.players, player => player.id() === socket.player.id());
+
     if (mainRoom && mainRoom.length === 0) {
       mainRoom = null;
     }
@@ -59,16 +61,19 @@ io.on('connection', (socket) => {
   mainRoom = mainRoom || io.sockets.adapter.rooms[MAIN_ROOM];
   //console.log(mainRoom);
 
-  socket.on('special-command', (args) => {
-    console.log(args);
-  });
+});
+
+let game = new Game();
+
+game.on('new-player', (data) => {
+  io.emit('message', data);
 });
 
 function acceptNewSocket(socket) {
   socket.join(MAIN_ROOM);
   socket.player = new Player({
-    socket: socket
-    //TODO add game field
+    socket: socket,
+    game: game
   });
   socket.wasAcceptedByXanadu = true;
   let socketsInRoom = mainRoom ? mainRoom.length : 1;
