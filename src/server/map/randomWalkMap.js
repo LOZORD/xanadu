@@ -37,6 +37,18 @@ let RandomWalkMapGenerator = (seed, dim, percentBarrier) => {
     return { row: r1 + r2, col: c1 + c2 };
   };
 
+  // we want to lean towards placing the treasure room on the edge of the map
+  /*
+  const weightRoomType = ({ row, col }, rand) => {
+    //let rowWeight = Math.abs( ((dim - 2)/2) - row ) / ((dim - 2)/2);
+    //let colWeight = Math.abs( ((dim - 2)/2) - col ) / ((dim - 2)/2);
+
+    //const weightFunc = (x) => ();
+
+    return rand * rowWeight * colWeight;
+  };
+  */
+
   let map = new F2DA(dim, dim, CELL_TYPES.BARRIER);
   map.set(dim / 2, dim / 2, CELL_TYPES.PASSAGE_ROOM);
 
@@ -64,6 +76,8 @@ let RandomWalkMapGenerator = (seed, dim, percentBarrier) => {
     // don't want any diagonal paths
 
     rand = rng.intBetween(0, 3);
+
+    // TODO (Max H): add Perlin Noise smoothing here to `rand` based on `currPos`
 
     if (rand === 0) {
       // North
@@ -93,7 +107,7 @@ let RandomWalkMapGenerator = (seed, dim, percentBarrier) => {
          * (3) the treasure room (only placed once)
          */
 
-        let roomTypeRand = rng.intBetween(0, 100);
+        let roomTypeRand = rng.intBetween(0, 100);//weightRoomType(rng.intBetween(0, 100));
         let roomToPlace;
 
         if (roomTypeRand >= TREASURE_ROOM_THRESHOLD && !treasureRoomPlaced) {
