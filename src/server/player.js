@@ -30,8 +30,15 @@ class Player {
     if (this.game) {
       this.game.players.push(this);
     } */
+
+    // TODO: get this 'startLoc' for the map itself
+    // this is the room that everyone spawns in
+    let startLoc = this.game.map.dimension / 2;
+
     this.character = new Character({
-      player: this
+      player: this,
+      x: startLoc,
+      y: startLoc
     }); // TODO
     this.state = PLAYER_STATES.ANON;
     // XXX this could be buggy (i.e. ANON && "has" name)
