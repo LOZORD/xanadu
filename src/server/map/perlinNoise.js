@@ -7,7 +7,6 @@ function getPerlinGrid(rng,gradientSize){
 class PerlinGrid{
 
 	constructor(rng, gradientSize) {
-
 		this.GX = gradientSize;
 		this.GY = gradientSize;
 		this.gradientGrid = new Array(this.GX);
@@ -60,5 +59,4 @@ class PerlinGrid{
 
 		return nx0 * (1 - f(v)) + nx1 * f(v);
 	}
-	
 }
