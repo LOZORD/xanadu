@@ -1,5 +1,6 @@
+// TODO: add comments, this is scaring LOZORD :'(
 class PerlinGrid {
-  constructor(rng, gradientSize){
+  constructor(rng, gradientSize) {
     this.GX = gradientSize;
     this.GY = gradientSize;
     this.gradientGrid = new Array(this.GX);
@@ -7,45 +8,50 @@ class PerlinGrid {
     // make the RNG in the constructor
     this.rng = rng;
 
-    this.gradientGrid.forEach((_elem,i) =>{
+    for(var i = 0; i < this.GX; i ++){
       this.gradientGrid[i] = new Array(this.GY);
-      this.gradientGrid[i].forEach((_elem, j) =>{
+      for(var j = 0; j < this.GY; j ++){
         this.gradientGrid[i][j] = this.generateRandomNormal();
-      });
-    });
+      }
+    }
   }
-  generateRandomNormal(){
-    let theta = this.rng.floatBetween(0, 2*Math.PI);
-
-    return {x: Math.cos(theta), y: Math.sin(theta)};
+  generateRandomNormal() {
+    //var theta = rng.floatBetween(0, 2 * Math.PI);
+    // FIXME: can use `intBetween` instead
+    // what is the `16` for?
+    var rand = Math.floor(this.rng.floatBetween(0,16));
+    
+    var theta = rand / 8 * Math.PI;
+    
+    return { x: Math.cos(theta), y: Math.sin(theta) };
   }
-  dotProduct(pa, pb){
+  dotProduct(pa, pb) {
     return pa.x * pb.x + pa.y * pb.y;
   }
-  getValueForPoint(p){
-    let i = Math.floor(p.x);
-    let j = Math.floor(p.y);
-    let u = p.x - i;
-    let v = p.y - j;
-    let g00 = this.gradientGrid[i][j];
-    let g01 = this.gradientGrid[i][j+1];
-    let g10 = this.gradientGrid[i+1][j];
-    let g11 = this.gradientGrid[i+1][j+1];
+  getValueForPoint(p) {
+    var i = Math.floor(p.x);
+    var j = Math.floor(p.y);
+    var u = p.x - i;
+    var v = p.y - j;
+    var g00 = this.gradientGrid[i][j];
+    var g01 = this.gradientGrid[i][j + 1];
+    var g10 = this.gradientGrid[i + 1][j];
+    var g11 = this.gradientGrid[i + 1][j + 1];
 
-    let n00 = this.dotProduct(g00, {x:u, y:v});
-    let n10 = this.dotProduct(g10, {x:u-1,y:v});
-    let n01 = this.dotProduct(g01, {x:u, y: v-1});
-    let n11 = this.dotProduct(g11, {x:u-1, y: v-1});
+    var n00 = this.dotProduct(g00, { x: u, y: v });
+    var n10 = this.dotProduct(g10, { x: u - 1, y: v });
+    var n01 = this.dotProduct(g01, { x: u, y: v - 1 });
+    var n11 = this.dotProduct(g11, { x: u - 1, y: v - 1 });
 
-    // TODO: comment this, what does this do?
-    let f = (t) => {
-      return 6 * Math.pow(t, 5)  - 15 * Math.pow(t,4) + 10 * Math.pow(t,3);
+    // TODO: comment this, what is this used for?
+    var f = function f(t) {
+      return 6 * Math.pow(t, 5) - 15 * Math.pow(t, 4) + 10 * Math.pow(t, 3);
     };
 
-    let nx0 = n00*(1-f(u)) + n10*f(u);
-    let nx1 = n01*(1-f(u)) + n11*f(u);
+    var nx0 = n00 * (1 - f(u)) + n10 * f(u);
+    var nx1 = n01 * (1 - f(u)) + n11 * f(u);
 
-    return nx0*(1-f(v)) + nx1 * f(v);
+    return nx0 * (1 - f(v)) + nx1 * f(v);
   }
 }
 
