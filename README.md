@@ -8,6 +8,8 @@ The Xanadu game client runs in your everyday web browser.
 
 Contributions welcome!
 
+__This project uses ES6 + Babel. Please follow that convention.__
+
 ## To run:
 ```bash
 $ npm install
@@ -15,4 +17,21 @@ $ npm install
 $ npm run now # lints, builds, and launches
 ```
 
-This project uses ES6 + Babel. Please follow that convention.
+## To lint:
+```bash
+$ npm run lint
+```
+
+## To build:
+```bash
+$ npm run build
+```
+
+The `dist/` directory now contains all ES5- and Node-runnable code.
+
+## To launch:
+```bash
+$ npm run launch
+```
+
+This command creates a new `Game` instance and fires up the server.
