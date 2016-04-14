@@ -12,7 +12,7 @@ import Character from './character/character';
  *    absent (player removed self from game)
  */
 
-const PLAYER_STATES = {
+export const PLAYER_STATES = {
   ANON: 0,
   NAMED: 1,
   READY: 2,
@@ -22,7 +22,7 @@ const PLAYER_STATES = {
   ABSENT: 6
 };
 
-class Player {
+export default class Player {
   constructor(args = {}) {
     this.socket = args.socket;
     this.game   = args.game;
@@ -140,7 +140,3 @@ class Player {
       .value();
   }
 }
-
-Player.PLAYER_STATES = PLAYER_STATES;
-
-module.exports = Player;

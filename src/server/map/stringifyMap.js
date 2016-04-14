@@ -1,4 +1,4 @@
-module.exports = (map) => {
+export default (map) => {
   const dim = map.getHeight();
   let str = '';
 

@@ -5,7 +5,7 @@ Holds duel-specific information on the players which is copied back after duel i
 
 import Character from '../character/character';
 
-class DuelCharacter extends Character {
+export default class DuelCharacter extends Character {
   constructor(args = {}) {
     super(args);
     this.duelTurn = false;
@@ -17,5 +17,3 @@ class DuelCharacter extends Character {
     this.duelPosition = -1;
   }
 }
-
-module.exports = DuelCharacter;

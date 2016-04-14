@@ -5,7 +5,7 @@
     - PassageRoom (extends Room)
   - Wall (a solid rock that can be excavated into a room)
 */
-class Cell {
+export default class Cell {
   constructor(kwargs = {}) {
     this.map  = kwargs.map;
     this.x    = kwargs.x || -1;
@@ -59,5 +59,3 @@ class Cell {
     return neighbors;
   }
 }
-
-module.exports = Cell;

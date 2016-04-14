@@ -2,7 +2,7 @@ import _ from 'lodash';
 import Cell from './cell';
 import Character from './../character/character';
 
-class Room extends Cell {
+export default class Room extends Cell {
   constructor(kwargs = {}) {
     super(kwargs);
     this.animals  = kwargs.animals  || [];
@@ -56,5 +56,3 @@ class Room extends Cell {
     return ret;
   }
 }
-
-module.exports = Room;

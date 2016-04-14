@@ -1,5 +1,5 @@
 // TODO: add comments, this is scaring LOZORD :'(
-class PerlinGrid {
+export default class PerlinGrid {
   constructor(rng, gradientSize) {
     this.GX = gradientSize;
     this.GY = gradientSize;
@@ -54,5 +54,3 @@ class PerlinGrid {
     return nx0 * (1 - f(v)) + nx1 * f(v);
   }
 }
-
-module.exports = PerlinGrid;

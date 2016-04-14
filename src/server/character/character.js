@@ -1,6 +1,6 @@
 import Animal from '../animal';
 
-const CLASSES = {
+export const CLASSES = {
   UNDEFINED_CLASS: -1,
   BENEFACTOR:       0,
   GUNSLINGER:       1,
@@ -14,18 +14,19 @@ const CLASSES = {
   SMITH:            9
 };
 
-const ALLEGIANCES = {
+export const ALLEGIANCES = {
   UNDEFINED_ALLEGIANCE:  -1,
   EASTERN:                0,
   WESTERN:                1
 };
 
-class Character extends Animal {
+export default class Character extends Animal {
   constructor(kwargs = {}) {
 
     super(kwargs);
 
     // Field groupings
+    // TODO: we have defaults, now _actually_ set things...
     this.modifiers = {
       KILLER:         false,
       IMMORTAL:       false,
@@ -83,8 +84,3 @@ class Character extends Animal {
     console.log(`${ this.name } will perform "${ move }"`);
   }
 }
-
-Character.CLASSES = CLASSES;
-Character.ALLEGIANCES = ALLEGIANCES;
-
-module.exports = Character;

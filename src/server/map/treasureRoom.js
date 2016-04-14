@@ -1,6 +1,6 @@
 import Room from './room';
 
-class TreasureRoom extends Room {
+export default class TreasureRoom extends Room {
   constructor(kwargs) {
     super(kwargs);
   }
@@ -9,5 +9,3 @@ class TreasureRoom extends Room {
     return 'TODO';
   }
 }
-
-module.exports = TreasureRoom;

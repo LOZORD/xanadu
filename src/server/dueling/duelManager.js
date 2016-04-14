@@ -1,7 +1,8 @@
 /*
 Keeps track of game management information on the duel such as rolling and player choices.
 */
-class DuelManager {
+
+export default class DuelManager {
   constructor(character1, character2, roomGrid) {
     this.character1 = character1;
     this.character2 = character2;
@@ -41,5 +42,3 @@ class DuelManager {
   duelExit() {
   }
 }
-
-module.exports = DuelManager;

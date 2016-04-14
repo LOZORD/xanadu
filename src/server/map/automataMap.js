@@ -7,14 +7,14 @@ import _ from 'lodash';
 import Rng from 'random-seed';
 import F2DA from 'fixed-2d-array';
 
-const CELL_TYPES = {
+export const CELL_TYPES = {
   ROOM: '_',
   BARRIER: '#',
   TREASURE_ROOM: 'X',
   PASSAGE_ROOM: '^'
 };
 
-class CellularAutomataMapGenerator {
+export default class CellularAutomataMapGenerator {
   constructor(seed = 1337, dimension = 16, percentWalls = 50) {
     this.seed = seed;
     this.rng  = new Rng(this.seed);
@@ -154,5 +154,3 @@ class CellularAutomataMapGenerator {
     return str;
   }
 }
-
-module.exports = CellularAutomataMapGenerator;

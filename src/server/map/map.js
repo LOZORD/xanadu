@@ -4,14 +4,14 @@ import TreasureRoom from './treasureRoom';
 import PassageRoom  from './passageRoom';
 import Barrier      from './barrier';
 
-const CONSTRUCTOR_MAP = {
+export const CONSTRUCTOR_MAP = {
   '_': Room,
   '#': Barrier,
   'X': TreasureRoom,
   '^': PassageRoom
 };
 
-class Map {
+export default class Map {
   constructor(kwargs = []) {
     this.seed = kwargs.seed;
     this.rng  = kwargs.rng;
@@ -88,5 +88,3 @@ class Map {
     return this.cells[y][x];
   }
 }
-
-module.exports = Map;

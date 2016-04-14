@@ -4,14 +4,14 @@
 import RNG from 'random-seed';
 import F2DA from 'fixed-2d-array';
 
-const CELL_TYPES = {
+export const CELL_TYPES = {
   ROOM: '_',
   BARRIER: '#',
   TREASURE_ROOM: 'X',
   PASSAGE_ROOM: '^'
 };
 
-let RandomWalkMapGenerator = (seed, dim, percentBarrier) => {
+export default (seed, dim, percentBarrier) => {
   const startingCell = { row: dim / 2, col: dim / 2 };
   const percentRoom = 100 - percentBarrier;
   const minNumRooms = Math.floor((percentRoom / 100.0) * (dim - 1) * (dim - 1));
@@ -178,5 +178,3 @@ let RandomWalkMapGenerator = (seed, dim, percentBarrier) => {
 
   return map;
 };
-
-module.exports = RandomWalkMapGenerator;

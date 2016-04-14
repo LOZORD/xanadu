@@ -1,7 +1,7 @@
 import Entity from './entity';
 import _ from 'lodash';
 
-class Animal extends Entity {
+export default class Animal extends Entity {
   constructor(args = {}) {
     super(args);
     this.health       = args.health       || 100;
@@ -27,5 +27,3 @@ class Animal extends Entity {
     return this.health > 0;
   }
 }
-
-module.exports = Animal;

@@ -5,12 +5,12 @@ import path     from 'path';
 import ioFunc   from 'socket.io';
 import _        from 'lodash';
 import Emitter  from 'events';
-import Player   from './player';
+import Player, { PLAYER_STATES } from './player';
 import Map      from './map/map';
 
 const WITHOUT_NAME = false;
 
-class Game extends Emitter {
+export default class Game extends Emitter {
   constructor(args = {}) {
     super(args);
     // set up server stuff
@@ -158,15 +158,15 @@ class Game extends Emitter {
     // (e.g. whisper + style both to and from sockets)
     player.echo(message);
 
-    if (player.state === Player.PLAYER_STATES.ANON && !this.hasStarted) {
+    if (player.state === PLAYER_STATES.ANON && !this.hasStarted) {
       //TODO: first check if name is unique
       player.name = message;
-      player.state = Player.PLAYER_STATES.NAMED;
+      player.state = PLAYER_STATES.NAMED;
       player.message(`Welcome to Xanadu ${ player.name }! Enter \`ready\` to start.`);
       player.broadcast(`${ player.name } has joined the game!`, WITHOUT_NAME);
-    } else if (player.state === Player.PLAYER_STATES.NAMED && !this.hasStarted) {
+    } else if (player.state === PLAYER_STATES.NAMED && !this.hasStarted) {
       if (message.toLowerCase() === 'ready') {
-        player.state = Player.PLAYER_STATES.READY;
+        player.state = PLAYER_STATES.READY;
         player.message('The game will start when everyone is ready...');
         player.broadcast(`${ player.name } is ready!`, WITHOUT_NAME);
         this.attemptToStart();
@@ -176,7 +176,7 @@ class Game extends Emitter {
           defaultTo: 'broadcast'
         });
       }
-    } else if (player.state == Player.PLAYER_STATES.PLAYING && this.hasStarted) {
+    } else if (player.state == PLAYER_STATES.PLAYING && this.hasStarted) {
       // TODO: set the player's nextMove if not a special command
       this.handleMessage(messageObj, player);
     } else {
@@ -240,7 +240,7 @@ class Game extends Emitter {
   }
   attemptToStart() {
     console.log(this.players.map(player => [player.name, player.state]));
-    if (this.players.every((player) => player.state === Player.PLAYER_STATES.READY)) {
+    if (this.players.every((player) => player.state === PLAYER_STATES.READY)) {
       this.hasStarted = true;
       console.log('GAME STARTED!');
       _.forEach(this.players, (player) => {
@@ -252,5 +252,3 @@ class Game extends Emitter {
     }
   }
 }
-
-module.exports = Game;
