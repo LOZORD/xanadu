@@ -3,9 +3,9 @@
  * Try this too:
  * http://pixelenvy.ca/wa/ca_cave_demo.py.txt
  */
-let _   = require('lodash');
-let Rng = require('random-seed');
-let F2DA = require('fixed-2d-array');
+import _ from 'lodash';
+import Rng from 'random-seed';
+import F2DA from 'fixed-2d-array';
 
 const CELL_TYPES = {
   ROOM: '_',

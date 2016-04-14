@@ -1,13 +1,15 @@
-let gen = require('random-seed');
-let http = require('http');
-let express = require('express');
-let path = require('path');
-let ioFunc = require('socket.io');
-let _ = require('lodash');
-let Emitter = require('events');
-let Player  = require('./player');
-let Map = require('./map/map');
-let WITHOUT_NAME = false;
+import gen      from 'random-seed';
+import http     from 'http';
+import express  from 'express';
+import path     from 'path';
+import ioFunc   from 'socket.io';
+import _        from 'lodash';
+import Emitter  from 'events';
+import Player   from './player';
+import Map      from './map/map';
+
+const WITHOUT_NAME = false;
+
 class Game extends Emitter {
   constructor(args = {}) {
     super(args);

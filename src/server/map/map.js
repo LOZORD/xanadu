@@ -1,8 +1,8 @@
-let _ = require('lodash');
-let Room    = require('./room');
-let TreasureRoom = require('./treasureRoom');
-let PassageRoom = require('./passageRoom');
-let Barrier = require('./barrier');
+import _            from 'lodash';
+import Room         from './room';
+import TreasureRoom from './treasureRoom';
+import PassageRoom  from './passageRoom';
+import Barrier      from './barrier';
 
 const CONSTRUCTOR_MAP = {
   '_': Room,

@@ -1,6 +1,6 @@
-let _ = require('lodash');
-let Cell = require('./cell');
-let Character = require('./../character/character');
+import _ from 'lodash';
+import Cell from './cell';
+import Character from './../character/character';
 
 class Room extends Cell {
   constructor(kwargs = {}) {

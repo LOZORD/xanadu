@@ -1,4 +1,4 @@
-let Room = require('./room');
+import Room from './room';
 
 class PassageRoom extends Room {
   constructor(kwargs) {

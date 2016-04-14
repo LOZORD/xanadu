@@ -3,7 +3,7 @@ Possibly extends or copies data from overworld player.
 Holds duel-specific information on the players which is copied back after duel is ended.
 */
 
-let Character = require('../character/character');
+import Character from '../character/character';
 
 class DuelCharacter extends Character {
   constructor(args = {}) {

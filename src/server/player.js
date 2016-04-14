@@ -1,5 +1,5 @@
-let _ = require('lodash');
-let Character = require('./character/character');
+import _ from 'lodash';
+import Character from './character/character';
 
 /*
  * player states [LINEAR]

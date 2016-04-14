@@ -1,8 +1,8 @@
 /* Based off the following content:
  * http://www.roguebasin.com/index.php?title=Random_Walk_Cave_Generation
  */
-let RNG = require('random-seed');
-let F2DA = require('fixed-2d-array');
+import RNG from 'random-seed';
+import F2DA from 'fixed-2d-array';
 
 const CELL_TYPES = {
   ROOM: '_',

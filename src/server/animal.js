@@ -1,5 +1,5 @@
-let Entity  = require('./entity');
-let _       = require('lodash');
+import Entity from './entity';
+import _ from 'lodash';
 
 class Animal extends Entity {
   constructor(args = {}) {

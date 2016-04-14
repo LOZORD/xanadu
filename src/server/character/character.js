@@ -1,5 +1,4 @@
-//let _ = require('lodash');
-let Animal = require('../animal');
+import Animal from '../animal';
 
 const CLASSES = {
   UNDEFINED_CLASS: -1,

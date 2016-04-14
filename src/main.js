@@ -1,5 +1,5 @@
-let Game = require('./server/game');
-let process = require('process');
+import process from 'process';
+import Game from './server/game';
 
 let die = function(msg) {
   console.error(msg);

@@ -1,8 +1,8 @@
-let proc = require('process');
-console.log(proc.argv);
-let RandomWalkGen = require('./randomWalkMap');
+import proc from 'process';
+import RandomWalkGen from './randomWalkMap';
+import stringifyMap from './stringifyMap';
 
-let stringifyMap = require('./stringifyMap');
+console.log(proc.argv);
 
 let map = RandomWalkGen(proc.argv[2] || '1234', 40, 50);
 

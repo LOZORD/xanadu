@@ -1,4 +1,4 @@
-let Cell = require('./cell');
+import Cell from './cell';
 
 class Barrier extends Cell {
   constructor(kwargs = {}) {
