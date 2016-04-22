@@ -78,6 +78,15 @@ $(document).ready(() => {
     addMessage(processedData);
   });
 
+  // TODO: see below
+  let addDetails = () => (null);
+
+  // TODO: details stream (i.e. inventory, map, etc.) on RHS
+  socket.on('details', (data) => {
+    console.log('details', data);
+    addDetails(data);
+  });
+
   // DEPRECATED
   socket.on('update', (data) => {
     console.log('update', data);
