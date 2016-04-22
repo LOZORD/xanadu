@@ -59,7 +59,8 @@
       "jquery": true
     },
     "rules": {
-      "no-console": 1
+      "no-console": 1,
+      "no-constant-condition": 1
     }
   }
 }
