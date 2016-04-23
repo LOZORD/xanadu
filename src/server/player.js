@@ -26,10 +26,6 @@ export default class Player {
   constructor(args = {}) {
     this.socket = args.socket;
     this.game   = args.game;
-    /*
-    if (this.game) {
-      this.game.players.push(this);
-    } */
 
     // TODO: get this 'startLoc' for the map itself
     // this is the room that everyone spawns in
@@ -120,6 +116,30 @@ export default class Player {
       speaker: this.name,
       message: message,
       type: 'whisper'
+    });
+  }
+
+  // game update -> player (RHS details)
+  updateDetails() {
+    // XXX: offload this gathering code onto Character class
+
+    // get all the active modifiers
+    let modifiers = _.chain(this.character.modifiers)
+                      .pickBy( _.identity)
+                      .keys()
+                      .value();
+
+    this.socket.emit('details', {
+      name: this.name,
+      class: this.character.characterClass,
+      inventory: this.character.inventory,
+      modifiers: modifiers,
+      stats: {
+        health: this.character.health,
+        strength: this.character.strength,
+        intelligence: this.character.intelligence,
+        agility: this.character.agility
+      }
     });
   }
 

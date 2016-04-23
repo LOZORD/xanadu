@@ -48,6 +48,9 @@ export default class Game extends Emitter {
     setTimeout(() => {
       // TODO: figure out how to async'ly gather moves from players
       this.performMoves();
+
+      this.sendUpdatesToClients();
+
       // when we're done, update again!
       this.update();
     }, UPDATE_WAIT_TIME);
@@ -69,6 +72,9 @@ export default class Game extends Emitter {
     _.forEach(sortedMoveObjs, ({ player, move}) => {
       player.character.performMove(move);
     });
+  }
+  sendUpdatesToClients() {
+    _.forEach(this.players, (player) => player.updateDetails());
   }
   createServer() {
     //this.expressApp = express();
@@ -102,6 +108,7 @@ export default class Game extends Emitter {
       socket.on('disconnect', () => {
         if (socket.player) {
           console.log(`user ${ socket.player.id() + '--' + socket.player.name } disconnected`);
+          socket.player.broadcast(`${ socket.player.name } has left the game.`);
         } else {
           console.log(`anon user ${ socket.id } disconnected`);
         }
@@ -246,6 +253,9 @@ export default class Game extends Emitter {
       _.forEach(this.players, (player) => {
         player.message('The game has begun!');
       });
+
+      // give the players their basic details
+      this.sendUpdatesToClients();
 
       // start the game loop
       this.update();
