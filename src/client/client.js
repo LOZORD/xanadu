@@ -4,6 +4,7 @@ let socket = io('/game');
 $(document).ready(() => {
   //let parentContainer = $('#parent-container');
   let messageOutput   = $('#messages');
+  let detailOutput    = $('#details');
 
   let form = $('#main-form');
   let input = $('#main-input');
@@ -79,7 +80,9 @@ $(document).ready(() => {
   });
 
   // TODO: see below
-  let addDetails = () => (null);
+  let addDetails = (data) => {
+    detailOutput.text(JSON.stringify(data));
+  };
 
   // TODO: details stream (i.e. inventory, map, etc.) on RHS
   socket.on('details', (data) => {
