@@ -1,5 +1,6 @@
 import AMG from './automataMap';
+import stringifyMap from './stringifyMap'
 
-let myMap = new AMG(1, 20, 40);
+let myMap = new AMG(1333,40);
 
-console.log(myMap.toString());
+console.log(stringifyMap(myMap.map));
