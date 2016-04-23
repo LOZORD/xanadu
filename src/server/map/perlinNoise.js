@@ -1,3 +1,6 @@
+//Perlin noise algorithm derived from here
+//http://webstaff.itn.liu.se/~stegu/simplexnoise/simplexnoise.pdf
+
 export default class PerlinGrid {
 
   //Pass as parameters a random number generator
