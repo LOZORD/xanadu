@@ -121,7 +121,7 @@ export default class Player {
 
   // game update -> player (RHS details)
   updateDetails() {
-    // XXX: offload this gathering code onto Character class
+    // TODO: offload this gathering code onto Character class
 
     // get all the active modifiers
     let modifiers = _.chain(this.character.modifiers)
@@ -141,6 +141,11 @@ export default class Player {
         agility: this.character.agility
       }
     });
+  }
+
+  // TODO: send message that will display in LHS pane
+  messageUpdates(resultMessage) {
+    console.log(`TODO: send ${ resultMessage } to ${ this.id() }`);
   }
 
   // print debug info

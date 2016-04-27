@@ -3,7 +3,6 @@
  * Try this too:
  * http://pixelenvy.ca/wa/ca_cave_demo.py.txt
  */
-import _ from 'lodash';
 import Rng from 'random-seed';
 import F2DA from 'fixed-2d-array';
 
@@ -23,8 +22,6 @@ export default class CellularAutomataMapGenerator {
     this.iterations = iterations;
     
     this.map = this.generateMap();
-    
-
   }
 
   generateMap(){
@@ -76,5 +73,4 @@ export default class CellularAutomataMapGenerator {
     }
     return buffer;
   }
-
 }    

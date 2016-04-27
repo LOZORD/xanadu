@@ -47,9 +47,10 @@ export default class Game extends Emitter {
     let UPDATE_WAIT_TIME = 1000 * 10; // ten seconds
     setTimeout(() => {
       // TODO: figure out how to async'ly gather moves from players
-      this.performMoves();
+      // e.g. let moves = this.gatherMoves();
+      let results = this.performMoves();
 
-      this.sendUpdatesToClients();
+      this.sendUpdatesToClients(results);
 
       // when we're done, update again!
       this.update();
@@ -69,12 +70,24 @@ export default class Game extends Emitter {
   performMoves() {
     let sortedMoveObjs = this.sortMoves(this.players);
 
+    // game state effects caused by the moves
+    // these will be reported to the players AS MESSAGES
+    // TODO: implement this!!!
+    let moveResults = {};
+
     _.forEach(sortedMoveObjs, ({ player, move}) => {
       player.character.performMove(move);
     });
+
+    return moveResults;
   }
-  sendUpdatesToClients() {
-    _.forEach(this.players, (player) => player.updateDetails());
+  sendUpdatesToClients(results) {
+    _.forEach(this.players, (player) => {
+      let id = player.id();
+      let resultMessage = results[id];
+      player.messageUpdates(resultMessage);
+      player.updateDetails()
+    });
   }
   createServer() {
     //this.expressApp = express();
