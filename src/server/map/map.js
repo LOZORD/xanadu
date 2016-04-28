@@ -18,7 +18,7 @@ export default class Map {
     let d = this.dimension = kwargs.dimension;
     const percentWalls = 50;
     let textMap = this.generateMap(this.seed, d, percentWalls);
-    console.log(textMap);
+    //console.log(textMap);
 
     this.cells = [[]];
     this.treasureRoom = null;

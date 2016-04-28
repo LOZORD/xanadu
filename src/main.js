@@ -1,3 +1,4 @@
+/* eslint no-console: 0 */
 import process from 'process';
 import Game from './server/game';
 

@@ -1,3 +1,4 @@
+/* eslint no-console: 0 */
 import proc from 'process';
 import RandomWalkGen from './randomWalkMap';
 import stringifyMap from './stringifyMap';

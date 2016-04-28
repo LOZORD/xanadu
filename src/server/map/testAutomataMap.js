@@ -1,3 +1,4 @@
+/* eslint no-console: 0  */
 import proc from 'process';
 import AMG from './automataMap';
 import stringifyMap from './stringifyMap'

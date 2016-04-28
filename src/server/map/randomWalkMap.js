@@ -71,7 +71,7 @@ export default (seed, dim, percentBarrier) => {
     let colWeight = weightFunc(col);
     let weightWeight = 20;
 
-    console.log(row, col, rand, rand * rowWeight * colWeight * weightWeight);
+    //console.log(row, col, rand, rand * rowWeight * colWeight * weightWeight);
 
     return rand * (rowWeight * colWeight * weightWeight);
   };
@@ -97,9 +97,11 @@ export default (seed, dim, percentBarrier) => {
 
   // while insufficient number of rooms
   while (numRooms < minNumRooms) {
+    /*
     if (false && numRooms % 10 === 0) {
       console.log(`numRooms: ${ numRooms } ||| minNumRooms: ${ minNumRooms }`);
     }
+    */
 
     // take a random step in cardinal direction
     // don't want any diagonal paths
