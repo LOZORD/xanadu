@@ -79,3 +79,7 @@ li.unknown-message-data-type {
   background-color: #pink;
 }
 */
+
+#player-map {
+  overflow: scroll;
+}
