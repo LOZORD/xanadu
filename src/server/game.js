@@ -10,6 +10,7 @@ import Map      from './map/map';
 
 const WITHOUT_NAME = false;
 
+// TODO: one of the game parameters should be the number of modifiers randomly assigned
 export default class Game extends Emitter {
   constructor(args = {}) {
     super(args);

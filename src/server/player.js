@@ -124,11 +124,13 @@ export default class Player {
     // TODO: offload this gathering code onto Character class
 
     // get all the active modifiers
+    // TODO: eventually we want to give numbers (e.g. "4/8 players killed")
     let modifiers = _.chain(this.character.modifiers)
                       .pickBy( _.identity)
                       .keys()
                       .value();
 
+    // TODO: send the (player's concept) of the map as well
     this.socket.emit('details', {
       name: this.name,
       class: this.character.characterClass,
