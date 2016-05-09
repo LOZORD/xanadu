@@ -264,6 +264,9 @@ export default class Game extends Emitter {
     if (this.players.every((player) => player.state === PLAYER_STATES.READY)) {
       this.hasStarted = true;
       console.log('GAME STARTED!');
+      // sort the players by id (for testing/deterministic reasons)
+      // maybe by (lowercased) name might be better
+      this.players = _.sortBy(this.players, (player) => player.id());
       _.forEach(this.players, (player) => {
         player.message('The game has begun!');
       });
