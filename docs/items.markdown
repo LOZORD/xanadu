@@ -22,6 +22,7 @@
   * Dynamite
     * Kills everything in a radius
     * On a timer
+
 ## Food
 Only some classes can cook food.
 All food can be poisoned.
