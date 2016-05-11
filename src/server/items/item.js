@@ -17,4 +17,10 @@ export default class Item extends Entity {
   moveRight() {
     throw 'Cannot move an item `right`';
   }
+  toJSONObject() {
+    return {
+      type: 'Item',
+      item: this.constructor.name
+    };
+  }
 }

@@ -1,6 +1,6 @@
-import Item from '../item';
+import StackableItem from '../stackableItem';
 
-export default class Bullet extends Item {
+export default class Bullet extends StackableItem {
   constructor(kwargs = {}) {
     super(kwargs);
   }
