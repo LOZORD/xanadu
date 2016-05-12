@@ -40,9 +40,9 @@ export default class Inventory {
 
     if (existingItem) {
       if (existingItem instanceof StackableItem) {
-        // TODO: implement case of adding to existing StackableItem
+        existingItem.addToStack(n);
       } else {
-        // TODO: implement case of adding to a non-StackableItem that already exists
+        throw 'Tried to an item already in the inventory!';
       }
     } else {
       // TODO: this looks suspicious
@@ -54,6 +54,9 @@ export default class Inventory {
         // TODO: implement case of adding a non-StackableItem that doesn't exist in this.items yet
       }
     }
+  }
+  addItems(items) {
+    _.forEach(items, (item) => this.addItem(item));
   }
   removeItem(constructor, n = 1) {
     let constructorName = null;
@@ -76,6 +79,7 @@ export default class Inventory {
       let currentAmount = itemToRemove.stackAmount;
       let amountToRemove = null;
       // if n < 0, remove all
+      // TODO: use `.removeFromStack` instead
       if (n < 0) {
         amountToRemove = currentAmount;
       } else {
