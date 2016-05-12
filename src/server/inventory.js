@@ -13,6 +13,9 @@ export default class Inventory {
   isFull() {
     return this.items.length === this.maxNumItems;
   }
+  hasRoom() {
+    return !this.isFull();
+  }
   findItemIndex(constructor) {
     let constructorName = null;
 
@@ -34,69 +37,58 @@ export default class Inventory {
       return null;
     }
   }
-  addItem(constructor, n = 1) {
+  // XXX: allow for construction args?
+  addItem(constructor, kwargs = {}) {
     let existingItem = this.findItem(constructor);
-    console.log('TODO', n);
+    let n = kwargs.amount || 1;
 
     if (existingItem) {
       if (existingItem instanceof StackableItem) {
         existingItem.addToStack(n);
       } else {
-        throw 'Tried to an item already in the inventory!';
+        throw `Tried to add an item ${ constructor.name } already in the inventory!`;
       }
     } else {
-      // TODO: this looks suspicious
-      // What I want to do is check if this
-      // constructor function is a subclass of StackableItem
-      if (Object.getPrototypeOf(constructor) === StackableItem) {
-        // TODO: implement case of adding a StackableItem that doesn't exist in this.items yet
+      if (this.hasRoom()) {
+        let newItem;
+        // XXX: this looks suspicious (depth-dependent)
+        // What I want to do is check if this
+        // constructor function is a subclass of StackableItem
+        if (Object.getPrototypeOf(constructor) === StackableItem) {
+          newItem = new (constructor)({
+            stackAmount: n
+          });
+        } else {
+          newItem = new (constructor)();
+        }
+
+        this.items.push(newItem);
+
       } else {
-        // TODO: implement case of adding a non-StackableItem that doesn't exist in this.items yet
+        throw 'Inventory full!';
       }
     }
   }
-  addItems(items) {
-    _.forEach(items, (item) => this.addItem(item));
-  }
-  removeItem(constructor, n = 1) {
-    let constructorName = null;
+  removeItem(constructor, kwargs = {}) {
+    let existingItem = this.findItem(constructor);
+    let n = kwargs.amount || 1;
 
-    if (_.isString(constructor)) {
-      constructorName = constructor;
-    } else {
-      constructorName = constructor.name;
-    }
-
-    let itemIndex = _.findIndex(this.items, (item) => item.constructor.name === constructorName);
-
-    if (itemIndex < 0) {
-      throw `Could not find instance of ${ constructorName } in inventory!`;
-    }
-
-    let itemToRemove = this.items[itemIndex];
-
-    if (itemToRemove instanceof StackableItem) {
-      let currentAmount = itemToRemove.stackAmount;
-      let amountToRemove = null;
-      // if n < 0, remove all
-      // TODO: use `.removeFromStack` instead
-      if (n < 0) {
-        amountToRemove = currentAmount;
+    if (existingItem) {
+      if (existingItem instanceof StackableItem) {
+        // TODO: implement
+        console.log(n);
       } else {
-        amountToRemove = _.min([currentAmount, n]);
+        let removedArray = _.remove(this.items,
+            (item) => item === existingItem);
+
+        if (removedArray.length !== 1) {
+          throw `Strange removed array: ${ removedArray.toString() }`;
+        }
+
+        return removedArray[0];
       }
-
-      itemToRemove.stackAmount -= amountToRemove;
-
-      if (itemToRemove.stackAmount === 0) {
-        _.pullAt(this, itemIndex);
-      }
-
-      return new (itemToRemove.constructor)({
-        stackAmount: amountToRemove
-      });
     } else {
-      return _.pullAt(this.items, itemIndex);
+      throw `Could not find item ${ constructor.name } in inventory!`;
     }
   }
   toJSON() {
