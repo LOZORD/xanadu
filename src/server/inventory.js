@@ -37,6 +37,9 @@ export default class Inventory {
       return null;
     }
   }
+  hasItem(constructor) {
+    return this.findItemIndex(constructor) > -1;
+  }
   // XXX: allow for construction args?
   addItem(constructor, kwargs = {}) {
     let existingItem = this.findItem(constructor);
@@ -70,22 +73,22 @@ export default class Inventory {
     }
   }
   removeItem(constructor, kwargs = {}) {
-    let existingItem = this.findItem(constructor);
-    let n = kwargs.amount || 1;
+    if (this.hasItem(constructor)) {
+      let itemIndex = this.findItemIndex(constructor);
+      let item = this.items[itemIndex];
+      let removeAmount = kwargs.amount || 1;
 
-    if (existingItem) {
-      if (existingItem instanceof StackableItem) {
-        // TODO: implement
-        console.log(n);
-      } else {
-        let removedArray = _.remove(this.items,
-            (item) => item === existingItem);
+      if (item instanceof StackableItem) {
+        let removedStackItem = item.removeFromStack(removeAmount);
 
-        if (removedArray.length !== 1) {
-          throw `Strange removed array: ${ removedArray.toString() }`;
+        // if there's nothing left, remove the item
+        if (item.isEmpty()) {
+          _.pullAt(this.items, itemIndex);
         }
 
-        return removedArray[0];
+        return removedStackItem;
+      } else {
+        return _.pullAt(this.items, itemIndex)[0];
       }
     } else {
       throw `Could not find item ${ constructor.name } in inventory!`;

@@ -6,8 +6,11 @@ export default class StackableItem extends Item {
     this.stackAmount = kwargs.stackAmount || 0;
     this.maxStackAmount = kwargs.maxStackAmount || 0;
   }
+  isEmpty() {
+    return this.stackAmount === 0;
+  }
   hasAny() {
-    return this.stackAmount > 0;
+    return !this.isEmpty();
   }
   addToStack(n = 1) {
     this.stackAmount = Math.min(this.stackAmount + n, this.maxStackAmount);
@@ -15,7 +18,10 @@ export default class StackableItem extends Item {
   }
   removeFromStack(n = 1) {
     this.stackAmount = Math.max(this.stackAmount - n, 0);
-    return this.stackAmount;
+    return new (this.constructor)({
+      stackAmount: n,
+      maxStackAmount: this.maxStackAmount
+    });
   }
   toJSONObject() {
     return {
