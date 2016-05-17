@@ -1,7 +1,5 @@
 import Gun from './gun';
-
-// TODO
-const RifleBullet = {};
+import RifleBullet from './rifleBullet';
 
 export default class Rifle extends Gun {
   constructor(kwargs = {}) {
