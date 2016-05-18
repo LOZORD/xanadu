@@ -1,4 +1,5 @@
 import Animal from '../animal';
+import _ from 'lodash';
 
 export const CLASSES = {
   UNDEFINED_CLASS: -1,
@@ -42,6 +43,10 @@ export default class Character extends Animal {
       SCALPER:        false,
       MISSIONARY:     false
     };
+
+    _.forEach(kwargs.modifiers, (_v, modifierName) => {
+      this.modifiers[modifierName] = true;
+    });
 
     this.abilities = {
       canTranslateModern:     false,
