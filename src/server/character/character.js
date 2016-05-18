@@ -21,47 +21,50 @@ export const ALLEGIANCES = {
   WESTERN:                1
 };
 
+export const MODIFIERS = {
+  KILLER:         false,
+  IMMORTAL:       false,
+  PSYCHO:         false,
+  RACIST:         false,
+  CANNIBAL:       false,
+  FATALIST:       false,
+  PACIFIST:       false,
+  RUSKY:          false,
+  ARSONIST:       false,
+  ANGEL_OF_DEATH: false,
+  COLLECTOR:      false,
+  SCALPER:        false,
+  MISSIONARY:     false
+};
+
+export const ABILITIES = {
+  canTranslateModern:     false,
+  canTranslateAncient:    false,
+  canIdentifyPoison:      false,
+  isHunter:               false,
+  canFillet:              false,
+  canSetUpCamp:           false,
+  canUpdateMaps:          false,
+  canSmelt:               false,
+  repairAmount:           0.0,
+  healAmount:             0.0,
+  //lineOfSight:            1, applicable to all animals (called senseRadius)
+  craftables:             []
+};
+
 export default class Character extends Animal {
   constructor(kwargs = {}) {
 
     super(kwargs);
 
     // Field groupings
-    // TODO: we have defaults, now _actually_ set things...
-    this.modifiers = {
-      KILLER:         false,
-      IMMORTAL:       false,
-      PSYCHO:         false,
-      RACIST:         false,
-      CANNIBAL:       false,
-      FATALIST:       false,
-      PACIFIST:       false,
-      RUSKY:          false,
-      ARSONIST:       false,
-      ANGEL_OF_DEATH: false,
-      COLLECTOR:      false,
-      SCALPER:        false,
-      MISSIONARY:     false
-    };
+    this.modifiers = {};
 
     _.forEach(kwargs.modifiers, (_v, modifierName) => {
       this.modifiers[modifierName] = true;
     });
 
-    this.abilities = {
-      canTranslateModern:     false,
-      canTranslateAncient:    false,
-      canIdentifyPoison:      false,
-      isHunter:               false,
-      canFillet:              false,
-      canSetUpCamp:           false,
-      canUpdateMaps:          false,
-      canSmelt:               false,
-      repairAmount:           0.0,
-      healAmount:             0.0,
-      //lineOfSight:            1, applicable to all animals (called senseRadius)
-      craftables:             []
-    };
+    this.abilities = _.cloneDeep(ABILITIES);
 
     // Fields w/o groups
     //this.name = 'DEFAULT_CHARACTER_NAME'; not nec.
@@ -72,10 +75,6 @@ export default class Character extends Animal {
       phrase: '',
       timeStamp: 0
     };
-
-    // Use (the child's) arguments
-    //_.assignIn(this, args);
-    // Actually set up fields if this has any
   }
   setNextMove(newMove) {
     this.nextMove = newMove;

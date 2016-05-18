@@ -2,7 +2,7 @@
 // import ... [character class classes]
 import RNG from 'random-seed';
 import _ from 'lodash';
-import Character from './character';
+import { MODIFIERS } from './character';
 
 export const CLASS_CONSTRUCTOR_MAP = {
   BENEFACTOR:   null,
@@ -44,7 +44,7 @@ export default (className, kwargs = {}) => {
 
   if (_.has(kwargs, 'numModifiers')) {
     if (kwargs.numModifiers < 0) {
-      kwargs.numModifiers = rand.intBetween(1, _.size(Character.MODIFIERS));
+      kwargs.numModifiers = rand.intBetween(1, _.size(MODIFIERS));
     } else {
       numModifiers = kwargs.numModifiers;
     }
@@ -55,7 +55,7 @@ export default (className, kwargs = {}) => {
   let setModifiers =
     _.take(
       shuffle(
-        _.keys(Character.MODIFIERS),
+        _.keys(MODIFIERS),
         seed)
     , numModifiers);
 

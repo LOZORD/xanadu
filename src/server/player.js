@@ -31,6 +31,7 @@ export default class Player {
     // this is the room that everyone spawns in
     let startLoc = this.game.map.dimension / 2;
 
+    // TODO: make this a non-generic Character class using the Character Factory
     this.character = new Character({
       player: this,
       x: startLoc,
