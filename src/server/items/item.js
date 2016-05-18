@@ -5,18 +5,6 @@ export default class Item extends Entity {
     super(kwargs);
     this.owningPlayer = null;
   }
-  moveUp() {
-    throw 'Cannot move an item `up`';
-  }
-  moveDown() {
-    throw 'Cannot move an item `down`';
-  }
-  moveLeft() {
-    throw 'Cannot move an item `left`';
-  }
-  moveRight() {
-    throw 'Cannot move an item `right`';
-  }
   toJSONObject() {
     return {
       type: 'Item',

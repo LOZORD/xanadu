@@ -8,16 +8,4 @@ export default class Entity {
     this.x = newPos.x || this.x;
     this.y = newPos.y || this.y;
   }
-  moveUp() {
-    this.y -= 1;
-  }
-  moveDown() {
-    this.y += 1;
-  }
-  moveLeft() {
-    this.x -= 1;
-  }
-  moveRight() {
-    this.x += 1;
-  }
 }

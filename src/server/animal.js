@@ -1,8 +1,8 @@
-import Entity from './entity';
+import MoveableEntity from './moveableEntity';
 import _ from 'lodash';
 import Inventory from './inventory';
 
-export default class Animal extends Entity {
+export default class Animal extends MoveableEntity {
   constructor(args = {}) {
     super(args);
     this.health       = args.health       || 100;
