@@ -49,7 +49,7 @@ export default class Inventory {
       if (existingItem instanceof StackableItem) {
         existingItem.addToStack(n);
       } else {
-        throw `Tried to add an item ${ constructor.name } already in the inventory!`;
+        throw new Error(`Tried to add an item ${ constructor.name } already in the inventory!`);
       }
     } else {
       if (this.hasRoom()) {
@@ -68,7 +68,7 @@ export default class Inventory {
         this.items.push(newItem);
 
       } else {
-        throw 'Inventory full!';
+        throw new Error('Inventory full!');
       }
     }
   }
@@ -91,7 +91,7 @@ export default class Inventory {
         return _.pullAt(this.items, itemIndex)[0];
       }
     } else {
-      throw `Could not find item ${ constructor.name } in inventory!`;
+      throw new Error(`Could not find item ${ constructor.name } in inventory!`);
     }
   }
   toJSON() {

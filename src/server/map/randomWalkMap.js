@@ -175,7 +175,7 @@ export default (seed, dim, percentBarrier) => {
   }
 
   if (!treasureRoomPlaced) {
-    throw 'did not place treasure room';
+    throw new Error('did not place treasure room');
   }
 
   return map;

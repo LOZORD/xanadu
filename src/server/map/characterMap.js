@@ -18,12 +18,12 @@ export default class CharacterMap {
   }
   update(updateInfo) {
     // TODO
-    throw `TODO: update info ${ updateInfo }`;
+    throw new Error(`TODO: update info ${ updateInfo }`);
   }
   // lieAmount: when giving info to another player, how much are you gonna lie?
   produceInformation(lieAmount = 0) {
     // TODO
-    throw `TODO: lie amount: ${ lieAmount }`;
+    throw new Error(`TODO: lie amount: ${ lieAmount }`);
   }
   toString() {
     // TODO: use a number -> char stringifyer

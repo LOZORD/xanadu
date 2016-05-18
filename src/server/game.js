@@ -222,7 +222,7 @@ export default class Game extends Emitter {
       switch (command) {
         case ':to': {
            if (!split[1]) {
-             throw 'unknown recipient';
+             throw new Error('unknown recipient');
            }
            let toName = split[1];
            let toMessage = split.slice(2).join(' ');
@@ -231,7 +231,7 @@ export default class Game extends Emitter {
            break;
         }
         default: {
-           throw 'unknown command type';
+           throw new Error('unknown command type');
         }
       }
     } else {

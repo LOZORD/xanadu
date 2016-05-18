@@ -34,7 +34,7 @@ let shuffle = (list, seed) => {
 
 export default (className, kwargs = {}) => {
   if (!classConstructor) {
-    throw `Unknown className: ${ className }`;
+    throw new Error(`Unknown className: ${ className }`);
   }
 
   let classConstructor = CLASS_CONSTRUCTOR_MAP[className];
