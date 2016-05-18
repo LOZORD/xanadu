@@ -1,13 +1,14 @@
 /* eslint no-console: 0 */
 import process from 'process';
 import Game from './server/game';
+import Server from './server/server';
 
-let die = function(msg) {
+let die = (msg) => {
   console.error(msg);
   process.exit(1);
 };
 
-let parseArgs = function(argv) {
+let parseArgs = (argv) => {
   let args = {};
   let i = 2; // skip node and filename
   while (i < argv.length) {
@@ -49,4 +50,56 @@ let parseArgs = function(argv) {
 
 let args = parseArgs(process.argv);
 
-(new Game(args));
+let server  = new Server(args);
+let game    = new Game(args);
+
+/* TODO: how do we handle messaging?
+ * Like when a message comes from the client, how do we
+ * (1) modify/examine game state and
+ * (2) send to client/broadcast the response message?
+ * See possible solution on line 84
+ */
+
+server.gameNS.on('connection', (socket) => {
+  // when people connect...
+  if (game.isAcceptingPlayers()) {
+    server.addSocket(socket);
+    game.addPlayer(socket);
+  } else {
+    server.rejectSocket(socket);
+  }
+
+  // when people send _anything_ from the client
+  socket.on('message', (messageObj) => {
+    let response = game.handleMessage(messageObj);
+
+    if (response) {
+      server.sendMessage(response);
+    }
+  });
+
+  // when people disconnect
+  socket.on('disconnect', () => {
+    if (game.hasPlayer(socket.id)) {
+      let player = game.getPlayer(socket.id);
+      console.log(`user ${ socket.id + '--' + player.name } disconnected`);
+      // FIXME: socket/player communication needs to be redone
+      socket.broadcast(`${ player.name } has left the game.`);
+      game.removePlayer(socket.id);
+    } else {
+      console.log(`anon user ${ socket.id } disconnected`);
+    }
+  });
+
+});
+
+if (server.debug) {
+  server.debugNS.on('connection', (socket) => {
+    socket.on('get', () => {
+      socket.emit('update', game
+        .players()
+        .map(player => player.debugString())
+        .join('\n'));
+    });
+  });
+}
