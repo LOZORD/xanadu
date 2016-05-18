@@ -71,6 +71,8 @@ export default class Character extends Animal {
     this.characterClass = CLASSES.UNDEFINED_CLASS;
     this.allegiance = ALLEGIANCES.UNDEFINED_ALLEGIANCE;
 
+    this.player = kwargs.player || null;
+
     this.nextMove = {
       phrase: '',
       timeStamp: 0
@@ -85,6 +87,6 @@ export default class Character extends Animal {
   performMove(move) {
     // TODO:  implement this (@zthomae :3 )
     // XXX:   might need to have a ref to the game object to do this right
-    console.log(`${ this.name } will perform "${ move }"`);
+    console.log(`${ this.player.name } will perform "${ move || '[NOTHING]' }"`);
   }
 }

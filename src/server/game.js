@@ -76,13 +76,17 @@ export default class Game extends Emitter {
     // TODO: implement this!!!
     let moveResults = {};
 
-    _.forEach(sortedMoveObjs, ({ player, move}) => {
+    _.forEach(sortedMoveObjs, ({ player, move }) => {
       player.character.performMove(move);
     });
 
     return moveResults;
   }
   sendUpdatesToClients(results) {
+    if (!results) {
+      throw new Error(`Expected results to exist! Got: ${ results }!`);
+    }
+
     _.forEach(this.players, (player) => {
       let id = player.id();
       let resultMessage = results[id];
@@ -271,8 +275,15 @@ export default class Game extends Emitter {
         player.message('The game has begun!');
       });
 
+      // configure the starting messages for each player...
+      let startingResults = {};
+
+      _.forEach(this.players, (player) => {
+        startingResults[player.id()] = `${ player.name }, you are a ${ player.character.constructor.name }!`;
+      });
+
       // give the players their basic details
-      this.sendUpdatesToClients();
+      this.sendUpdatesToClients(startingResults);
 
       // start the game loop
       this.update();

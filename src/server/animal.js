@@ -1,6 +1,6 @@
 import Entity from './entity';
 import _ from 'lodash';
-import Inventory from '../inventory';
+import Inventory from './inventory';
 
 export default class Animal extends Entity {
   constructor(args = {}) {

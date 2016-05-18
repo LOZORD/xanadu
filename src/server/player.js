@@ -148,7 +148,7 @@ export default class Player {
 
   // TODO: send message that will display in LHS pane
   messageUpdates(resultMessage) {
-    console.log(`TODO: send ${ resultMessage } to ${ this.id() }`);
+    console.log(`TODO: send ${ resultMessage || '[resultMessage]' } to ${ this.name + ' ' + this.id() }`);
   }
 
   // print debug info

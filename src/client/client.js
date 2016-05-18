@@ -80,14 +80,14 @@ $(document).ready(() => {
   });
 
   // TODO: see below
-  let addDetails = (data) => {
+  let updateDetails = (data) => {
     detailOutput.text(JSON.stringify(data));
   };
 
   // TODO: details stream (i.e. inventory, map, etc.) on RHS
   socket.on('details', (data) => {
     console.log('details', data);
-    addDetails(data);
+    updateDetails(data);
   });
 
   // DEPRECATED
