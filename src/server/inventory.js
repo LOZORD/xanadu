@@ -5,7 +5,7 @@ export default class Inventory {
   constructor(kwargs) {
     this.maxNumItems = kwargs.maxNumItems || 10;
     this.items = kwargs.items || [];
-    this.owningPlayer = kwargs.owningPlayer || null;
+    this.owner = kwargs.owner || null;
   }
   isEmpty() {
     return this.items.length === 0;
