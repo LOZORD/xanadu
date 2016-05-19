@@ -1,6 +1,6 @@
 /* eslint no-console: 0 */
 import process from 'process';
-import Game from './server/game';
+import Game from './game/game';
 import Server from './server/server';
 //import _ from 'lodash';
 
@@ -58,7 +58,7 @@ server.gameNS.on('connection', (socket) => {
   // when people connect...
   if (game.isAcceptingPlayers()) {
     server.acceptSocket(socket, game);
-    game.addPlayer(socket);
+    game.addPlayer(socket.id);
   } else {
     server.rejectSocket(socket);
   }
@@ -74,14 +74,15 @@ server.gameNS.on('connection', (socket) => {
 
   // when people disconnect
   socket.on('disconnect', () => {
+    console.log(JSON.stringify(game.players.map(player => player.id)));
     if (game.hasPlayer(socket.id)) {
-      let player = game.getPlayer(socket.id);
-      console.log(`user ${ socket.id + '--' + player.name } disconnected`);
+      let removedPlayer = game.removePlayer(socket.id);
+      console.log(`\tRemoved player with id: ${ removedPlayer.id }`);
+      console.log(`user ${ socket.id + '--' + removedPlayer.name } disconnected`);
       // FIXME: socket/player communication needs to be redone
-      socket.broadcast(`${ player.name } has left the game.`);
-      game.removePlayer(socket.id);
+      socket.broadcast.emit(`${ removedPlayer.name } has left the game.`);
     } else {
-      console.log(`anon user ${ socket.id } disconnected`);
+      console.log(`Unrecognized socket ${ socket.id } disconnected`);
     }
   });
 
