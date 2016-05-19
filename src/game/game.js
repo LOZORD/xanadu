@@ -112,8 +112,21 @@ export default class Game extends Emitter {
     }
   }
   // FIXME: needs to be vastly rewritten
-  handleMessage(/*messageObj, player, kwargs = {}*/) {
+  handleMessage(messageObj, socketId = null /*, kwargs = {}*/) {
+
+    //let responseMessage = {};
+
+    const senderId = socketId || messageObj.id;
+
+    if (!senderId) {
+      throw new Error('Unknown message sender!');
+    }
+
+    //messageObj[sender]
     throw new Error('REIMPLEMENT ME!');
+
+
+    // a lot of the code for `message` will end up here
     /*
     // check if it's a special command
     var message   = messageObj.msg;

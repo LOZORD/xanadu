@@ -65,7 +65,7 @@ server.gameNS.on('connection', (socket) => {
 
   // when people send _anything_ from the client
   socket.on('message', (messageObj) => {
-    let responseObj = game.handleMessage(messageObj);
+    let responseObj = game.handleMessage(messageObj, socket.id);
 
     if (responseObj) {
       server.sendMessage(responseObj);
