@@ -24,7 +24,12 @@ export const PLAYER_STATES = {
 
 export default class Player {
   constructor(args = {}) {
-    this.socket = args.socket;
+    //this.socket = args.socket;
+    //socket stuff now handled by server
+    this.id = args.id;
+    if (!this.id) {
+      throw new Error('Need id for player construction!');
+    }
     this.game   = args.game;
 
     // TODO: get this 'startLoc' for the map itself
@@ -40,11 +45,13 @@ export default class Player {
     this.state = PLAYER_STATES.ANON;
     // XXX this could be buggy (i.e. ANON && "has" name)
     this.name = args.name || '[NO NAME]';
-    // add main listener
+    // add main listener -- this is now handled by the server!
+    /*
     this.socket.on('message', (messageObj) => {
       console.log(messageObj);
       this.game.message(this, messageObj);
     });
+    */
   }
 
   isAnon() {
