@@ -22,10 +22,8 @@ export default class Server {
     }
 
     this.ns         = kwargs.ns || '/';
-    this.maxPlayers = kwargs.maxPlayers || 8;
     this.seed       = kwargs.seed || Date.now();
-    //this.rng        = 
-    // XXX: do we need a list of players (or rather, sockets?)
+    this.sockets = [];
   }
   createServer() {
     const PATHS = {
@@ -43,7 +41,12 @@ export default class Server {
       console.log(`XANADU SERVER listening on port ${ this.port }`);
     });
   }
-  addSocket(socket) {
-    throw new Error(`TODO: implement 'addSocket' with arg ${ socket.id }`);
+  acceptSocket(socket) {
+    this.sockets.push(socket);
   }
+  rejectSocket(socket) {
+    console.log(`socket ${ socket.id } rejected -- game full`);
+    socket.emit('rejected-from-room');
+  }
+
 }

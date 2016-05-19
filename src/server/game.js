@@ -1,8 +1,4 @@
 import gen      from 'random-seed';
-import http     from 'http';
-import express  from 'express';
-import path     from 'path';
-import ioFunc   from 'socket.io';
 import _        from 'lodash';
 import Emitter  from 'events';
 import Player, { PLAYER_STATES } from './player';
@@ -14,17 +10,6 @@ const WITHOUT_NAME = false;
 export default class Game extends Emitter {
   constructor(args = {}) {
     super(args);
-    // set up server stuff
-    this.expressApp = express();
-    this.httpServer = http.Server(this.expressApp);
-    this.io = ioFunc(this.httpServer);
-    this.port = args.port || 3000;
-    this.createServer();
-    let debug = args.debug || true;
-    if (debug) {
-      this.debugServer();
-    }
-    this.ns = args.ns || '/';
     this.maxPlayers = args.maxPlayers || 8;
     this.seed       = args.seed || Date.now();
     this.rng        = gen(this.seed);
@@ -42,20 +27,6 @@ export default class Game extends Emitter {
   }
   isAcceptingPlayers() {
     return !this.hasStarted;
-  }
-  update() {
-    this.turnNumber++;
-    let UPDATE_WAIT_TIME = 1000 * 10; // ten seconds
-    setTimeout(() => {
-      // TODO: figure out how to async'ly gather moves from players
-      // e.g. let moves = this.gatherMoves();
-      let results = this.performMoves();
-
-      this.sendUpdatesToClients(results);
-
-      // when we're done, update again!
-      this.update();
-    }, UPDATE_WAIT_TIME);
   }
   sortMoves(players) {
     return _
@@ -82,96 +53,12 @@ export default class Game extends Emitter {
 
     return moveResults;
   }
-  sendUpdatesToClients(results) {
-    if (!results) {
-      throw new Error(`Expected results to exist! Got: ${ results }!`);
-    }
-
-    _.forEach(this.players, (player) => {
-      let id = player.id();
-      let resultMessage = results[id];
-      player.messageUpdates(resultMessage);
-      player.updateDetails()
-    });
-  }
-  createServer() {
-    //this.expressApp = express();
-
-    // serve the client stuff
-    this.expressApp.use(express.static(path.join(
-      __dirname, '..', 'client'
-    )));
-
-    const NODE_MODULES_DIR = path.join(
-      __dirname, '..', '..', 'node_modules'
-    );
-
-    this.expressApp.use('/jquery', express.static(path.join(
-      NODE_MODULES_DIR, 'jquery', 'dist'
-    )));
-
-    this.expressApp.use('/bootstrap', express.static(path.join(
-      NODE_MODULES_DIR, 'bootstrap', 'dist'
-    )));
-
-    this.httpServer.listen(this.port, () => {
-      console.log(`Xanadu game listening on port ${ this.port }`);
-    });
-
-    // socket namespace for the game
-    var gameNS = this.io.of('/game');
-
-    // now add the socket.io listeners
-    gameNS.on('connection', (socket) => {
-      socket.on('disconnect', () => {
-        if (socket.player) {
-          console.log(`user ${ socket.player.id() + '--' + socket.player.name } disconnected`);
-          socket.player.broadcast(`${ socket.player.name } has left the game.`);
-        } else {
-          console.log(`anon user ${ socket.id } disconnected`);
-        }
-
-        // remove them from this list of players
-        _.remove(this.players, (player) => player.id() == socket.player.id());
-      });
-
-      if (this.players.length < this.maxPlayers) {
-        this.acceptSocket(socket);
-      } else {
-        this.rejectSocket(socket);
-      }
-    });
-
-    return {
-      httpServer: this.httpServer,
-      io: gameNS
-    };
-  }
-  debugServer() {
-    console.log('\tDebugging is active!');
-    var debugNS = this.io.of('/debug');
-    debugNS.on('connection', (socket) => {
-      socket.on('get', () => {
-        socket.emit('update', this.players.map((p) => {
-          return p.debugString();
-        }).join('\n'));
-      });
-    });
-  }
-  acceptSocket(socket) {
-    socket.player = new Player({
-      socket: socket,
-      game: this
-    });
-    this.players.push(socket.player);
-    let spotsLeft = this.maxPlayers - this.players.length;
+  addPlayer(socket) {
+    this.player.push(new Player({ id: socket.id }));
+    const spotsLeft = this.maxPlayers - this.players.length;
     console.log('\taccepted socket');
     console.log(`\t${ spotsLeft } / ${ this.maxPlayers } spots left`);
-    socket.emit('request-name'); // might not be nec.
-  }
-  rejectSocket(socket) {
-    console.log(`socket ${ socket.id } rejected -- game full`);
-    socket.emit('rejected-from-room');
+    //socket.emit('request-name'); // might not be nec.
   }
   message(player, messageObj) {
     var message   = messageObj.msg;
@@ -208,7 +95,10 @@ export default class Game extends Emitter {
       // do nothing
     }
   }
-  handleMessage(messageObj, player, kwargs = {}) {
+  // FIXME: needs to be vastly rewritten
+  handleMessage(/*messageObj, player, kwargs = {}*/) {
+    throw new Error('REIMPLEMENT ME!');
+    /*
     // check if it's a special command
     var message   = messageObj.msg;
     // XXX: do something with timeStamp
@@ -262,6 +152,7 @@ export default class Game extends Emitter {
         // do nothing
       }
     }
+    */
   }
   attemptToStart() {
     console.log(this.players.map(player => [player.name, player.state]));
