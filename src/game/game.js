@@ -26,7 +26,7 @@ export default class Game extends Emitter {
     this.turnNumber = 0;
   }
   isAcceptingPlayers() {
-    return !this.hasStarted;
+    return !this.hasStarted && this.players.length < this.maxPlayers;
   }
   sortMoves(players) {
     return _
@@ -54,21 +54,27 @@ export default class Game extends Emitter {
     return moveResults;
   }
   hasPlayer(socketId) {
-    return _.chain(this.players)
-            .map(player => player.id)
-            .findIndex(socketId)
-            .gte(0)
-            .value();
+    return _.map(this.players, player => player.id).indexOf(socketId) > -1;
   }
-  addPlayer(socket) {
+  addPlayer(socketId) {
     this.players.push(new Player({
-      id: socket.id,
+      id: socketId,
       game: this
     }));
     const spotsLeft = this.maxPlayers - this.players.length;
     console.log('\taccepted socket');
     console.log(`\t${ spotsLeft } / ${ this.maxPlayers } spots left`);
     //socket.emit('request-name'); // might not be nec.
+  }
+  removePlayer(socketId) {
+    return _.remove(this.players, (player) => player.id === socketId)[0];
+
+    /*
+    return _.chain(this.players)
+            .remove(player => player.id === socket.id)
+            .first()
+            .value();
+    */
   }
   message(player, messageObj) {
     var message   = messageObj.msg;

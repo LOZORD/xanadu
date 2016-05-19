@@ -42,6 +42,7 @@ export default class Server {
     });
   }
   acceptSocket(socket, game) {
+    console.log(`Server accepted socket ${ socket.id }`);
     this.sockets.push(socket);
     socket.on('message', (messageObj) => {
       console.log(`Socket ${ socket.id }: ${ messageObj }`);
@@ -52,5 +53,4 @@ export default class Server {
     console.log(`socket ${ socket.id } rejected -- game full`);
     socket.emit('rejected-from-room');
   }
-
 }
