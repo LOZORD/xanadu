@@ -53,8 +53,18 @@ export default class Game extends Emitter {
 
     return moveResults;
   }
+  hasPlayer(socketId) {
+    return _.chain(this.players)
+            .map(player => player.id)
+            .findIndex(socketId)
+            .gte(0)
+            .value();
+  }
   addPlayer(socket) {
-    this.player.push(new Player({ id: socket.id }));
+    this.players.push(new Player({
+      id: socket.id,
+      game: this
+    }));
     const spotsLeft = this.maxPlayers - this.players.length;
     console.log('\taccepted socket');
     console.log(`\t${ spotsLeft } / ${ this.maxPlayers } spots left`);

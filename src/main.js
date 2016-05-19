@@ -2,7 +2,7 @@
 import process from 'process';
 import Game from './server/game';
 import Server from './server/server';
-import _ from 'lodash';
+//import _ from 'lodash';
 
 let die = (msg) => {
   console.error(msg);
@@ -57,7 +57,7 @@ let game    = new Game(args);
 server.gameNS.on('connection', (socket) => {
   // when people connect...
   if (game.isAcceptingPlayers()) {
-    server.acceptSocket(socket);
+    server.acceptSocket(socket, game);
     game.addPlayer(socket);
   } else {
     server.rejectSocket(socket);
@@ -98,7 +98,10 @@ if (server.debug) {
   });
 }
 
+/*
 const UPDATE_WAIT_TIME = 10 * 1000; // ten seconds
+
+This is what we eventually want, but starting immediately is incorrect!
 
 let update = () => {
   let updateObj = game.performMoves();
@@ -108,6 +111,5 @@ let update = () => {
   });
 };
 
-let updateIntervalId = setInterval(update, UPDATE_WAIT_TIME);
-
-console.log(`Interval id: ${ updateIntervalId }`);
+setInterval(update, UPDATE_WAIT_TIME);
+*/

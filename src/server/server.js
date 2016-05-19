@@ -34,15 +34,19 @@ export default class Server {
     PATHS.BOOTSTRAP = Path.join(PATHS.NODE_MODULES, 'bootstrap', 'dist');
 
     this.expressApp.use(Express.static(PATHS.CLIENT));
-    this.expressApp.use('/jquery', PATHS.JQUERY);
-    this.expressApp.use('/bootstrap', PATHS.BOOTSTRAP);
+    this.expressApp.use('/jquery', Express.static(PATHS.JQUERY));
+    this.expressApp.use('/bootstrap', Express.static(PATHS.BOOTSTRAP));
 
     this.httpServer.listen(this.port, () => {
       console.log(`XANADU SERVER listening on port ${ this.port }`);
     });
   }
-  acceptSocket(socket) {
+  acceptSocket(socket, game) {
     this.sockets.push(socket);
+    socket.on('message', (messageObj) => {
+      console.log(`Socket ${ socket.id }: ${ messageObj }`);
+      game.handleMessage(messageObj);
+    });
   }
   rejectSocket(socket) {
     console.log(`socket ${ socket.id } rejected -- game full`);
