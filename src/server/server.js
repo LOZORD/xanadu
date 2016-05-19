@@ -46,7 +46,7 @@ export default class Server {
     this.sockets.push(socket);
     socket.on('message', (messageObj) => {
       console.log(`Socket ${ socket.id }: ${ messageObj }`);
-      game.handleMessage(messageObj);
+      game.handleMessage(messageObj, socket.id);
     });
   }
   rejectSocket(socket) {
