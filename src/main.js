@@ -2,6 +2,7 @@
 import process from 'process';
 import Game from './server/game';
 import Server from './server/server';
+import _ from 'lodash';
 
 let die = (msg) => {
   console.error(msg);
@@ -53,17 +54,10 @@ let args = parseArgs(process.argv);
 let server  = new Server(args);
 let game    = new Game(args);
 
-/* TODO: how do we handle messaging?
- * Like when a message comes from the client, how do we
- * (1) modify/examine game state and
- * (2) send to client/broadcast the response message?
- * See possible solution on line 84
- */
-
 server.gameNS.on('connection', (socket) => {
   // when people connect...
   if (game.isAcceptingPlayers()) {
-    server.addSocket(socket);
+    server.acceptSocket(socket);
     game.addPlayer(socket);
   } else {
     server.rejectSocket(socket);
@@ -71,10 +65,10 @@ server.gameNS.on('connection', (socket) => {
 
   // when people send _anything_ from the client
   socket.on('message', (messageObj) => {
-    let response = game.handleMessage(messageObj);
+    let responseObj = game.handleMessage(messageObj);
 
-    if (response) {
-      server.sendMessage(response);
+    if (responseObj) {
+      server.sendMessage(responseObj);
     }
   });
 
@@ -103,3 +97,17 @@ if (server.debug) {
     });
   });
 }
+
+const UPDATE_WAIT_TIME = 10 * 1000; // ten seconds
+
+let update = () => {
+  let updateObj = game.performMoves();
+
+  _.forEach(updateObj, (updateObj) => {
+    server.sendMessage(updateObj);
+  });
+};
+
+let updateIntervalId = setInterval(update, UPDATE_WAIT_TIME);
+
+console.log(`Interval id: ${ updateIntervalId }`);
