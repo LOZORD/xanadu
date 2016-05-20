@@ -74,7 +74,6 @@ server.gameNS.on('connection', (socket) => {
 
   // when people disconnect
   socket.on('disconnect', () => {
-    console.log(JSON.stringify(game.players.map(player => player.id)));
     if (game.hasPlayer(socket.id)) {
       let removedPlayer = game.removePlayer(socket.id);
       console.log(`\tRemoved player with id: ${ removedPlayer.id }`);
@@ -89,6 +88,7 @@ server.gameNS.on('connection', (socket) => {
 });
 
 if (server.debug) {
+  console.log('Launching the debug server...');
   server.debugNS.on('connection', (socket) => {
     socket.on('get', () => {
       socket.emit('update', game
