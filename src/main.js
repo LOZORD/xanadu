@@ -98,19 +98,3 @@ if (server.debug) {
     });
   });
 }
-
-/*
-const UPDATE_WAIT_TIME = 10 * 1000; // ten seconds
-
-This is what we eventually want, but starting immediately is incorrect!
-
-let update = () => {
-  let updateObj = game.performMoves();
-
-  _.forEach(updateObj, (updateObj) => {
-    server.sendMessage(updateObj);
-  });
-};
-
-setInterval(update, UPDATE_WAIT_TIME);
-*/

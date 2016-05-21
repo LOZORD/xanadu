@@ -72,13 +72,6 @@ export default class Game extends Emitter {
   }
   removePlayer(socketId) {
     return _.remove(this.players, (player) => player.id === socketId)[0];
-
-    /*
-    return _.chain(this.players)
-            .remove(player => player.id === socket.id)
-            .first()
-            .value();
-    */
   }
   message(player, messageObj) {
     var message   = messageObj.msg;
@@ -174,64 +167,6 @@ export default class Game extends Emitter {
 
     //messageObj[sender]
     return responses;
-
-
-    // a lot of the code for `message` will end up here
-    /*
-    // check if it's a special command
-    var message   = messageObj.msg;
-    // XXX: do something with timeStamp
-    // e.g. to players attempt to grab the same item
-    //var timeStamp = messageObj.ts;
-    if (message.startsWith(':')) {
-      let split = message.split(' ');
-
-      let command = split[0];
-
-      switch (command) {
-        case ':to': {
-           if (!split[1]) {
-             throw new Error('unknown recipient');
-           }
-           let toName = split[1];
-           let toMessage = split.slice(2).join(' ');
-           player.whisper(toMessage, toName);
-           //player.echo(message);
-           break;
-        }
-        default: {
-           throw new Error('unknown command type');
-        }
-      }
-    } else {
-      if (kwargs.defaultTo) {
-        switch (kwargs.defaultTo) {
-          case 'message': {
-            player.message(message, kwargs.speaker);
-            break;
-          }
-          case 'echo': { // XXX: echoed already... nec?
-            player.echo(message);
-            break;
-          }
-          case 'broadcast': {
-            player.broadcast(message, kwargs.withName);
-            break;
-          }
-          case 'whisper': {
-            player.whisper(message, kwargs.toName);
-            break;
-          }
-          default: {
-            // do nothing
-            break;
-          }
-        }
-      } else {
-        // do nothing
-      }
-    }
-    */
   }
   attemptToStart() {
     console.log(this.players.map(player => [player.name, player.state]));
