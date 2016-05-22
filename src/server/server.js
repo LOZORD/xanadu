@@ -6,7 +6,7 @@ import gen from 'random-seed';
 import IoFunction from 'socket.io';
 
 import Game from '../game/game.js';
-import Player from '../game/player';
+import Player, { PLAYER_STATES } from '../game/player';
 
 export default class Server {
   constructor(maxPlayers = 16, debug = true, port = 3000, seed = Date.now()) {
@@ -27,6 +27,7 @@ export default class Server {
     this.players = [];
     this.maxPlayers = maxPlayers;
     this.game = null;
+    this.gameRunning = false;
 
     this.createServer();
   }
@@ -65,26 +66,28 @@ export default class Server {
     // when people connect...
     if (this.isAcceptingPlayers()) {
       this.acceptSocket(socket);
+
+      // when people send _anything_ from the client
+      socket.on('message', (messageObj) => this.handleMessage(messageObj, socket));
+
+      // when people disconnect
+      socket.on('disconnect', () => {
+        const player = this.getPlayer(socket.id);
+        if (player) {
+          this.removePlayer(socket.id);
+          console.log(`\tRemoved player with id: ${ player.id }`);
+          console.log(`user ${ socket.id + '--' + player.name } disconnected`);
+          // FIXME: socket/player communication needs to be redone
+          socket.broadcast.emit(`${ player.name } has left the game.`);
+        } else {
+          console.log(`Unrecognized socket ${ socket.id } disconnected`);
+        }
+      });
+
+      socket.emit('request-name');
     } else {
       this.rejectSocket(socket);
     }
-
-    // when people send _anything_ from the client
-    socket.on('message', (messageObj) => this.handleMessage(messageObj, socket.id));
-
-    // when people disconnect
-    socket.on('disconnect', () => {
-      const player = this.getPlayer(socket.id);
-      if (player) {
-        this.removePlayer(socket.id);
-        console.log(`\tRemoved player with id: ${ player.id }`);
-        console.log(`user ${ socket.id + '--' + player.name } disconnected`);
-        // FIXME: socket/player communication needs to be redone
-        socket.broadcast.emit(`${ player.name } has left the game.`);
-      } else {
-        console.log(`Unrecognized socket ${ socket.id } disconnected`);
-      }
-    });
   };
 
   acceptSocket = (socket) => {
@@ -101,21 +104,77 @@ export default class Server {
     socket.emit('rejected-from-room');
   };
 
-  isAcceptingPlayers = () => this.players.length < this.maxPlayers;
+  isAcceptingPlayers = () => !this.gameRunning && this.players.length < this.maxPlayers;
 
   addPlayer = (socketId) => {
-    this.players.push(new Player({
-      id: socketId
-    }));
+    this.players.push(new Player(socketId));
   };
 
   getPlayer = (socketId) => _.find(this.players, (p) => p.id === socketId);
+
+  getPlayerByName = (name) => _.find(this.players, (p) => p.name === name);
+
+  getSocket = (socketId) => _.find(this.sockets, (s) => s.id === socketId);
 
   removePlayer = (socketId) => {
     this.players = this.players.filter((p) => p.id !== socketId);
   };
 
-  handleMessage = undefined;
+  handleMessage = (messageObj, socket) => {
+    if (this.gameRunning) {
+      // TODO
+    } else {
+      const player = this.getPlayer(socket.id);
+      if (player.state === PLAYER_STATES.ANON) {
+        player.name = messageObj.msg;
+        player.state = PLAYER_STATES.NAMED;
+        socket.emit('message', {
+          speaker: 'Xanadu',
+          message: `Welcome to Xanadu ${ player.name }! Enter \`ready\` to start.`,
+          type: 'message'
+        });
+      } else {
+        const words = messageObj.msg.split(" ");
+        switch (words[0]) {
+          case 'message':
+          {
+            const recipient = this.getPlayerByName(words[1]);
+            if (recipient) {
+              this.getSocket(recipient.id).emit('message', {
+                speaker: player.name,
+                message: words.splice(2).join(" "),
+                type: 'message'
+              });
+            }
+            break;
+          }
+          case 'echo':
+          {
+            socket.emit('message', {
+              speaker: player.name,
+              message: words.splice(2).join(" "),
+              type: 'echo'
+            });
+            break;
+          }
+          case 'broadcast':
+          {
+            socket.broadcast.emit('message', {
+              speaker: player.name,
+              message: words.splice(2).join(" "),
+              type: 'broadcast'
+            });
+            break;
+          }
+          default:
+          {
+            // do nothing
+            break;
+          }
+        }
+      }
+    }
+  };
 
   createGame = () => {
     this.game = new Game(this.players, { dimension: 16 }, gen(Date.now()));

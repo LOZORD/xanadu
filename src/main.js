@@ -49,4 +49,4 @@ let parseArgs = (argv) => {
 
 let args = parseArgs(process.argv);
 
-let server  = new Server(args);
+let server  = new Server();
