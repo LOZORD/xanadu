@@ -55,7 +55,7 @@ export default class Server {
     console.log('Launching the debug server...');
     this.debugNS.on('connection', (socket) => {
       socket.on('get', () => {
-        socket.emit('update', this.game.players
+        socket.emit('update', this.players
           .map(player => player.debugString())
           .join('\n'));
       });
