@@ -8,10 +8,21 @@ let die = (msg) => {
 };
 
 let parseArgs = (argv) => {
-  let args = {};
+  let args = {
+    maxPlayers: undefined,
+    debug: undefined,
+    port: undefined,
+    seed: undefined
+  };
   let i = 2; // skip node and filename
   while (i < argv.length) {
-    if (argv[i] == '--port') {
+    if (argv[i] == '--no-debug') {
+      args.debug = false;
+      i++;
+    } else if (argv[i] == '--debug') {
+      args.debug = true;
+      i++;
+    } else if (argv[i] == '--port') {
       let port = parseInt(argv[i+1]);
       if (isNaN(port) || port < 1 || port > 65535) {
         die(`Invalid port "${ argv[i+1] }"`);
@@ -19,9 +30,6 @@ let parseArgs = (argv) => {
         args.port = port;
       }
       i += 2;
-    } else if (argv[i] == '--ns') {
-      // Not supported
-      die('Unsupported argument --ns');
     } else if (argv[i] == '--maxPlayers') {
       let maxPlayers = parseInt(argv[i+1]);
       if (isNaN(maxPlayers) || maxPlayers < 2) {
@@ -29,9 +37,7 @@ let parseArgs = (argv) => {
       } else {
         args.maxPlayers = maxPlayers;
       }
-    } else if (argv[i] == '--players') {
-      // Not supported
-      die('Unsupported argument --player');
+      i += 2;
     } else if (argv[i] == '--seed') {
       let seed = parseInt(argv[i+1]);
       if (isNaN(seed)) {
@@ -49,4 +55,4 @@ let parseArgs = (argv) => {
 
 let args = parseArgs(process.argv);
 
-let server  = new Server();
+new Server(args.maxPlayers, args.debug, args.port, args.seed);

@@ -30,6 +30,7 @@ $(document).ready(() => {
     var ret = {};
     ret.message = data.message;
     ret.classes = []; // in case we want to add multiple classes
+    ret.to = data.to;
 
     if (data.type === 'echo') {
       ret.classes.push('via-echo');
@@ -38,6 +39,9 @@ $(document).ready(() => {
     } else if (data.type === 'whisper') {
       ret.message = data.speaker + ' said: ' + ret.message;
       ret.classes.push('via-whisper');
+    } else if (data.type === 'sent-message') {
+      ret.message = 'You said: ' + ret.message + ' to ' + ret.to;
+      ret.classes.push('via-echo');
     } else if (data.type === 'broadcast') {
       ret.message = `Let it be known that${ data.speaker ? ` ${ data.speaker } said` : '' }: ${ ret.message }`;
       ret.classes.push('via-broadcast');
@@ -68,7 +72,7 @@ $(document).ready(() => {
 
   socket.on('rejected-from-room', () => {
     addMessage('GAME ROOM AT CAPACITY');
-    setTimeout(() => { window.location = 'http://example.com' }, 5000);
+    socket.disconnect();
   });
 
   socket.on('message', (data) => {

@@ -16,8 +16,10 @@ export default class Server {
     this.port       = port;
 
     this.gameNS = this.io.of('/game');
+    // TODO: Don't serve debug page if debugging is off
     if (debug) {
       this.debugNS = this.io.of('/debug');
+      console.log('wat');
       this.createDebugServer();
     }
 
@@ -101,6 +103,11 @@ export default class Server {
 
   rejectSocket = (socket) => {
     console.log(`socket ${ socket.id } rejected -- game full`);
+    socket.emit('message', {
+      speaker: 'Xanadu',
+      message: 'Sorry, the game is full!',
+      type: 'message'
+    });
     socket.emit('rejected-from-room');
   };
 
@@ -136,34 +143,33 @@ export default class Server {
       } else {
         const words = messageObj.msg.split(" ");
         switch (words[0]) {
-          case 'message':
+          case 'whisper':
           {
             const recipient = this.getPlayerByName(words[1]);
             if (recipient) {
-              this.getSocket(recipient.id).emit('message', {
+              const message = {
                 speaker: player.name,
                 message: words.splice(2).join(" "),
-                type: 'message'
+                type: 'whisper'
+              };
+              this.getSocket(recipient.id).emit('message', message);
+              socket.emit('message', {
+                ...message,
+                type: 'sent-message',
+                to: words[1]
               });
             }
             break;
           }
-          case 'echo':
-          {
-            socket.emit('message', {
-              speaker: player.name,
-              message: words.splice(2).join(" "),
-              type: 'echo'
-            });
-            break;
-          }
           case 'broadcast':
           {
-            socket.broadcast.emit('message', {
+            const message = {
               speaker: player.name,
-              message: words.splice(2).join(" "),
+              message: words.splice(1).join(" "),
               type: 'broadcast'
-            });
+            };
+            socket.broadcast.emit('message', message);
+            socket.emit('message', message);
             break;
           }
           default:
