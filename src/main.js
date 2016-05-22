@@ -1,8 +1,6 @@
 /* eslint no-console: 0 */
 import process from 'process';
-import Game from './game/game';
 import Server from './server/server';
-//import _ from 'lodash';
 
 let die = (msg) => {
   console.error(msg);
@@ -52,49 +50,3 @@ let parseArgs = (argv) => {
 let args = parseArgs(process.argv);
 
 let server  = new Server(args);
-let game    = new Game(args);
-
-server.gameNS.on('connection', (socket) => {
-  // when people connect...
-  if (game.isAcceptingPlayers()) {
-    server.acceptSocket(socket, game);
-    game.addPlayer(socket.id);
-  } else {
-    server.rejectSocket(socket);
-  }
-
-  // when people send _anything_ from the client
-  socket.on('message', (messageObj) => {
-    let responseObj = game.handleMessage(messageObj, socket.id);
-
-    if (responseObj) {
-      server.sendMessage(responseObj);
-    }
-  });
-
-  // when people disconnect
-  socket.on('disconnect', () => {
-    if (game.hasPlayer(socket.id)) {
-      let removedPlayer = game.removePlayer(socket.id);
-      console.log(`\tRemoved player with id: ${ removedPlayer.id }`);
-      console.log(`user ${ socket.id + '--' + removedPlayer.name } disconnected`);
-      // FIXME: socket/player communication needs to be redone
-      socket.broadcast.emit(`${ removedPlayer.name } has left the game.`);
-    } else {
-      console.log(`Unrecognized socket ${ socket.id } disconnected`);
-    }
-  });
-
-});
-
-if (server.debug) {
-  console.log('Launching the debug server...');
-  server.debugNS.on('connection', (socket) => {
-    socket.on('get', () => {
-      socket.emit('update', game
-        .players()
-        .map(player => player.debugString())
-        .join('\n'));
-    });
-  });
-}

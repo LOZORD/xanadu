@@ -1,5 +1,4 @@
 import Animal from '../animal';
-import Ingestible from '../items/ingestibles/ingestible';
 import _ from 'lodash';
 
 export const CLASSES = {
@@ -72,29 +71,9 @@ export default class Character extends Animal {
     this.characterClass = CLASSES.UNDEFINED_CLASS;
     this.allegiance = ALLEGIANCES.UNDEFINED_ALLEGIANCE;
 
-    this.player = kwargs.player || null;
-
     this.nextMove = {
       phrase: '',
       timeStamp: 0
     };
-  }
-  setNextMove(newMove) {
-    this.nextMove = newMove;
-  }
-  getNextMove() {
-    return this.nextMove;
-  }
-  performMove(move) {
-    // TODO:  implement this (@zthomae :3 )
-    // XXX:   might need to have a ref to the game object to do this right
-    console.log(`${ this.player.name } will perform "${ move || '[NOTHING]' }"`);
-  }
-  ingest(ingestibleItem) {
-    if (ingestibleItem instanceof Ingestible) {
-      // TODO: apply effects and remove stack
-    } else {
-      throw new Error(`Cannot ingest a ${ ingestibleItem.constructor.name }!`);
-    }
   }
 }
