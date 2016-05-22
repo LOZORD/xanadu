@@ -63,7 +63,8 @@
       "jquery": true
     },
     "rules": {
-      "no-console": 1,
+      "no-console": 0,
+      "no-unused-vars": 0,
       "no-constant-condition": 1
     }
   }
