@@ -5,11 +5,69 @@ import Map      from './map/map';
 
 // TODO: one of the game parameters should be the number of modifiers randomly assigned
 export default class Game {
-  constructor(players, mapOpts, rng) {
-    this.rng        = rng;
-    this.players = players;
-    this.map = new Map(mapOpts);
-    this.turnNumber = 0;
+  constructor(kwargs = {}) {
+    this.rng        = kwargs.rng;
+
+    if (!this.rng) {
+      throw new Error('No default value for missing RNG!');
+    }
+
+    this.players    = kwargs.players    || [];
+    let mapOpts     = kwargs.mapOptions || {};
+    this.map        = kwargs.map        || new Map(mapOpts);
+    this.maxPlayers = kwargs.maxPlayers || 8;
+    this.turnNumber = kwargs.turnNumber || 0;
+    this.hasStarted = kwargs.hasStarted || false;
+    this.hasEnded   = kwargs.hasEnded   || false;
+    this.server     = kwargs.server     || null;
+
+    if (!this.server) {
+      console.warn('A game might want to be aware of its server...');
+    }
+  }
+  getPlayer(socketId, game = this) {
+    return _.find(game.players, (player) => player.id === socketId);
+  }
+  hasPlayer(socketId, game = this) {
+    return game.getPlayer(socketId) !== undefined;
+  }
+  getPlayerWithName(name, game = this) {
+    return _.find(game.players, (player) => player.name === name);
+  }
+  hasPlayerWithName(name, game = this) {
+    return game.getPlayerWithName(name) !== undefined;
+  }
+  extractFields(game = this) {
+    return _.pick(game, [
+        'players',
+        'rng',
+        'map',
+        'maxPlayers',
+        'turnNumber',
+        'hasStarted',
+        'hasEnded',
+        'server'
+    ]);
+  }
+  removePlayer(socketId, game = this) {
+    let removedPlayer = game.getPlayer(socketId);
+    let newPlayerList = _.filter(game.players, (player) => player !== removedPlayer);
+
+    let newGameFields = game.extractFields(game);
+
+    newGameFields.players = newPlayerList;
+
+    return {
+      game: new Game(newGameFields),
+      player: removedPlayer
+    };
+  }
+  isAcceptingPlayers(game = this) {
+    return !game.hasStarted && game.players.length < game.maxPlayers;
+  }
+  addPlayer(socketId, game = this) {
+    // TODO
+    throw new Error('IMPLEMENT ME');
   }
 }
 

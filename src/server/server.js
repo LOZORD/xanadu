@@ -8,6 +8,7 @@ import Game from '../game/game.js';
 import Player, { PLAYER_STATES } from '../game/player';
 
 export default class Server {
+  // TODO: redo args (Leo prefers kwargs -> allows for any order, any existence)
   constructor(maxPlayers = 16, debug = true, port = 3000, seed = Date.now()) {
     this.expressApp = Express();
     this.httpServer = Http.Server(this.expressApp);
@@ -24,14 +25,8 @@ export default class Server {
     this.ns         = '/';
     this.seed       = seed;
     this.sockets = [];
-    this.players = []; // XXX: server only needs `sockets` NOT `players
-    this.maxPlayers = maxPlayers; // XXX: server doesn't care how many players, only game does
-    // TODO: create `game` and treat it as a blackbox
-    // i.e. call `createGame` --> we may want one server but many games!
-    this.game = null;
-    // TODO: this should be determined by the game and not the server
-    // or rather, the game should control this state
-    this.gameRunning = false;
+    // Reason for `createGame`: we may want one server but many games!
+    this.game = this.createGame();
 
     this.createServer();
   }
@@ -78,7 +73,9 @@ export default class Server {
       // when people send _anything_ from the client
       socket.on('message', (messageObj) => {
         console.log(`Socket ${ socket.id }: ${ JSON.stringify(messageObj) }`);
+
         this.handleMessage(messageObj, socket)
+
         // XXX: eventually something like:
         /* ...
          * let response = this.game.respondToMessage(message);
@@ -88,11 +85,9 @@ export default class Server {
 
       // when people disconnect
       socket.on('disconnect', () => {
-        const player = this.getPlayer(socket.id);
-        if (player) {
-          this.removePlayer(socket.id);
-          console.log(`\tRemoved player with id: ${ player.id }`);
-          console.log(`user ${ socket.id + '--' + player.name } disconnected`);
+        if (this.hasPlayer(socket.id)) {
+          let { player } = this.removePlayer(socket.id);
+          console.log(`\tPlayer ${ player.id + '--' + player.name } disconnected`);
           // FIXME: socket/player communication needs to be redone
           socket.broadcast.emit(`${ player.name } has left the game.`);
         } else {
@@ -125,31 +120,42 @@ export default class Server {
     socket.emit('rejected-from-room');
   }
 
-  // TODO: this.gameRunning -> this.game.hasStarted or w/e
-  isAcceptingPlayers() {
-    return !this.gameRunning && this.players.length < this.maxPlayers;
+  isAcceptingPlayers(server = this) {
+    //return !this.gameRunning && this.players.length < this.maxPlayers;
+    return server.game.isAcceptingPlayers();
   }
 
-  addPlayer(socketId) {
-    this.players.push(new Player(socketId));
+  addPlayer(socketId, server = this) {
+    //this.players.push(new Player(socketId));
+    return server.game.addPlayer(socketId);
   }
 
-  getPlayer(socketId) {
-    return _.find(this.players, (p) => p.id === socketId);
+  hasPlayer(socketId, server = this) {
+    return server.game.hasPlayer(socketId);
   }
 
-  getPlayerByName(name) {
-    return _.find(this.players, (p) => p.name === name);
+  getPlayer(socketId, server = this) {
+    //return _.find(this.players, (p) => p.id === socketId);
+    return server.game.getPlayer(socketId);
   }
 
-  getSocket(socketId) {
-    return _.find(this.sockets, (s) => s.id === socketId);
+  getPlayerByName(name, server = this) {
+    //return _.find(this.players, (p) => p.name === name);
+    return server.game.getPlayerByName(name);
   }
 
-  removePlayer(socketId) {
-    this.players = this.players.filter((p) => p.id !== socketId);
+  getSocket(socketId, server = this) {
+    return _.find(server.sockets, (s) => s.id === socketId);
   }
 
+  removePlayer(socketId, server = this) {
+    //this.players = this.players.filter((p) => p.id !== socketId);
+    return server.game.removePlayer(socketId);
+  }
+
+  removeSocket(socketId, server = this) {
+    server.sockets = _.filter(server.sockets, (socket) => socket.id !== socketId);
+  }
   handleMessage(messageObj, socket) {
     if (this.gameRunning) {
       // TODO
@@ -206,6 +212,8 @@ export default class Server {
   }
 
   createGame() {
-    this.game = new Game(this.players, { dimension: 16 }, gen(Date.now()));
+    // TODO
+    // this.game = new Game(...);
+    throw new Error('Implement me!');
   }
 }
