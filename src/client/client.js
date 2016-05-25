@@ -21,8 +21,9 @@ $(document).ready(() => {
   let sendMessage = (msg) => {
     socket.emit('message', {
       msg: msg,
-      ts: Date.now(),
-      id: socket.id
+      ts: Date.now()
+      //not nec. since we can get the id from the socket on the server
+      //id: socket.id
     });
   };
 
@@ -32,6 +33,7 @@ $(document).ready(() => {
     ret.classes = []; // in case we want to add multiple classes
     ret.to = data.to;
 
+    // TODO: fix types
     if (data.type === 'echo') {
       ret.classes.push('via-echo');
     } else if (data.type === 'message') {

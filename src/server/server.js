@@ -29,6 +29,7 @@ export default class Server {
     this.players = [];
     this.maxPlayers = maxPlayers;
     this.game = null;
+    // TODO: this should be determined by the game and not the server
     this.gameRunning = false;
 
     this.createServer();
@@ -96,7 +97,7 @@ export default class Server {
     console.log(`Server accepted socket ${ socket.id }`);
     this.sockets.push(socket);
     socket.on('message', (messageObj) => {
-      console.log(`Socket ${ socket.id }: ${ messageObj }`);
+      console.log(`Socket ${ socket.id }: ${ JSON.stringify(messageObj) }`);
     });
     this.addPlayer(socket.id);
   };
@@ -111,6 +112,7 @@ export default class Server {
     socket.emit('rejected-from-room');
   };
 
+  // TODO: this.gameRunning -> this.game.hasStarted or w/e
   isAcceptingPlayers = () => !this.gameRunning && this.players.length < this.maxPlayers;
 
   addPlayer = (socketId) => {
