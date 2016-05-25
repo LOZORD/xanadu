@@ -4,8 +4,9 @@ import StackableItem from '../stackableItem';
 export default class Ingestible extends StackableItem {
   constructor(kwargs = {}) {
     super(kwargs);
-    this.isPoisoned = kwargs.isPoisoned || false;
-    this.isAddictive = kwargs.isAddictive || false;
+    this.isPoisoned        = kwargs.isPoisoned || false;
+    this.isAddictive       = kwargs.isAddictive || false;
+    this.givesImmortality  = kwargs.givesImmortality || false;
     this.stats = {
       health: 0,
       strength: 0,

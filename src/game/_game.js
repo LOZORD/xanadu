@@ -1,3 +1,5 @@
+/* DEPRECATED -- ONLY HERE (TEMPORARILY) FOR REFERENCE */
+
 import gen      from 'random-seed';
 import _        from 'lodash';
 import Emitter  from 'events';
