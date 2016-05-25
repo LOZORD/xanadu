@@ -4,7 +4,6 @@ import gen from 'random-seed';
 import Http from 'http';
 import Express from 'express';
 import IoFunction from 'socket.io';
-
 import Game from '../game/game.js';
 import Player, { PLAYER_STATES } from '../game/player';
 
@@ -19,19 +18,19 @@ export default class Server {
     // TODO: Don't serve debug page if debugging is off
     if (debug) {
       this.debugNS = this.io.of('/debug');
-      console.log('wat');
       this.createDebugServer();
     }
 
     this.ns         = '/';
     this.seed       = seed;
     this.sockets = [];
-    this.players = [];
-    this.maxPlayers = maxPlayers;
+    this.players = []; // XXX: server only needs `sockets` NOT `players
+    this.maxPlayers = maxPlayers; // XXX: server doesn't care how many players, only game does
     // TODO: create `game` and treat it as a blackbox
     // i.e. call `createGame` --> we may want one server but many games!
     this.game = null;
     // TODO: this should be determined by the game and not the server
+    // or rather, the game should control this state
     this.gameRunning = false;
 
     this.createServer();
@@ -54,6 +53,7 @@ export default class Server {
       console.log(`XANADU SERVER listening on port ${ this.port }`);
     });
 
+    // need to pass a function literal so `this` is correct
     this.gameNS.on('connection', (socket) => {
       this.handleConnection(socket);
     });
@@ -76,7 +76,15 @@ export default class Server {
       this.acceptSocket(socket);
 
       // when people send _anything_ from the client
-      socket.on('message', (messageObj) => this.handleMessage(messageObj, socket));
+      socket.on('message', (messageObj) => {
+        console.log(`Socket ${ socket.id }: ${ JSON.stringify(messageObj) }`);
+        this.handleMessage(messageObj, socket)
+        // XXX: eventually something like:
+        /* ...
+         * let response = this.game.respondToMessage(message);
+         * ...
+         */
+      });
 
       // when people disconnect
       socket.on('disconnect', () => {
@@ -101,11 +109,7 @@ export default class Server {
   acceptSocket(socket) {
     console.log(`Server accepted socket ${ socket.id }`);
     this.sockets.push(socket);
-    // TODO: don't add another listener!
-    socket.on('message', (messageObj) => {
-      console.log(`Socket ${ socket.id }: ${ JSON.stringify(messageObj) }`);
-    });
-    this.addPlayer(socket.id);
+    this.addPlayer(socket.id); // XXX: the game should do this
     // TODO: pass the message onto the game
     // the game handles the message, and then passes the server a response
     // then, the server sends the response to the client
