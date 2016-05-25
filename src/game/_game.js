@@ -5,6 +5,7 @@ import _        from 'lodash';
 import Emitter  from 'events';
 import Player, { PLAYER_STATES } from './player';
 import Map      from './map/map';
+import ResponseFactory from '../server/responses/factory';
 
 const WITHOUT_NAME = false;
 
@@ -28,7 +29,7 @@ export default class Game extends Emitter {
     this.turnNumber = 0;
   }
   isAcceptingPlayers() {
-    return !this.hasStarted;
+    return !this.hasStarted && this.players.length < this.maxPlayers;
   }
   sortMoves(players) {
     return _
@@ -55,12 +56,31 @@ export default class Game extends Emitter {
 
     return moveResults;
   }
-  addPlayer(socket) {
-    this.player.push(new Player({ id: socket.id }));
+  hasPlayer(socketId) {
+    return this.getPlayer(socketId) !== undefined;
+  }
+  getPlayer(socketId) {
+    return _.find(this.players, (player) => player.id === socketId);
+  }
+  addPlayer(socketId) {
+    this.players.push(new Player({
+      id: socketId,
+      game: this
+    }));
     const spotsLeft = this.maxPlayers - this.players.length;
     console.log('\taccepted socket');
     console.log(`\t${ spotsLeft } / ${ this.maxPlayers } spots left`);
     //socket.emit('request-name'); // might not be nec.
+  }
+  removePlayer(socketId) {
+    return _.remove(this.players, (player) => player.id === socketId)[0];
+
+    /*
+    return _.chain(this.players)
+            .remove(player => player.id === socket.id)
+            .first()
+            .value();
+    */
   }
   message(player, messageObj) {
     var message   = messageObj.msg;
@@ -98,8 +118,70 @@ export default class Game extends Emitter {
     }
   }
   // FIXME: needs to be vastly rewritten
-  handleMessage(/*messageObj, player, kwargs = {}*/) {
+  // TODO: decide if we are going to have "special" commands
+  // (i.e. things that start with special characters like `:`)
+  handleMessage(messageObj, socketId = null /*, kwargs = {}*/) {
+
     throw new Error('REIMPLEMENT ME!');
+
+    /*
+    let responses = [];
+
+    const senderId = socketId || messageObj.id;
+
+    if (!senderId) {
+      throw new Error('Unknown message sender!');
+    }
+
+    let sender = this.getPlayer(senderId);
+
+    if (!sender) {
+      throw new Error(`Could not find sender! Used id ${ senderId } for search.`);
+    }
+
+    const message = messageObj.msg;
+
+    // always echo the message back to the player who sent it
+    responses.push(new ResponseFactory.ECHO({
+      withResponse: message,
+      from: sender.id
+    }));
+
+    if (sender.state === PLAYER_STATES.ANON && !this.hasStarted) {
+      if (this.validatePlayer(name)) {
+        // TODO: welcome them to the game... etc
+        // See lines 92-97 above
+      } else {
+        // TODO: reply with invalid name
+      }
+    } else if (sender.state === PLAYER_STATES.NAMED && !this.hasStarted) {
+      if (message.toLowerCase() === 'ready') {
+        sender.state = PLAYER_STATES.READY;
+        // TODO: send player welcome message
+        this.attemptToStart();
+      } else {
+        // globally heard messaging before game starts
+        // TODO see `message` code
+      }
+    } else if (sender.state === PLAYER_STATES.PLAYING && this.hasStarted) {
+      if (this.isTurnAction(message)) {
+        // TODO: set their turn action... i.e.:
+        //sender.setTurnAction(message);
+      } else {
+        // TODO: this is the case of something like `look` or `whisper`
+        // it does not count as their turn action/move (i.e. it is "free")
+      }
+    } else {
+      throw new Error(
+        `Unknown message handling player state: ${ sender.state } and game 'hasStarted' state: ${ this.hasStarted }`
+      );
+    }
+
+    //messageObj[sender]
+    return responses;
+
+
+    // a lot of the code for `message` will end up here
     /*
     // check if it's a special command
     var message   = messageObj.msg;

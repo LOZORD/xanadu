@@ -106,6 +106,9 @@ export default class Server {
       console.log(`Socket ${ socket.id }: ${ JSON.stringify(messageObj) }`);
     });
     this.addPlayer(socket.id);
+    // TODO: pass the message onto the game
+    // the game handles the message, and then passes the server a response
+    // then, the server sends the response to the client
   }
 
   rejectSocket(socket) {

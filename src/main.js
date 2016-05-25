@@ -65,15 +65,15 @@ let game    = new Game(args);
 server.gameNS.on('connection', (socket) => {
   // when people connect...
   if (game.isAcceptingPlayers()) {
-    server.acceptSocket(socket);
-    game.addPlayer(socket);
+    server.acceptSocket(socket, game);
+    game.addPlayer(socket.id);
   } else {
     server.rejectSocket(socket);
   }
 
   // when people send _anything_ from the client
   socket.on('message', (messageObj) => {
-    let responseObj = game.handleMessage(messageObj);
+    let responseObj = game.handleMessage(messageObj, socket.id);
 
     if (responseObj) {
       server.sendMessage(responseObj);
@@ -83,19 +83,20 @@ server.gameNS.on('connection', (socket) => {
   // when people disconnect
   socket.on('disconnect', () => {
     if (game.hasPlayer(socket.id)) {
-      let player = game.getPlayer(socket.id);
-      console.log(`user ${ socket.id + '--' + player.name } disconnected`);
+      let removedPlayer = game.removePlayer(socket.id);
+      console.log(`\tRemoved player with id: ${ removedPlayer.id }`);
+      console.log(`user ${ socket.id + '--' + removedPlayer.name } disconnected`);
       // FIXME: socket/player communication needs to be redone
-      socket.broadcast(`${ player.name } has left the game.`);
-      game.removePlayer(socket.id);
+      socket.broadcast.emit(`${ removedPlayer.name } has left the game.`);
     } else {
-      console.log(`anon user ${ socket.id } disconnected`);
+      console.log(`Unrecognized socket ${ socket.id } disconnected`);
     }
   });
 
 });
 
 if (server.debug) {
+  console.log('Launching the debug server...');
   server.debugNS.on('connection', (socket) => {
     socket.on('get', () => {
       socket.emit('update', game
@@ -106,7 +107,10 @@ if (server.debug) {
   });
 }
 
+/*
 const UPDATE_WAIT_TIME = 10 * 1000; // ten seconds
+
+This is what we eventually want, but starting immediately is incorrect!
 
 let update = () => {
   let updateObj = game.performMoves();
@@ -116,7 +120,5 @@ let update = () => {
   });
 };
 
-let updateIntervalId = setInterval(update, UPDATE_WAIT_TIME);
-
-console.log(`Interval id: ${ updateIntervalId }`);
+setInterval(update, UPDATE_WAIT_TIME);
 */
