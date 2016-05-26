@@ -73,33 +73,6 @@ export default class Server {
     // when people connect...
     if (this.isAcceptingPlayers()) {
       this.acceptSocket(socket);
-
-      // when people send _anything_ from the client
-      socket.on('message', (messageObj) => {
-        console.log(`Socket ${ socket.id }: ${ JSON.stringify(messageObj) }`);
-
-        this.handleMessage(messageObj, socket)
-
-        // XXX: eventually something like:
-        /* ...
-         * let response = this.game.respondToMessage(message);
-         * ...
-         */
-      });
-
-      // when people disconnect
-      socket.on('disconnect', () => {
-        if (this.hasPlayer(socket.id)) {
-          let { player } = this.removePlayer(socket.id);
-          console.log(`\tPlayer ${ player.id + '--' + player.name } disconnected`);
-          // FIXME: socket/player communication needs to be redone
-          socket.broadcast.emit(`${ player.name } has left the game.`);
-        } else {
-          console.log(`Unrecognized socket ${ socket.id } disconnected`);
-        }
-      });
-
-      socket.emit('request-name');
     } else {
       this.rejectSocket(socket);
     }
@@ -108,10 +81,40 @@ export default class Server {
   acceptSocket(socket) {
     console.log(`Server accepted socket ${ socket.id }`);
     this.sockets.push(socket);
-    this.addPlayer(socket.id); // XXX: the game should do this
+    // XXX: we also have access to the added player
+    let { game } = this.addPlayer(socket.id);
+    this.game = game;
+
+    // when people send _anything_ from the client
     // TODO: pass the message onto the game
     // the game handles the message, and then passes the server a response
     // then, the server sends the response to the client
+    socket.on('message', (messageObj) => {
+      console.log(`Socket ${ socket.id }: ${ JSON.stringify(messageObj) }`);
+
+      this.handleMessage(messageObj, socket)
+
+      // XXX: eventually something like:
+      /* ...
+       * let response = this.game.respondToMessage(message);
+       * ...
+       */
+    });
+
+    // when people disconnect
+    socket.on('disconnect', () => {
+      if (this.hasPlayer(socket.id)) {
+        let { player } = this.removePlayer(socket.id);
+        console.log(`\tPlayer ${ player.id + '--' + player.name } disconnected`);
+        // FIXME: socket/player communication needs to be redone
+        socket.broadcast.emit(`${ player.name } has left the game.`);
+      } else {
+        console.log(`Unrecognized socket ${ socket.id } disconnected`);
+      }
+    });
+
+    // XXX: check if this is even being used
+    socket.emit('request-name');
   }
 
   rejectSocket(socket) {

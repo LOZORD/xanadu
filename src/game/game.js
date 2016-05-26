@@ -38,6 +38,8 @@ export default class Game {
     return game.getPlayerWithName(name) !== undefined;
   }
   extractFields(game = this) {
+    // XXX: maybe accept an `extension` arg that `_.extend`s a shallow
+    // `_.clone`d copy of the `_.pick` result
     return _.pick(game, [
         'players',
         'rng',
@@ -48,6 +50,9 @@ export default class Game {
         'hasEnded',
         'server'
     ]);
+  }
+  isAcceptingPlayers(game = this) {
+    return !game.hasStarted && game.players.length < game.maxPlayers;
   }
   removePlayer(socketId, game = this) {
     let removedPlayer = game.getPlayer(socketId);
@@ -62,12 +67,22 @@ export default class Game {
       player: removedPlayer
     };
   }
-  isAcceptingPlayers(game = this) {
-    return !game.hasStarted && game.players.length < game.maxPlayers;
-  }
   addPlayer(socketId, game = this) {
-    // TODO
-    throw new Error('IMPLEMENT ME');
+    let newPlayer = new Player({
+      id: socketId,
+      game: this
+    });
+
+    let newPlayerList = _.concat(game.players, [ newPlayer ]);
+
+    let newGameFields = game.extractFields(game);
+
+    newGameFields.players = newPlayerList;
+
+    return {
+      game: new Game(newGameFields),
+      player: newPlayer
+    };
   }
 }
 
