@@ -8,14 +8,19 @@ import Game from '../game/game.js';
 import Player, { PLAYER_STATES } from '../game/player';
 
 export default class Server {
-  // TODO: redo args (Leo prefers kwargs -> allows for any order, any existence)
-  constructor(maxPlayers = 16, debug = true, port = 3000, seed = Date.now()) {
+  constructor(kwargs = { maxPlayers: 8, debug: true, port: 3000, seed: Date.now() }) {
+    // using this default param + destructuring strategy,
+    // we can get kwargs beyond the required ones,
+    // while also neatly getting the required ones!
+    let { maxPlayers, debug, port, seed } = kwargs;
+
     this.expressApp = Express();
     this.httpServer = Http.Server(this.expressApp);
     this.io         = IoFunction(this.httpServer);
     this.port       = port;
 
     this.gameNS = this.io.of('/game');
+
     // TODO: Don't serve debug page if debugging is off
     if (debug) {
       this.debugNS = this.io.of('/debug');
@@ -25,7 +30,6 @@ export default class Server {
     this.ns         = '/';
     this.seed       = seed;
     this.sockets = [];
-    // Reason for `createGame`: we may want one server but many games!
     this.game = this.createGame();
 
     this.createServer();
@@ -211,9 +215,12 @@ export default class Server {
     }
   }
 
+  // Reason for `createGame`: we may want one server but many games!
   createGame() {
-    // TODO
-    // this.game = new Game(...);
-    throw new Error('Implement me!');
+    return new Game({
+      rng: gen(this.seed),
+      maxPlayers: 8,
+      server: this
+    });
   }
 }
