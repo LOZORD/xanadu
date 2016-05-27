@@ -62,7 +62,7 @@ export default class Server {
     console.log('Launching the debug server...');
     this.debugNS.on('connection', (socket) => {
       socket.on('get', () => {
-        socket.emit('update', this.players
+        socket.emit('debug-update', this.players
           .map(player => player.debugString())
           .join('\n'));
       });
@@ -119,11 +119,6 @@ export default class Server {
 
   rejectSocket(socket) {
     console.log(`socket ${ socket.id } rejected -- game full`);
-    socket.emit('message', {
-      speaker: 'Xanadu',
-      message: 'Sorry, the game is full!',
-      type: 'message'
-    });
     socket.emit('rejected-from-room');
   }
 
@@ -171,11 +166,14 @@ export default class Server {
       if (player.state === PLAYER_STATES.ANON) {
         player.name = messageObj.msg;
         player.state = PLAYER_STATES.NAMED;
+        throw new Error('Need to implment a response here');
+        /* we eventually want something like this:
         socket.emit('message', {
           speaker: 'Xanadu',
           message: `Welcome to Xanadu ${ player.name }! Enter \`ready\` to start.`,
           type: 'message'
         });
+        */
       } else {
         const words = messageObj.msg.split(" ");
         switch (words[0]) {

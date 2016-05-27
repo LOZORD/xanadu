@@ -5,6 +5,8 @@
   Chat    -> anyone in the current room can hear (given language understanding)
   Shout   -> anyone in the current vicinity (e.g. 3-room radius) can hear
 
+  Maybe have a Gesture type? (for players who cannot communicate)
+
   As for 'language understanding', if a player cannot understand the language a
   a message/response is uttered in, then the message content is substituted for
   something like "[player] says something to the room".
