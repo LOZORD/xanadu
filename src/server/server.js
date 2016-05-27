@@ -6,6 +6,7 @@ import Express from 'express';
 import IoFunction from 'socket.io';
 import Game from '../game/game.js';
 import Player, { PLAYER_STATES } from '../game/player';
+import ResponseFactory from './responses/factory';
 
 export default class Server {
   constructor(kwargs = { maxPlayers: 8, debug: true, port: 3000, seed: Date.now() }) {
@@ -158,6 +159,7 @@ export default class Server {
   removeSocket(socketId, server = this) {
     server.sockets = _.filter(server.sockets, (socket) => socket.id !== socketId);
   }
+  // TODO: eventuallty this should be moved into the Game class!
   handleMessage(messageObj, socket) {
     if (this.gameRunning) {
       // TODO
@@ -166,7 +168,11 @@ export default class Server {
       if (player.state === PLAYER_STATES.ANON) {
         player.name = messageObj.msg;
         player.state = PLAYER_STATES.NAMED;
-        throw new Error('Need to implment a response here');
+        let welcomeResponse = new ResponseFactory.GAME({
+          message: `Welcome to Xanadu ${ player.name }! Enter \`ready\` to start.`
+        });
+
+        socket.emit('message', welcomeResponse.toJSON());
         /* we eventually want something like this:
         socket.emit('message', {
           speaker: 'Xanadu',

@@ -7,14 +7,13 @@ export default class EchoResponse extends Response {
     if (!this.from) {
       throw new Error('EchoResponse needs a `from` field!');
     }
-    this.to = [this.from];
+    this.to = this.to || this.from;
   }
   toJSON() {
     return {
       type: this.type,
-      from: this.from,
       msg:  this.response,
-      to:   this.from
+      to:   this.to
     };
   }
 }
