@@ -14,7 +14,7 @@ $(document).ready(() => {
     setTimeout(getData, 10000);
   };
 
-  socket.on('update', (data) => {
+  socket.on('debug-update', (data) => {
     render(data);
   });
 

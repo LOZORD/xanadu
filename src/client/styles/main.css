@@ -49,24 +49,42 @@ body {
   overflow-y: scroll;
 }
 
-li.via-echo {
-  color: white;
+#messages li {
 }
 
-li.via-message {
-  color: black;
-}
-
-li.via-whisper {
-  color: magenta;
-}
-
-li.via-broadcast {
+#messages li.broadcast {
   color: yellow;
 }
 
-li.unknown-message-data-type {
+#messages li.chat {
+  color: green;
+}
+
+#messages li.echo {
+  color: white;
+}
+
+#messages li.game {
+  color: blue;
+}
+
+#messages li.shout {
+  color: red;
+}
+
+#messages li.whisper {
+  color: magenta;
+}
+
+#messages li.unknown {
+  border: 1px dashed cyan;
+}
+
+#message li.error {
+  border: 1px dashed firebrick;
+  background-color: black;
   color: firebrick;
+  font-weight: bold;
 }
 
 /*
