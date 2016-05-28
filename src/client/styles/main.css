@@ -1,10 +1,21 @@
+/* Suggested (message) color scheme
+ * Pinkish-red: #FF5F5F
+ * Blue: #587AF0
+ * Purple: #AF5FAF
+ * Orange: #FFAF5F
+ * Pink: #FF87D7
+ * Green: #65C78E
+ */
+
+
 body {
   font-family: Menlo, monospace;
-  background-color: skyblue;
+  background-color: black;
+  color: white;
 }
 
 #parent-container {
-  border: 1px solid black;
+  border: 1px solid grey;
   width: 95vw;
   height: 95vh;
 }
@@ -82,7 +93,7 @@ body {
 
 #message li.error {
   border: 1px dashed firebrick;
-  background-color: black;
+  background-color: pink;
   color: firebrick;
   font-weight: bold;
 }
@@ -100,4 +111,15 @@ body {
 
 #player-map {
   overflow: scroll;
+}
+
+#details-wrapper {
+  height: 33%;
+}
+
+#map-wrapper {
+  height: 33%;
+}
+
+#inventory-wrapper {
 }

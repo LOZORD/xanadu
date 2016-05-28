@@ -29,9 +29,9 @@ $(document).ready(() => {
         let broadcastIntro;
 
         if (data.from) {
-          broadcastIntro = `Let it be known that ${ data.from } said: `;
+          broadcastIntro = `${ data.from }: `;
         } else {
-          broadcastIntro = `Let it be known that: `;
+          broadcastIntro = '';
         }
 
         let broadcastMessage = broadcastIntro + data.msg;
