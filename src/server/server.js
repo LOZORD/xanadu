@@ -6,7 +6,7 @@ import Express from 'express';
 import IoFunction from 'socket.io';
 import Game from '../game/game.js';
 import Player, { PLAYER_STATES } from '../game/player';
-import ResponseFactory from './responses/factory';
+import { EchoResponse, BroadcastResponse, GameResponse } from './messaging/gameMessaging';
 
 export default class Server {
   constructor(kwargs = { maxPlayers: 8, debug: true, port: 3000, seed: Date.now() }) {
@@ -170,23 +170,23 @@ export default class Server {
         player.state = PLAYER_STATES.NAMED;
 
         this.sendMessage(
-            (new ResponseFactory.ECHO({ message: player.name })),
+            (new EchoResponse({ message: player.name })),
             socket
         );
 
         this.sendMessage(
-            (new ResponseFactory.GAME({
+            (new GameResponse({
               message: `Welcome to Xanadu ${ player.name }! Enter \`ready\` to start.`
             })),
             socket
         );
 
         /*
-        socket.emit('message', (new ResponseFactory.ECHO({
+        socket.emit('message', (new EchoResponse({
           message: player.name
         })).toJSON());
 
-        let welcomeResponse = new ResponseFactory.GAME({
+        let welcomeResponse = new GameResponse({
           message: `Welcome to Xanadu ${ player.name }! Enter \`ready\` to start.`
         });
 
@@ -254,7 +254,7 @@ export default class Server {
       toSocket = _.find(this.sockets, (socket) => socket.id === response.to);
     }
 
-    if (response instanceof ResponseFactory.BROADCAST) {
+    if (response instanceof BroadcastResponse) {
       this.io.broadcast.emit('message', response.toJSON());
     } else {
       toSocket.emit('message', response.toJSON());
