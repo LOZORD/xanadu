@@ -168,6 +168,24 @@ export default class Server {
       if (player.state === PLAYER_STATES.ANON) {
         player.name = messageObj.msg;
         player.state = PLAYER_STATES.NAMED;
+
+        this.sendMessage(
+            (new ResponseFactory.ECHO({ message: player.name })),
+            socket
+        );
+
+        this.sendMessage(
+            (new ResponseFactory.GAME({
+              message: `Welcome to Xanadu ${ player.name }! Enter \`ready\` to start.`
+            })),
+            socket
+        );
+
+        /*
+        socket.emit('message', (new ResponseFactory.ECHO({
+          message: player.name
+        })).toJSON());
+
         let welcomeResponse = new ResponseFactory.GAME({
           message: `Welcome to Xanadu ${ player.name }! Enter \`ready\` to start.`
         });
@@ -229,5 +247,17 @@ export default class Server {
       maxPlayers: 8,
       server: this
     });
+  }
+
+  sendMessage(response, toSocket = null) {
+    if (!toSocket && response.to) {
+      toSocket = _.find(this.sockets, (socket) => socket.id === response.to);
+    }
+
+    if (response instanceof ResponseFactory.BROADCAST) {
+      this.io.broadcast.emit('message', response.toJSON());
+    } else {
+      toSocket.emit('message', response.toJSON());
+    }
   }
 }
