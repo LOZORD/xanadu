@@ -128,7 +128,93 @@ $(document).ready(() => {
 
   // TODO: see below --> eventually need to render data in correct places
   let updateDetails = (data) => {
+    // quasi-debug
     detailOutput.text(JSON.stringify(data));
+
+    // stats
+    $('#health-current' ).text(data.stats.health.cur);
+    $('#health-max'     ).text(data.stats.health.max);
+
+    $('#agility-current').text(data.stats.agility.cur);
+    $('#agility-max'    ).text(data.stats.agility.max);
+
+    $('#intelligence-current' ).text(data.stats.intelligence.cur);
+    $('#intelligence-max'     ).text(data.stats.intelligence.max);
+
+    $('#strength-current' ).text(data.stats.strength.cur);
+    $('#strength-max'     ).text(data.stats.strength.max);
+
+    // modifiers
+    if (data.modifiers) {
+      $('#modifier-stats-list').empty();
+
+      let modifiers = data.modifiers.sort((modA, modB) => {
+        return modA.name < modB.name ? -1 : 1;
+      });
+
+      modifiers.forEach((mod) => {
+        $('#modifier-stats-list').append(
+          `<li><strong>${ mod.name }</strong>: ${ mod.progress }</li>`
+        );
+      });
+
+    } else {
+      $('#modifier-stats-list')
+        .empty()
+        .html('<li>No active modifiers</li>');
+    }
+
+    // effects
+    if (data.effects) {
+      $('#effect-stats-list').empty();
+      data.effects.sort().forEach((effect) => {
+        $('#effect-stats-list').append(
+          `<li><strong>${ effect }</strong></li>`
+        );
+      });
+    } else {
+      $('#effect-stats-list')
+        .empty()
+        .html('<li>No active effects</li>');
+    }
+
+    // map
+    if (data.map) {
+      $('#player-map').text(data.map).show();
+    } else {
+      $('#player-map').hide().text('');
+    }
+
+    // gold
+    $('#gold-amount').text(data.gold);
+
+    // items
+    let numItems = data.items.length;
+    $('.item-slot').each((indx, elem) => {
+      let $elem = $(elem);
+
+      if (indx < numItems) {
+        let item = data.items[indx];
+
+        $elem.find('.item-name').text(item.name);
+
+        if (item.quality) {
+          $elem.find('.item-quality').text(item.quality).show();
+        } else {
+          $elem.find('.item-quality').hide().text('');
+        }
+
+        if (item.stack) {
+          $elem.find('.item-stack').text(item.stack).show();
+        } else {
+          $elem.find('.item-stack').hide().text('');
+        }
+      } else {
+        $elem.find('.item-name').text('');
+        $elem.find('.item-quality').text('');
+        $elem.find('.item-stack').text('');
+      }
+    });
   };
 
   // TODO: details stream (i.e. inventory, map, etc.) on RHS
@@ -139,4 +225,21 @@ $(document).ready(() => {
 
   /*** FINAL VIEW SETUP ***/
   input.focus();
+
+  /*** XXX ONLY FOR TESTING XXX ***/
+  updateDetails({
+    stats: {
+      health:   { cur: 5, max: 10 },
+      agility:  { cur: 5, max: 10 },
+      intelligence: { cur: 5, max: 10 },
+      strength:     { cur: 5, max: 10 }
+    },
+    gold: 50,
+    items: [
+      { name: 'Pistol', quality: 33 },
+      { name: 'Water', stack: 4 },
+      { name: 'Something' }
+    ]
+  });
+  console.log(updateDetails);
 });

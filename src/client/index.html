@@ -40,7 +40,7 @@
               </div>
               <div class='col-xs-3' id='details-agility'>
                 <h3>AGL</h3>
-                <span id='agility-current'><span>/<span id='agility-max'></span>
+                <span id='agility-current'></span>/<span id='agility-max'></span>
               </div>
               <div class='col-xs-3' id='details-intelligence'>
                 <h3>INT</h3>
@@ -48,16 +48,23 @@
               </div>
               <div class='col-xs-3' id='details-strength'>
                 <h3>STR</h3>
-                <span id='strength-curren'></span>/<span id='strength-max'></span>
+                <span id='strength-current'></span>/<span id='strength-max'></span>
               </div>
             </div>
-            <div class='row' id='modifier-stats'>
-              <div class='col-xs-12'>
+            <div class='row' id='modifier-and-effect-stats'>
+              <div class='col-xs-6'>
                 <h3>Modifiers</h3>
                 <ul id='modifier-stats-list'>
                   <li><strong>Some Modifier</strong>: x/y</li>
                   <li><strong>Some Modifier</strong>: x/y</li>
                   <li><strong>Some Modifier</strong>: x/y</li>
+                </ul>
+              </div>
+              <div class='col-xs-6'>
+                <h3>Effects</h3>
+                <ul id='effect-stats-list'>
+                  <li>Some effect here</li>
+                  <li>Another effect</li>
                 </ul>
               </div>
             </div>
@@ -75,19 +82,27 @@
             <div class='row'>
               <div class='col-xs-4'>
                 <strong>Gold</strong>
-                { gold amount here }
+                <span id='gold-amount'>gold here</span>
               </div>
-              <div class='col-xs-2'>
-                Some Item
+              <div class='col-xs-2 row item-slot'>
+                <div class='col-sm-3 item-stack'></div>
+                <div class='col-lg-6 item-name'></div>
+                <div class='col-lg-3 item-quality'></div>
               </div>
-              <div class='col-xs-2'>
-                Some Item
+              <div class='col-xs-2 row item-slot'>
+                <div class='col-sm-3 item-stack'></div>
+                <div class='col-lg-6 item-name'></div>
+                <div class='col-lg-3 item-quality'></div>
               </div>
-              <div class='col-xs-2'>
-                Some Item
+              <div class='col-xs-2 row item-slot'>
+                <div class='col-sm-3 item-stack'></div>
+                <div class='col-lg-6 item-name'></div>
+                <div class='col-lg-3 item-quality'></div>
               </div>
-              <div class='col-xs-2'>
-                Some Item
+              <div class='col-xs-2 row item-slot'>
+                <div class='col-sm-3 item-stack'></div>
+                <div class='col-lg-6 item-name'></div>
+                <div class='col-lg-3 item-quality'></div>
               </div>
             </div>
             <div class='row'>

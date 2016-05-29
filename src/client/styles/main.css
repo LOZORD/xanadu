@@ -124,3 +124,7 @@ body {
 
 #inventory-wrapper {
 }
+
+#inventory-wrapper div.item-slot {
+  /* border: 1px solid #CCC; */
+}
