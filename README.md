@@ -36,9 +36,10 @@ The `dist/` directory now contains all ES5- and Node-runnable code.
 $ npm run launch
 ```
 
+This command creates a new `Game` instance and fires up the server.
+
 ## Debug page
 To access the `debug` page (in the browser), visit
-`localhost:<port>/debug.html`. It shows useful
-information about game and player states.
+`localhost:<port>/debug.html`.
 
-This command creates a new `Game` instance and fires up the server.
+It shows useful information about the game and player states.
