@@ -5,6 +5,16 @@
  * Orange: #FFAF5F
  * Pink: #FF87D7
  * Green: #65C78E
+ *
+ * Amiga-ish color scheme
+ * Red: #D73628
+ * Blue: #5499DE
+ * Salmon: #FFA98B
+ * Yellow: #FEDD70
+ * Orange: #FF974D
+ *
+ * TODO: use CSS variables
+ * https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_variables
  */
 
 
@@ -16,21 +26,28 @@ body {
 
 #parent-container {
   border: 1px solid grey;
-  width: 95vw;
-  height: 95vh;
+  width: 99vw;
+  height: 99vh;
+}
+
+#parent-container > .row{
+  height: 100%;
 }
 
 #left-half, #right-half {
   height: 95vh;
-  padding: 0;
+  padding: 1em;
+  height: 100%;
 }
 
 #left-half {
-  border: 1px dashed gold;
+  /* for design debugging */
+  /* border: 1px dashed gold; */
 }
 
 #right-half {
-  border: 1px dotted red;
+  /* for design debugging */
+  /* border: 1px dotted red; */
 }
 
 #form-wrapper {
@@ -41,7 +58,7 @@ body {
 }
 
 #main-input {
-  border: 0;
+  border: none;
   padding: 1.0vh 0;
   width: 100%;
   outline: none;
@@ -118,13 +135,46 @@ body {
   height: 33%;
 }
 
+#inventory-wrapper {
+  /* don't constrain the height; this can be as tall as possible */
+}
+
+div.item-box {
+ width: 100%;
+ margin: 0;
+ height: 5vh;
+ border-top: 1px solid grey;
+ /* border-bottom: 1px solid grey; */
+}
+
+div.item-box:nth-child(odd) {
+  background-color: #1D1D1D;
+}
+
+#item-wrapper {
+  overflow: scroll;
+}
+
+div.item-condition {
+  padding-bottom: 1em;
+}
+
+div.item-condition.good-condition {
+  background-color: green;
+}
+
+div.item-condition.fair-condition {
+  background-color: gold;
+}
+
+div.item-condition.poor-condition {
+  background-color: red;
+}
+
+div.item-stack {
+  background-color: #333;
+}
+
 #map-wrapper {
   height: 33%;
-}
-
-#inventory-wrapper {
-}
-
-#inventory-wrapper div.item-slot {
-  /* border: 1px solid #CCC; */
 }

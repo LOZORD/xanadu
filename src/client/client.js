@@ -180,41 +180,48 @@ $(document).ready(() => {
 
     // map
     if (data.map) {
-      $('#player-map').text(data.map).show();
+      $('#player-map').text(data.map);
+      $('#map-wrapper').show();
     } else {
-      $('#player-map').hide().text('');
+      $('#map-wrapper').hide();
+      $('#player-map').text('');
     }
 
     // gold
     $('#gold-amount').text(data.gold);
 
     // items
-    let numItems = data.items.length;
-    $('.item-slot').each((indx, elem) => {
-      let $elem = $(elem);
+    $('#item-wrapper').empty();
+    data.items.forEach((item) => {
+      let itemData = item.stack || item.condition || -1;
+      let appendedElem = $(
+        `
+        <div class='item-box row'>
+          <div class='col-xs-9 item-name'>${ item.name }</div>
+          <div class='col-xs-3 item-data'>${ itemData }</div>
+        </div>
+        `
+      ).appendTo('#item-wrapper');
 
-      if (indx < numItems) {
-        let item = data.items[indx];
+      if (item.stack) {
+        appendedElem.find('.item-data').addClass('item-stack');
+      } else if (item.condition) {
+        appendedElem.find('.item-data').addClass(() => {
+          let ret = 'item-condition';
 
-        $elem.find('.item-name').text(item.name);
-
-        if (item.quality) {
-          $elem.find('.item-quality').text(item.quality).show();
-        } else {
-          $elem.find('.item-quality').hide().text('');
-        }
-
-        if (item.stack) {
-          $elem.find('.item-stack').text(item.stack).show();
-        } else {
-          $elem.find('.item-stack').hide().text('');
-        }
+          if (itemData > 66) {
+            return ret + ' good-condition';
+          } else if (itemData > 33) {
+            return ret + ' fair-condition';
+          } else {
+            return ret + ' poor-condition';
+          }
+        });
       } else {
-        $elem.find('.item-name').text('');
-        $elem.find('.item-quality').text('');
-        $elem.find('.item-stack').text('');
+        console.error('unknown item data type');
       }
     });
+
   };
 
   // TODO: details stream (i.e. inventory, map, etc.) on RHS
@@ -236,9 +243,12 @@ $(document).ready(() => {
     },
     gold: 50,
     items: [
-      { name: 'Pistol', quality: 33 },
+      { name: 'Pistol', condition: 44 },
       { name: 'Water', stack: 4 },
-      { name: 'Something' }
+      { name: 'Something', condition: 11 },
+      { name: 'FooBar', condition: 88 },
+      { name: 'Baz', condition: 88 },
+      { name: 'Quux', stack: 1 }
     ]
   });
   console.log(updateDetails);
