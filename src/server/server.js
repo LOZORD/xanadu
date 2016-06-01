@@ -6,7 +6,11 @@ import Express from 'express';
 import IoFunction from 'socket.io';
 import Game from '../game/game.js';
 import Player, { PLAYER_STATES } from '../game/player';
-import { EchoResponse, BroadcastResponse, GameResponse } from './messaging/gameMessaging';
+import {
+  Response, EchoResponse, BroadcastResponse, GameResponse,
+  PlayerResponse, WhisperResponse,
+  MultiplePlayerResponse,ChatResponse, ShoutResponse
+} from './messaging/gameMessaging';
 
 export default class Server {
   constructor(kwargs = { maxPlayers: 8, debug: true, port: 3000, seed: Date.now() }) {
@@ -250,13 +254,25 @@ export default class Server {
   }
 
   sendMessage(response, toSocket = null) {
-    if (!toSocket && response.to) {
+    if (!(response instanceof Response)) {
+      throw new Error(`response argument needs to be an instance of Response!`);
+    }
+
+    if (!toSocket && response.to && !(response instanceof MultiplePlayerResponse)) {
       toSocket = _.find(this.sockets, (socket) => socket.id === response.to);
     }
 
     if (response instanceof BroadcastResponse) {
-      this.io.broadcast.emit('message', response.toJSON());
+      // message everyone but the `toSocket`
+      toSocket.broadcast.emit('message', response.toJSON());
+    } else if (response instanceof MultiplePlayerResponse) {
+      const receivingSockets = _.map(response.to, (socketId) => this.getSocket(socketId));
+
+      _.forEach(receivingSockets, (socket) => {
+        socket.emit('message', response.toJSON(socket.id));
+      });
     } else {
+      // this case should handle non-broadcast and non-multiplayer responses
       toSocket.emit('message', response.toJSON());
     }
   }
