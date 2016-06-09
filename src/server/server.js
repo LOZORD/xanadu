@@ -68,7 +68,7 @@ export default class Server {
     this.debugNS.on('connection', (socket) => {
       socket.on('get', () => {
         socket.emit('debug-update', this.players
-          .map(player => player.debugString())
+          .map(player => JSON.stringify(player.getDetails()))
           .join('\n'));
       });
     });

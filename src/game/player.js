@@ -24,8 +24,6 @@ export const PLAYER_STATES = {
 
 export default class Player {
   constructor(args = {}) {
-    //this.socket = args.socket;
-    //socket stuff now handled by server
     this.id = args.id;
     if (!this.id) {
       throw new Error('Need id for player construction!');
@@ -45,13 +43,6 @@ export default class Player {
     this.state = PLAYER_STATES.ANON;
     // XXX this could be buggy (i.e. ANON && "has" name)
     this.name = args.name || '[NO NAME]';
-    // add main listener -- this is now handled by the server!
-    /*
-    this.socket.on('message', (messageObj) => {
-      console.log(messageObj);
-      this.game.message(this, messageObj);
-    });
-    */
   }
 
   isAnon() {
@@ -83,52 +74,8 @@ export default class Player {
     return this.state === PLAYER_STATES.ABSENT;
   }
 
-  id () {
-    return this.socket.id;
-  }
-
-  // * -> player
-  message (message, speaker = 'xanadu') {
-    this.socket.emit('message', {
-      speaker: speaker,
-      message: message,
-      type: 'message'
-    });
-  }
-
-  // player -> self
-  echo (message) {
-    this.socket.emit('message', {
-      speaker: this.name,
-      message: message,
-      type: 'echo'
-    });
-  }
-
-  // player -> all
-  broadcast (message, withName = true) {
-    this.socket.broadcast.emit('message', {
-      speaker: withName ? this.name : '',
-      message: message,
-      type: 'broadcast'
-    });
-  }
-
-  // player -> player
-  // XXX: is this unnec. b/c of .message func?
-  whisper (message, toName) {
-    toName = toName.toLowerCase();
-    let toPlayer = _.find(this.game.players,
-        (player) => player.name.toLowerCase() === toName);
-    toPlayer.socket.emit('message', {
-      speaker: this.name,
-      message: message,
-      type: 'whisper'
-    });
-  }
-
-  // game update -> player (RHS details)
-  updateDetails() {
+  // creates an object summarizing the state of the player
+  getDetails() {
     // TODO: offload this gathering code onto Character class
 
     // get all the active modifiers
@@ -139,7 +86,7 @@ export default class Player {
                       .value();
 
     // TODO: send the (player's concept) of the map as well
-    this.socket.emit('details', {
+    return {
       name: this.name,
       class: this.character.characterClass,
       inventory: this.character.inventory,
@@ -150,28 +97,6 @@ export default class Player {
         intelligence: this.character.intelligence,
         agility: this.character.agility
       }
-    });
-  }
-
-  // TODO: send message that will display in LHS pane
-  messageUpdates(resultMessage) {
-    console.log(`TODO: send ${ resultMessage || '[resultMessage]' } to ${ this.name + ' ' + this.id() }`);
-  }
-
-  // print debug info
-  debugString () {
-    let debugObj = {
-      'Name':   this.name,
-      'State':  this.state,
-      'X Pos':  this.character.x,
-      'Y Pos':  this.character.y
     };
-
-    return _
-      .chain(debugObj)
-      .toPairs()
-      .map(([key, val]) => key + ' : ' + val)
-      .join('\n')
-      .value();
   }
 }
