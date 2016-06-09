@@ -215,11 +215,10 @@ export default class Server {
                 type: 'whisper'
               };
               this.getSocket(recipient.id).emit('message', message);
-              socket.emit('message', {
-                ...message,
+              socket.emit('message', {}, _.assign({
                 type: 'sent-message',
                 to: words[1]
-              });
+              }, message));
             }
             break;
           }
