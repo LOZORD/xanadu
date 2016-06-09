@@ -18,7 +18,7 @@ $(document).ready(() => {
 
   let sendMessage = (msg) => {
     socket.emit('message', {
-      msg: msg,
+      message: msg,
       ts: Date.now()
     });
   };
@@ -34,7 +34,7 @@ $(document).ready(() => {
           broadcastIntro = '';
         }
 
-        let broadcastMessage = broadcastIntro + data.msg;
+        let broadcastMessage = broadcastIntro + data.message;
         return {
           messageText: broadcastMessage,
           styleClasses: ['broadcast']
@@ -42,38 +42,38 @@ $(document).ready(() => {
       }
       case 'chat': {
         return {
-          messageText: `${ data.from }: ${ data.msg }`,
+          messageText: `${ data.from }: ${ data.message }`,
           styleClasses: ['chat']
         };
       }
       case 'echo': {
         return {
-          messageText: data.msg,
+          messageText: data.message,
           styleClasses: ['echo']
         };
       }
       case 'game': {
         return {
-          messageText: data.msg,
+          messageText: data.message,
           styleClasses: ['game']
         };
       }
       case 'shout': {
         return {
-          messageText: `${ data.from } shouted: ${ data.msg }`,
+          messageText: `${ data.from } shouted: ${ data.message }`,
           styleClasses: ['shout']
         };
       }
       case 'whisper': {
         return {
-          messageText: `${ data.from } whispered: ${ data.msg }`,
+          messageText: `${ data.from } whispered: ${ data.message }`,
           styleClasses: ['whisper']
         };
       }
       default: {
         console.log('unknown message type:', data);
         return {
-          messageText: data.msg,
+          messageText: data.message,
           styleClasses: ['unknown']
         };
       }

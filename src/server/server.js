@@ -146,9 +146,9 @@ export default class Server {
     return server.game.getPlayer(socketId);
   }
 
-  getPlayerByName(name, server = this) {
+  getPlayerWithName(name, server = this) {
     //return _.find(this.players, (p) => p.name === name);
-    return server.game.getPlayerByName(name);
+    return server.game.getPlayerWithName(name);
   }
 
   getSocket(socketId, server = this) {
@@ -170,7 +170,7 @@ export default class Server {
     } else {
       const player = this.getPlayer(socket.id);
       if (player.state === PLAYER_STATES.ANON) {
-        player.name = messageObj.msg;
+        player.name = messageObj.message;
         player.state = PLAYER_STATES.NAMED;
 
         this.sendMessage(
@@ -203,19 +203,19 @@ export default class Server {
         });
         */
       } else {
-        const words = messageObj.msg.split(" ");
+        const words = messageObj.message.split(" ");
         switch (words[0]) {
           case 'whisper':
           {
-            const recipient = this.getPlayerByName(words[1]);
+            const recipient = this.getPlayerWithName(words[1]);
             if (recipient) {
               const message = {
-                speaker: player.name,
+                from: player.name,
                 message: words.splice(2).join(" "),
                 type: 'whisper'
               };
               this.getSocket(recipient.id).emit('message', message);
-              socket.emit('message', {}, _.assign({
+              socket.emit('message', _.assign({}, {
                 type: 'sent-message',
                 to: words[1]
               }, message));
@@ -225,7 +225,7 @@ export default class Server {
           case 'broadcast':
           {
             const message = {
-              speaker: player.name,
+              from: player.name,
               message: words.splice(1).join(" "),
               type: 'broadcast'
             };

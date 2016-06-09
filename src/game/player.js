@@ -58,11 +58,6 @@ export default class Player {
   }
 
   isDead() {
-    // check for inconsistency bugs
-    if ((this.state === PLAYER_STATES.DEAD) !== (this.isAlive() === false)) {
-      console.log('INCONSISTENT DEATH STATE!!!');
-    }
-
     return this.state === PLAYER_STATES.DEAD;
   }
 
