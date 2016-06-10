@@ -10,7 +10,7 @@
   },
   "scripts": {
     "lint": "node_modules/eslint/bin/eslint.js src",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha dist/tests",
     "build": "node_modules/babel-cli/bin/babel.js src -D -d dist",
     "lb": "npm run lint && npm run build",
     "launch": "echo \"Open localhost:3000\" && node dist/main.js",
@@ -55,6 +55,7 @@
     "extends": "eslint:recommended",
     "env": {
       "browser": true,
+      "mocha": true,
       "node": true,
       "jquery": true
     },
