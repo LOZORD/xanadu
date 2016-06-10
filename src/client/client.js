@@ -29,7 +29,7 @@ $(document).ready(() => {
         let broadcastIntro;
 
         if (data.from) {
-          broadcastIntro = `${ data.from }: `;
+          broadcastIntro = `${ data.from.name }: `;
         } else {
           broadcastIntro = '';
         }
@@ -42,7 +42,7 @@ $(document).ready(() => {
       }
       case 'chat': {
         return {
-          messageText: `${ data.from }: ${ data.message }`,
+          messageText: `${ data.from.name }: ${ data.message }`,
           styleClasses: ['chat']
         };
       }
@@ -60,13 +60,13 @@ $(document).ready(() => {
       }
       case 'shout': {
         return {
-          messageText: `${ data.from } shouted: ${ data.message }`,
+          messageText: `${ data.from.name } shouted: ${ data.message }`,
           styleClasses: ['shout']
         };
       }
       case 'whisper': {
         return {
-          messageText: `${ data.from } whispered: ${ data.message }`,
+          messageText: `${ data.from.name } whispered: ${ data.message }`,
           styleClasses: ['whisper']
         };
       }

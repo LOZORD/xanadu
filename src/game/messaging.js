@@ -20,7 +20,7 @@ export class Response {
   }
   toJSON() {
     return {
-      msg:  this.response,
+      message:  this.response,
       from: this.from,
       to:   this.to,
       type: this.type
@@ -37,7 +37,7 @@ export class EchoResponse extends Response {
   toJSON() {
     return {
       type: this.type,
-      msg:  this.response,
+      message:  this.response,
       to:   this.to
     };
   }
@@ -57,7 +57,7 @@ export class BroadcastResponse extends Response {
     return {
       type: this.type, // i.e. 'broadcast'
       from: this.from,
-      msg:  this.response
+      message:  this.response
     };
   }
 }
@@ -70,7 +70,7 @@ export class GameResponse extends Response {
   toJSON() {
     return {
       type: this.type,
-      msg:  this.response,
+      message:  this.response,
       to:   this.to
     };
   }
@@ -139,14 +139,14 @@ export class MultiplePlayerResponse extends PlayerResponse {
       }
 
       return {
-        msg: this.response[socketId],
+        message: this.response[socketId],
         type: this.type,
         to: socketId,
         from: this.from
       };
     } else {
       return {
-        msg: this.response,
+        message: this.response,
         type: this.type,
         to: socketId || this.to,
         from: this.from

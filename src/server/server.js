@@ -5,12 +5,6 @@ import Http from 'http';
 import Express from 'express';
 import IoFunction from 'socket.io';
 import Game from '../game/game.js';
-import Player, { PLAYER_STATES } from '../game/player';
-import {
-  Response, EchoResponse, BroadcastResponse, GameResponse,
-  PlayerResponse, WhisperResponse,
-  MultiplePlayerResponse,ChatResponse, ShoutResponse
-} from './messaging/gameMessaging';
 
 export default class Server {
   constructor(kwargs = { maxPlayers: 8, debug: true, port: 3000, seed: Date.now() }) {
@@ -57,7 +51,6 @@ export default class Server {
       console.log(`XANADU SERVER listening on port ${ this.port }`);
     });
 
-    // need to pass a function literal so `this` is correct
     this.gameNS.on('connection', (socket) => {
       this.handleConnection(socket);
     });
@@ -76,7 +69,7 @@ export default class Server {
 
   handleConnection(socket) {
     // when people connect...
-    if (this.isAcceptingPlayers()) {
+    if (this.game.isAcceptingPlayers()) {
       this.acceptSocket(socket);
     } else {
       this.rejectSocket(socket);
@@ -87,28 +80,21 @@ export default class Server {
     console.log(`Server accepted socket ${ socket.id }`);
     this.sockets.push(socket);
     // XXX: we also have access to the added player
-    let { game } = this.addPlayer(socket.id);
+    let { game } = this.game.addPlayer(socket.id);
     this.game = game;
 
     // when people send _anything_ from the client
-    // TODO: pass the message onto the game
     // the game handles the message, and then passes the server a response
     // then, the server sends the response to the client
     socket.on('message', (messageObj) => {
       console.log(`Socket ${ socket.id }: ${ JSON.stringify(messageObj) }`);
 
-      this.handleMessage(messageObj, socket)
-
-      // XXX: eventually something like:
-      /* ...
-       * let response = this.game.respondToMessage(message);
-       * ...
-       */
+      this.handleMessage(messageObj, socket);
     });
 
     // when people disconnect
     socket.on('disconnect', () => {
-      if (this.hasPlayer(socket.id)) {
+      if (this.game.hasPlayer(socket.id)) {
         let { player } = this.removePlayer(socket.id);
         console.log(`\tPlayer ${ player.id + '--' + player.name } disconnected`);
         // FIXME: socket/player communication needs to be redone
@@ -127,119 +113,24 @@ export default class Server {
     socket.emit('rejected-from-room');
   }
 
-  isAcceptingPlayers(server = this) {
-    //return !this.gameRunning && this.players.length < this.maxPlayers;
-    return server.game.isAcceptingPlayers();
-  }
-
-  addPlayer(socketId, server = this) {
-    //this.players.push(new Player(socketId));
-    return server.game.addPlayer(socketId);
-  }
-
-  hasPlayer(socketId, server = this) {
-    return server.game.hasPlayer(socketId);
-  }
-
-  getPlayer(socketId, server = this) {
-    //return _.find(this.players, (p) => p.id === socketId);
-    return server.game.getPlayer(socketId);
-  }
-
-  getPlayerWithName(name, server = this) {
-    //return _.find(this.players, (p) => p.name === name);
-    return server.game.getPlayerWithName(name);
-  }
-
   getSocket(socketId, server = this) {
     return _.find(server.sockets, (s) => s.id === socketId);
   }
 
   removePlayer(socketId, server = this) {
-    //this.players = this.players.filter((p) => p.id !== socketId);
     return server.game.removePlayer(socketId);
   }
 
   removeSocket(socketId, server = this) {
     server.sockets = _.filter(server.sockets, (socket) => socket.id !== socketId);
   }
-  // TODO: eventuallty this should be moved into the Game class!
+
   handleMessage(messageObj, socket) {
-    if (this.gameRunning) {
+    if (this.game.isRunning()) {
       // TODO
     } else {
-      const player = this.getPlayer(socket.id);
-      if (player.state === PLAYER_STATES.ANON) {
-        player.name = messageObj.message;
-        player.state = PLAYER_STATES.NAMED;
-
-        this.sendMessage(
-            (new EchoResponse({ message: player.name })),
-            socket
-        );
-
-        this.sendMessage(
-            (new GameResponse({
-              message: `Welcome to Xanadu ${ player.name }! Enter \`ready\` to start.`
-            })),
-            socket
-        );
-
-        /*
-        socket.emit('message', (new EchoResponse({
-          message: player.name
-        })).toJSON());
-
-        let welcomeResponse = new GameResponse({
-          message: `Welcome to Xanadu ${ player.name }! Enter \`ready\` to start.`
-        });
-
-        socket.emit('message', welcomeResponse.toJSON());
-        /* we eventually want something like this:
-        socket.emit('message', {
-          speaker: 'Xanadu',
-          message: `Welcome to Xanadu ${ player.name }! Enter \`ready\` to start.`,
-          type: 'message'
-        });
-        */
-      } else {
-        const words = messageObj.message.split(" ");
-        switch (words[0]) {
-          case 'whisper':
-          {
-            const recipient = this.getPlayerWithName(words[1]);
-            if (recipient) {
-              const message = {
-                from: player.name,
-                message: words.splice(2).join(" "),
-                type: 'whisper'
-              };
-              this.getSocket(recipient.id).emit('message', message);
-              socket.emit('message', _.assign({}, {
-                type: 'sent-message',
-                to: words[1]
-              }, message));
-            }
-            break;
-          }
-          case 'broadcast':
-          {
-            const message = {
-              from: player.name,
-              message: words.splice(1).join(" "),
-              type: 'broadcast'
-            };
-            socket.broadcast.emit('message', message);
-            socket.emit('message', message);
-            break;
-          }
-          default:
-          {
-            // do nothing
-            break;
-          }
-        }
-      }
+      this.game.handleChatMessage(messageObj, this.game.getPlayer(socket.id))
+        .forEach((msg) => this.sendMessage(msg, socket));
     }
   }
 
@@ -247,32 +138,27 @@ export default class Server {
   createGame() {
     return new Game({
       rng: gen(this.seed),
-      maxPlayers: 8,
-      server: this
+      maxPlayers: 8
     });
   }
 
-  sendMessage(response, toSocket = null) {
-    if (!(response instanceof Response)) {
-      throw new Error(`response argument needs to be an instance of Response!`);
-    }
-
-    if (!toSocket && response.to && !(response instanceof MultiplePlayerResponse)) {
-      toSocket = _.find(this.sockets, (socket) => socket.id === response.to);
-    }
-
-    if (response instanceof BroadcastResponse) {
-      // message everyone but the `toSocket`
+  sendMessage(response) {
+    if (response.type === 'broadcast') {
+      const toSocket = this.getSocket(response.from.id);
       toSocket.broadcast.emit('message', response.toJSON());
-    } else if (response instanceof MultiplePlayerResponse) {
+      toSocket.emit('message', response.toJSON());
+      /*
+    } else if (['chat', 'shout'].indexOf(response.type) > -1) {
       const receivingSockets = _.map(response.to, (socketId) => this.getSocket(socketId));
-
       _.forEach(receivingSockets, (socket) => {
         socket.emit('message', response.toJSON(socket.id));
       });
+      */
     } else {
-      // this case should handle non-broadcast and non-multiplayer responses
-      toSocket.emit('message', response.toJSON());
+      this.getSocket(response.to.id).emit('message', response.toJSON());
+      if (response.from) {
+        this.getSocket(response.from.id).emit('message', response.toJSON());
+      }
     }
   }
 }

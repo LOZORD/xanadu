@@ -2,6 +2,11 @@ import _        from 'lodash';
 
 import Player, { PLAYER_STATES } from './player';
 import Map      from './map/map';
+import {
+  Response, EchoResponse, BroadcastResponse, GameResponse,
+  PlayerResponse, WhisperResponse,
+  MultiplePlayerResponse,ChatResponse, ShoutResponse
+} from './messaging';
 
 // TODO: one of the game parameters should be the number of modifiers randomly assigned
 export default class Game {
@@ -19,24 +24,75 @@ export default class Game {
     this.turnNumber = kwargs.turnNumber || 0;
     this.hasStarted = kwargs.hasStarted || false;
     this.hasEnded   = kwargs.hasEnded   || false;
-    this.server     = kwargs.server     || null;
-
-    if (!this.server) {
-      console.warn('A game might want to be aware of its server...');
-    }
   }
+  
   getPlayer(socketId, game = this) {
     return _.find(game.players, (player) => player.id === socketId);
   }
+  
   hasPlayer(socketId, game = this) {
     return game.getPlayer(socketId) !== undefined;
   }
+  
   getPlayerWithName(name, game = this) {
     return _.find(game.players, (player) => player.name === name);
   }
+  
   hasPlayerWithName(name, game = this) {
     return game.getPlayerWithName(name) !== undefined;
   }
+  
+  handleChatMessage(messageObj, player) {
+    if (player.state === PLAYER_STATES.ANON) {
+      player.name = messageObj.message;
+      player.state = PLAYER_STATES.NAMED;
+
+      return [
+        (new EchoResponse({
+          message: player.name,
+          to: player
+        })),
+        (new GameResponse({
+          message: `Welcome to Xanadu ${ player.name }! Enter \`ready\` to start.`,
+          to: player
+        }))
+      ];
+    } else {
+      const words = messageObj.message.split(" ");
+      switch (words[0]) {
+        case 'whisper':
+        {
+          const recipient = this.getPlayerWithName(words[1]);
+          if (recipient) {
+            const message = {
+              from: player,
+              to: recipient,
+              message: words.splice(2).join(" "),
+              type: 'whisper'
+            };
+            return [(new WhisperResponse(message))];
+          } else {
+            console.log('Invalid message recipient', messageObj, recipient);
+            return;
+          }
+        }
+        case 'broadcast':
+        {
+          const message = {
+            from: player,
+            message: words.splice(1).join(" "),
+            type: 'broadcast'
+          };
+          return [(new BroadcastResponse(message))];
+        }
+        default:
+        {
+          return [];
+        }
+      }
+    }
+  }
+  
   extractFields(game = this) {
     // XXX: maybe accept an `extension` arg that `_.extend`s a shallow
     // `_.clone`d copy of the `_.pick` result
@@ -51,9 +107,11 @@ export default class Game {
         'server'
     ]);
   }
+  
   isAcceptingPlayers(game = this) {
     return !game.hasStarted && game.players.length < game.maxPlayers;
   }
+  
   removePlayer(socketId, game = this) {
     let removedPlayer = game.getPlayer(socketId);
     let newPlayerList = _.filter(game.players, (player) => player !== removedPlayer);
@@ -67,6 +125,7 @@ export default class Game {
       player: removedPlayer
     };
   }
+  
   addPlayer(socketId, game = this) {
     let newPlayer = new Player({
       id: socketId,
@@ -83,6 +142,10 @@ export default class Game {
       game: new Game(newGameFields),
       player: newPlayer
     };
+  }
+  
+  isRunning() {
+    return this.hasStarted && !this.hasEnded;
   }
 }
 
