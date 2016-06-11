@@ -79,7 +79,6 @@ export default class Server {
   acceptSocket(socket) {
     console.log(`Server accepted socket ${ socket.id }`);
     this.sockets.push(socket);
-    // XXX: we also have access to the added player
     let { game } = this.game.addPlayer(socket.id);
     this.game = game;
 

@@ -28,17 +28,12 @@ export default class Player {
     if (!this.id) {
       throw new Error('Need id for player construction!');
     }
-    this.game   = args.game;
-
-    // TODO: get this 'startLoc' for the map itself
-    // this is the room that everyone spawns in
-    let startLoc = this.game.map.dimension / 2;
 
     // TODO: make this a non-generic Character class using the Character Factory
     this.character = new Character({
       player: this,
-      x: startLoc,
-      y: startLoc
+      x: args.x || 0,
+      y: args.y || 0
     }); // TODO
     this.state = PLAYER_STATES.ANON;
     // XXX this could be buggy (i.e. ANON && "has" name)
