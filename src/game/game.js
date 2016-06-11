@@ -100,7 +100,9 @@ export default class Game {
   removePlayer(socketId, game = this) {
     const removedPlayer = game.getPlayer(socketId);
     return {
-      game: _.extend({}, game, { players: _.filter(game.players, (player) => player !== removedPlayer)}),
+      game: this.changeFields({
+        players: _.filter(game.players, (player) => player !== removedPlayer)
+      }),
       player: removedPlayer
     };
   }
@@ -111,13 +113,19 @@ export default class Game {
       game: this
     });
     return {
-      game: new Game(_.extend({}, game, { players: _.concat(game.players, [ newPlayer ])})),
+      game: this.changeFields({
+        players: _.concat(game.players, [ newPlayer ])
+      }),
       player: newPlayer
     };
   }
   
   isRunning() {
     return this.hasStarted && !this.hasEnded;
+  }
+
+  changeFields(fields, game = this) {
+    return new Game(_.extend({}, game, fields));
   }
 }
 

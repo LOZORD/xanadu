@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import _ from 'lodash';
 
 import Game from '../../game/game';
 import Map from '../../game/map/map';
@@ -35,6 +36,11 @@ describe('addPlayer', () => {
     g.addPlayer(1);
     expect(g.players.length).to.equal(0);
   });
+
+  it('should return an instance of Game', () => {
+    const { game } = g.addPlayer(1);
+    expect(game instanceof Game).to.equal(true);
+  });
 });
 
 describe('removePlayer', () => {
@@ -50,6 +56,11 @@ describe('removePlayer', () => {
   it('should not modify the original game', () => {
     game.removePlayer(1);
     expect(game.players.length).to.equal(1);
+  });
+
+  it('should return an instance of Game', () => {
+    const result = game.removePlayer(1);
+    expect(result.game instanceof Game).to.equal(true);
   });
 });
 
@@ -112,6 +123,31 @@ describe('hasPlayerWithName', () => {
 
   it('should get an existing player', () => {
     expect(game.hasPlayerWithName(player.name)).to.equal(true);
+  });
+});
+
+describe('changeFields', () => {
+  const g = createGame();
+  const fields = {
+    rng: () => 42,
+    players: [1, 2, 3]
+  };
+  const changed = g.changeFields(fields);
+
+  it('should change only the given fields', () => {
+    Object.keys(fields).forEach((f) => {
+      expect(changed[f]).to.equal(fields[f]);
+    });
+  });
+
+  it('should include all of the unchanged fields', () => {
+    Object.keys(_.omit(g, Object.keys(fields))).forEach((f) => {
+      expect(changed[f]).to.equal(g[f]);
+    });
+  });
+
+  it('should return an instance of Game', () => {
+    expect(changed instanceof Game).to.equal(true);
   });
 });
 
