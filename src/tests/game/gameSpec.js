@@ -41,6 +41,12 @@ describe('addPlayer', () => {
     const { game } = g.addPlayer(1);
     expect(game instanceof Game).to.equal(true);
   });
+
+  it('should optionally work on a different game', () => {
+    const { game } = createGame().addPlayer(1);
+    const result = g.addPlayer(2, game);
+    expect(result.game.players.length).to.equal(2);
+  });
 });
 
 describe('removePlayer', () => {
@@ -62,6 +68,12 @@ describe('removePlayer', () => {
     const result = game.removePlayer(1);
     expect(result.game instanceof Game).to.equal(true);
   });
+
+  it('should optionally work on a different game', () => {
+    const first = game.removePlayer(1);
+    const second = first.game.removePlayer(1, game);
+    expect(first.player).to.eql(second.player);
+  });
 });
 
 const addPlayer = g => id => g.addPlayer(id).game;
@@ -80,6 +92,12 @@ describe('getPlayer', () => {
     const g = withAdded(1);
     expect(g.getPlayer(1)).to.eql((new Player({id: 1})));
   });
+
+  it('should optionally work on a different game', () => {
+    const game = createGame();
+    const otherGame = withAdded(1);
+    expect(game.getPlayer(1, otherGame)).to.eql(otherGame.getPlayer(1));
+  });
 });
 
 describe('hasPlayer', () => {
@@ -96,6 +114,12 @@ describe('hasPlayer', () => {
     const g = withAdded(1);
     expect(g.hasPlayer(1)).to.equal(true);
   });
+
+  it('should optionally work on a different game', () => {
+    const game = createGame();
+    const otherGame = withAdded(1);
+    expect(game.hasPlayer(1, otherGame)).to.eql(otherGame.hasPlayer(1));
+  });
 });
 
 describe('getPlayerWithName', () => {
@@ -110,6 +134,10 @@ describe('getPlayerWithName', () => {
   it('should get an existing player', () => {
     expect(game.getPlayerWithName(player.name)).to.eql(player);
   });
+
+  it('should optionally work on a different game', () => {
+    expect(g.getPlayerWithName('test', game)).to.eql(game.getPlayerWithName('test'));
+  });
 });
 
 describe('hasPlayerWithName', () => {
@@ -123,6 +151,10 @@ describe('hasPlayerWithName', () => {
 
   it('should get an existing player', () => {
     expect(game.hasPlayerWithName(player.name)).to.equal(true);
+  });
+
+  it('should optionally work on a different game', () => {
+    expect(g.hasPlayerWithName('test', game)).to.eql(game.hasPlayerWithName('test'));
   });
 });
 

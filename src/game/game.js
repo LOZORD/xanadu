@@ -42,7 +42,7 @@ export default class Game {
     return game.getPlayerWithName(name) !== undefined;
   }
   
-  handleChatMessage(messageObj, player) {
+  handleChatMessage(messageObj, player, game = this) {
     if (player.state === PLAYER_STATES.ANON) {
       player.name = messageObj.message;
       player.state = PLAYER_STATES.NAMED;
@@ -62,7 +62,7 @@ export default class Game {
       switch (words[0]) {
         case 'whisper':
         {
-          const recipient = this.getPlayerWithName(words[1]);
+          const recipient = game.getPlayerWithName(words[1]);
           if (recipient) {
             const message = {
               from: player,
@@ -100,7 +100,7 @@ export default class Game {
   removePlayer(socketId, game = this) {
     const removedPlayer = game.getPlayer(socketId);
     return {
-      game: this.changeFields({
+      game: game.changeFields({
         players: _.filter(game.players, (player) => player !== removedPlayer)
       }),
       player: removedPlayer
@@ -110,18 +110,18 @@ export default class Game {
   addPlayer(socketId, game = this) {
     const newPlayer = new Player({
       id: socketId,
-      game: this
+      game
     });
     return {
-      game: this.changeFields({
+      game: game.changeFields({
         players: _.concat(game.players, [ newPlayer ])
       }),
       player: newPlayer
     };
   }
   
-  isRunning() {
-    return this.hasStarted && !this.hasEnded;
+  isRunning(game = this) {
+    return game.hasStarted && !game.hasEnded;
   }
 
   changeFields(fields, game = this) {
