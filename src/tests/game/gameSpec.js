@@ -119,26 +119,6 @@ describe('handleChatMessage', () => {
   // TODO
 });
 
-describe('extractFields', () => {
-  const g = createGame();
-  it('should get all the fields', () => {
-    const f = g.extractFields();
-    const fields = [
-      'players',
-      'rng',
-      'map',
-      'maxPlayers',
-      'turnNumber',
-      'hasStarted',
-      'hasEnded',
-      'server'
-    ];
-    for (let field in fields) {
-      expect(g[field]).to.eql(f[field]);
-    }
-  });
-});
-
 describe('isAcceptingPlayers', () => {
   // TODO
 });

@@ -93,53 +93,25 @@ export default class Game {
     }
   }
   
-  extractFields(game = this) {
-    // XXX: maybe accept an `extension` arg that `_.extend`s a shallow
-    // `_.clone`d copy of the `_.pick` result
-    return _.pick(game, [
-        'players',
-        'rng',
-        'map',
-        'maxPlayers',
-        'turnNumber',
-        'hasStarted',
-        'hasEnded',
-        'server'
-    ]);
-  }
-  
   isAcceptingPlayers(game = this) {
     return !game.hasStarted && game.players.length < game.maxPlayers;
   }
   
   removePlayer(socketId, game = this) {
-    let removedPlayer = game.getPlayer(socketId);
-    let newPlayerList = _.filter(game.players, (player) => player !== removedPlayer);
-
-    let newGameFields = game.extractFields(game);
-
-    newGameFields.players = newPlayerList;
-
+    const removedPlayer = game.getPlayer(socketId);
     return {
-      game: new Game(newGameFields),
+      game: _.extend({}, game, { players: _.filter(game.players, (player) => player !== removedPlayer)}),
       player: removedPlayer
     };
   }
   
   addPlayer(socketId, game = this) {
-    let newPlayer = new Player({
+    const newPlayer = new Player({
       id: socketId,
       game: this
     });
-
-    let newPlayerList = _.concat(game.players, [ newPlayer ]);
-
-    let newGameFields = game.extractFields(game);
-
-    newGameFields.players = newPlayerList;
-
     return {
-      game: new Game(newGameFields),
+      game: new Game(_.extend({}, game, { players: _.concat(game.players, [ newPlayer ])})),
       player: newPlayer
     };
   }
