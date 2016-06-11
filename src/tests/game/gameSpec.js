@@ -181,6 +181,32 @@ describe('changeFields', () => {
   it('should return an instance of Game', () => {
     expect(changed instanceof Game).to.equal(true);
   });
+
+  it('should respect constructor defaults', () => {
+    const g = changed.changeFields({
+      players: null,
+      mapOpts: null,
+      map: null,
+      maxPlayers: null,
+      turnNumber: null,
+      hasStarted: null,
+      hasEnded: null
+    });
+    expect(g.players).to.eql([]);
+    expect(g.map).to.eql((new Map({})));
+    expect(g.maxPlayers).to.equal(8);
+    expect(g.turnNumber).to.equal(0);
+    expect(g.hasStarted).to.equal(false);
+    expect(g.hasEnded).to.equal(false);
+  });
+
+  it('should optionally work on a different game', () => {
+    const other = changed.changeFields({ hasStarted: true }, g);
+    Object.keys(_.omit(g, ['hasStarted'])).forEach((f) => {
+      expect(other[f]).to.equal(g[f]);
+    });
+    expect(other.hasStarted).to.equal(true);
+  });
 });
 
 describe('handleChatMessage', () => {
@@ -188,9 +214,40 @@ describe('handleChatMessage', () => {
 });
 
 describe('isAcceptingPlayers', () => {
-  // TODO
+  it('should be true if the number of players is less than maxPlayers', () => {
+    const g = createGame();
+    expect(g.isAcceptingPlayers()).to.equal(true);
+    const other = g.changeFields({ maxPlayers: 1 });
+    expect(other.isAcceptingPlayers()).to.equal(true);
+  });
+
+  it('should be false if the number of players is greater than or equal to maxPlayers', () => {
+    const game = createGame().changeFields({ maxPlayers: 1, players: [1] });
+    expect(game.isAcceptingPlayers()).to.equal(false);
+    const other = game.changeFields({ players: [1, 2] });
+    expect(other.isAcceptingPlayers()).to.equal(false);
+  });
+
+  it('should optionally work on a different game', () => {
+    const g = createGame().changeFields({ players: [1, 2, 3] });
+    const other = g.changeFields({ maxPlayers: 1 });
+    expect(g.isAcceptingPlayers(other)).to.equal(false);
+  });
 });
 
 describe('isRunning', () => {
-  // TODO
+  it('should be false if the game has not started', () => {
+    const g = createGame();
+    expect(g.isRunning()).to.equal(false);
+  });
+
+  it('should be true if the game has started and not ended', () => {
+    const g = createGame().changeFields({ hasStarted: true });
+    expect(g.isRunning()).to.equal(true);
+  });
+
+  it('should be false if the game has started and ended', () => {
+    const g = createGame().changeFields({ hasStarted: true, hasEnded: true });
+    expect(g.isRunning()).to.equal(false);
+  });
 });
