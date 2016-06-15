@@ -11,7 +11,7 @@
   "scripts": {
     "lint": "node_modules/eslint/bin/eslint.js src",
     "t": "node_modules/mocha/bin/mocha -R dot ./dist/**/*Spec.js",
-    "build": "node_modules/babel-cli/bin/babel.js src -D -d dist",
+    "build": "node_modules/babel-cli/bin/babel.js src -D -d dist &> /dev/null",
     "test": "npm run lint && npm run build && npm run t",
     "launch": "echo \"Open localhost:3000\" && node dist/main.js",
     "now": "npm run test && npm run launch"
