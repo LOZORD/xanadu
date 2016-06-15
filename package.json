@@ -10,11 +10,11 @@
   },
   "scripts": {
     "lint": "node_modules/eslint/bin/eslint.js src",
-    "test": "node_modules/mocha/bin/mocha --recursive dist/tests",
+    "t": "node_modules/mocha/bin/mocha --recursive dist/tests",
     "build": "node_modules/babel-cli/bin/babel.js src -D -d dist",
-    "lb": "npm run lint && npm run build",
+    "test": "npm run lint && npm run build && npm run t",
     "launch": "echo \"Open localhost:3000\" && node dist/main.js",
-    "now": "npm run lint && npm run test && npm run build && npm run launch"
+    "now": "npm run test && npm run launch"
   },
   "repository": {
     "type": "git",
@@ -24,7 +24,16 @@
     "game",
     "multiuser dungeon"
   ],
-  "author": "Leo Rudberg",
+  "author": {
+    "name": "Leo Rudberg",
+    "url": "http://github.com/LOZORD/me#readme"
+  },
+  "contributors": [
+    {
+      "name": "Zach Thomae",
+      "url": "https://github.com/zthomae"
+    }
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/LOZORD/xanadu/issues"
