@@ -17,15 +17,47 @@
  * https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_variables
  */
 
+/* For all CSS variables */
+:root {
+  /* Typefaces/Fonts */
+  --xanadu-fonts: 'Nova Mono', Menlo, monospace;
+  /* Colors
+   *
+   * Black
+   * Near Black
+   * White
+   * Grey
+   * Red
+   * Green
+   * Blue
+   * Cyan
+   * Magenta
+   * Yellow
+   * Orange
+   *
+   */
+  --xanadu-black: black;
+  --xanadu-near-black:  #222;
+  --xanadu-white:       white;
+  --xanadu-grey:        grey;
+  --xanadu-red:         #FF7F7F;
+  --xanadu-green:       #63C78D;
+  --xanadu-blue:        #7893F0;
+  --xanadu-cyan:        #6FA6DE;
+  --xanadu-magenta:     #FF7FE1;
+  --xanadu-yellow:      #FEE07F;
+  --xanadu-orange:      #FFB575;
+}
 
 body {
-  font-family: Menlo, monospace;
-  background-color: black;
-  color: white;
+  font-family: var(--xanadu-fonts);
+  background-color: var(--xanadu-black);
+  color: var(--xanadu-white);
 }
 
 #parent-container {
-  border: 1px solid grey;
+  border: 1px solid var(--xanadu-grey);
+  margin-top: 0.5vh;
   width: 99vw;
   height: 99vh;
 }
@@ -42,12 +74,10 @@ body {
 
 #left-half {
   /* for design debugging */
-  /* border: 1px dashed gold; */
 }
 
 #right-half {
   /* for design debugging */
-  /* border: 1px dotted red; */
 }
 
 #form-wrapper {
@@ -63,7 +93,7 @@ body {
   width: 100%;
   outline: none;
   height: 5vh;
-  color: black;
+  color: var(--xanadu-black);
 }
 
 #messages-wrapper {
@@ -82,50 +112,39 @@ body {
 }
 
 #messages li.broadcast {
-  color: yellow;
+  color: var(--xanadu-yellow);
 }
 
 #messages li.chat {
-  color: green;
+  color: var(--xanadu-green);
 }
 
 #messages li.echo {
-  color: white;
+  color: var(--xanadu-white);
 }
 
 #messages li.game {
-  color: blue;
+  color: var(--xanadu-blue);
 }
 
 #messages li.shout {
-  color: red;
+  color: var(--xanadu-red);
 }
 
 #messages li.whisper {
-  color: magenta;
+  color: var(--xandu-magenta);
 }
 
 #messages li.unknown {
-  border: 1px dashed cyan;
+  border: 1px dashed var(--xanadu-grey);
 }
 
 #message li.error {
-  border: 1px dashed firebrick;
-  background-color: pink;
-  color: firebrick;
+  border: 1px dashed var(--xanadu-red);
+  background-color: var(--xanadu-magenta);
+  color: var(--xanadu-white);
   font-weight: bold;
 }
-
-/*
-
-#messages li {
-  padding: 1vh 1.5vw;
-}
-
-#messages li:nth-child(odd) {
-  background-color: #pink;
-}
-*/
 
 #player-map {
   overflow: scroll;
@@ -139,16 +158,21 @@ body {
   /* don't constrain the height; this can be as tall as possible */
 }
 
+#gold-amount {
+  text-align: center;
+  color: var(--xanadu-yellow);
+}
+
 div.item-box {
  width: 100%;
  margin: 0;
  height: 5vh;
- border-top: 1px solid grey;
+ border-top: 1px solid var(--xanadu-grey);
  /* border-bottom: 1px solid grey; */
 }
 
 div.item-box:nth-child(odd) {
-  background-color: #1D1D1D;
+  background-color: var(--xanadu-near-black);
 }
 
 #item-wrapper {
@@ -160,19 +184,19 @@ div.item-condition {
 }
 
 div.item-condition.good-condition {
-  background-color: green;
+  background-color: var(--xanadu-green);
 }
 
 div.item-condition.fair-condition {
-  background-color: gold;
+  background-color: var(--xanadu-orange);
 }
 
 div.item-condition.poor-condition {
-  background-color: red;
+  background-color: var(--xanadu-red);
 }
 
 div.item-stack {
-  background-color: #333;
+  background-color: var(--xanadu-grey);
 }
 
 #map-wrapper {

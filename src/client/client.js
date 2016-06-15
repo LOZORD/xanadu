@@ -251,5 +251,4 @@ $(document).ready(() => {
       { name: 'Quux', stack: 1 }
     ]
   });
-  console.log(updateDetails);
 });
