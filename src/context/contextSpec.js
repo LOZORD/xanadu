@@ -1,7 +1,7 @@
 import { expect} from 'chai';
 import _ from 'lodash';
 
-import Context from '../../context/context';
+import Context from './context';
 
 describe('Context', () => {
   describe('constructor', () => {
