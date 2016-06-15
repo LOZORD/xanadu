@@ -110,8 +110,7 @@ export default class Game {
   
   addPlayer(socketId, game = this) {
     const newPlayer = new Player({
-      id: socketId,
-      game
+      id: socketId
     });
     return {
       game: game.changeFields({
