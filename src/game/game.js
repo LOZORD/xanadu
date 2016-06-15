@@ -9,6 +9,7 @@ import {
 } from './messaging';
 
 // TODO: one of the game parameters should be the number of modifiers randomly assigned
+// TODO: Game should extend Context (other subclass is Lobby)
 export default class Game {
   constructor(kwargs = {}) {
     this.rng        = kwargs.rng;
