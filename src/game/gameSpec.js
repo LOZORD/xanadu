@@ -1,9 +1,9 @@
 import { expect } from 'chai';
 import _ from 'lodash';
 
-import Game from '../../game/game';
-import Map from '../../game/map/map';
-import Player from '../../game/player';
+import Game from './game';
+import Map from './map/map';
+import Player from './player';
 
 const createGame = () => (new Game({rng: () => 4}));
 
