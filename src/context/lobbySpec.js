@@ -50,4 +50,18 @@ describe('Lobby', () => {
       it('should produce no responses');
     });
   });
+  describe('validateName', () => {
+    testContext('when the name is valid', () => {
+      it('should return a `true` in the `isValidName` field');
+     });
+    testContext('when the name is NOT valid', () => {
+      it('should return `false` in the `isValidName` field');
+      testContext('when the name has been taken', () => {
+        it('should return the appropriate `reason`');
+      });
+      testContext('when the name has invalid characters', () => {
+        it('should return the appropriate `reason`');
+      });
+    });
+  });
 });
