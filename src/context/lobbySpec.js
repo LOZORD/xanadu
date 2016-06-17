@@ -34,8 +34,13 @@ describe('Lobby', () => {
   });
   describe('handleMessage', () => {
     testContext('when the player is anonymous', () => {
-      it('should make their first message their name');
-      it('should broadcast their name');
+      testContext('when the name given is valid', () => {
+        it('should make their first message their name');
+        it('should broadcast their name');
+      });
+      testContext('when the name given is NOT valid', () => {
+        it('should ask for another name');
+      });
     });
     testContext('when the player is named', () => {
       it('should broadcast all non-whisper messages');
