@@ -42,12 +42,6 @@ describe('Game', () => {
       const { game } = g.addPlayer(1);
       expect(game instanceof Game).to.equal(true);
     });
-
-    it('should optionally work on a different game', () => {
-      const { game } = createGame().addPlayer(1);
-      const result = g.addPlayer(2, game);
-      expect(result.game.players.length).to.equal(2);
-    });
   });
 
   describe('removePlayer', () => {
@@ -69,12 +63,6 @@ describe('Game', () => {
       const result = game.removePlayer(1);
       expect(result.game instanceof Game).to.equal(true);
     });
-
-    it('should optionally work on a different game', () => {
-      const first = game.removePlayer(1);
-      const second = first.game.removePlayer(1, game);
-      expect(first.player).to.eql(second.player);
-    });
   });
 
   const addPlayer = g => id => g.addPlayer(id).game;
@@ -93,12 +81,6 @@ describe('Game', () => {
       const g = withAdded(1);
       expect(g.getPlayer(1)).to.eql((new Player({id: 1})));
     });
-
-    it('should optionally work on a different game', () => {
-      const game = createGame();
-      const otherGame = withAdded(1);
-      expect(game.getPlayer(1, otherGame)).to.eql(otherGame.getPlayer(1));
-    });
   });
 
   describe('hasPlayer', () => {
@@ -115,12 +97,6 @@ describe('Game', () => {
       const g = withAdded(1);
       expect(g.hasPlayer(1)).to.equal(true);
     });
-
-    it('should optionally work on a different game', () => {
-      const game = createGame();
-      const otherGame = withAdded(1);
-      expect(game.hasPlayer(1, otherGame)).to.eql(otherGame.hasPlayer(1));
-    });
   });
 
   describe('getPlayerWithName', () => {
@@ -135,10 +111,6 @@ describe('Game', () => {
     it('should get an existing player', () => {
       expect(game.getPlayerWithName(player.name)).to.eql(player);
     });
-
-    it('should optionally work on a different game', () => {
-      expect(g.getPlayerWithName('test', game)).to.eql(game.getPlayerWithName('test'));
-    });
   });
 
   describe('hasPlayerWithName', () => {
@@ -152,10 +124,6 @@ describe('Game', () => {
 
     it('should get an existing player', () => {
       expect(game.hasPlayerWithName(player.name)).to.equal(true);
-    });
-
-    it('should optionally work on a different game', () => {
-      expect(g.hasPlayerWithName('test', game)).to.eql(game.hasPlayerWithName('test'));
     });
   });
 
@@ -200,14 +168,6 @@ describe('Game', () => {
       expect(g.hasStarted).to.equal(false);
       expect(g.hasEnded).to.equal(false);
     });
-
-    it('should optionally work on a different game', () => {
-      const other = changed.changeFields({ hasStarted: true }, g);
-      Object.keys(_.omit(g, ['hasStarted'])).forEach((f) => {
-        expect(other[f]).to.equal(g[f]);
-      });
-      expect(other.hasStarted).to.equal(true);
-    });
   });
 
   describe('handleChatMessage', () => {
@@ -251,5 +211,9 @@ describe('Game', () => {
       const g = createGame().changeFields({ hasStarted: true, hasEnded: true });
       expect(g.isRunning()).to.equal(false);
     });
+  });
+
+  describe('isReadyForNextContext', () => {
+    it('should return true when the game has ended');
   });
 });

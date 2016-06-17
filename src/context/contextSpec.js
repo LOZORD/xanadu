@@ -222,17 +222,17 @@ describe('Context', () => {
     });
   });
 
-  describe('updateContext', () => {
+  describe('changeFields', () => {
     it('should return a clone if no fields are given', () => {
       const c1 = new Context();
-      const c2 = c1.updateContext({});
+      const c2 = c1.changeFields({});
       expect(c2).to.eql(c1);
     });
 
     it('should not modify the callee Context', () => {
       const c1 = new Context();
       const c2 = _.cloneDeep(c1);
-      c1.updateContext({});
+      c1.changeFields({});
       expect(c1).to.eql(c2);
     });
   });

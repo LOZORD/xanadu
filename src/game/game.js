@@ -8,10 +8,14 @@ import {
   MultiplePlayerResponse,ChatResponse, ShoutResponse
 } from './messaging';
 
+import Context from '../context/context';
+
 // TODO: one of the game parameters should be the number of modifiers randomly assigned
 // TODO: Game should extend Context (other subclass is Lobby)
-export default class Game {
+export default class Game extends Context {
   constructor(kwargs = {}) {
+    super(kwargs);
+
     this.rng        = kwargs.rng;
 
     if (!this.rng) {
@@ -25,22 +29,6 @@ export default class Game {
     this.turnNumber = kwargs.turnNumber || 0;
     this.hasStarted = kwargs.hasStarted || false;
     this.hasEnded   = kwargs.hasEnded   || false;
-  }
-  
-  getPlayer(socketId, game = this) {
-    return _.find(game.players, (player) => player.id === socketId);
-  }
-  
-  hasPlayer(socketId, game = this) {
-    return game.getPlayer(socketId) !== undefined;
-  }
-  
-  getPlayerWithName(name, game = this) {
-    return _.find(game.players, (player) => player.name === name);
-  }
-  
-  hasPlayerWithName(name, game = this) {
-    return game.getPlayerWithName(name) !== undefined;
   }
   
   handleChatMessage(messageObj, player, game = this) {
@@ -98,34 +86,14 @@ export default class Game {
     return !game.hasStarted && game.players.length < game.maxPlayers;
   }
   
-  removePlayer(socketId, game = this) {
-    const removedPlayer = game.getPlayer(socketId);
-    return {
-      game: game.changeFields({
-        players: _.filter(game.players, (player) => player !== removedPlayer)
-      }),
-      player: removedPlayer
-    };
-  }
-  
-  addPlayer(socketId, game = this) {
-    const newPlayer = new Player({
-      id: socketId
-    });
-    return {
-      game: game.changeFields({
-        players: _.concat(game.players, [ newPlayer ])
-      }),
-      player: newPlayer
-    };
-  }
-  
   isRunning(game = this) {
     return game.hasStarted && !game.hasEnded;
   }
 
-  changeFields(fields, game = this) {
-    return new Game(_.extend({}, game, fields));
+  isReadyForNextContext() {
+    // XXX: might be more 'correct' to check that no players have their state
+    // as `PLAYING` or whatever...
+    return this.hasEnded;
   }
 }
 

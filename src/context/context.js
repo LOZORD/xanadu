@@ -12,8 +12,11 @@ export default class Context {
     //this.hasStarted = kwargs.hasStarted || false;
     //this.hasEnded   = kwargs.hasEnded || false;
   }
-  updateContext(fields) {
-    return new Context(_.extend({}, this, fields));
+  changeFields(fields) {
+    // don't use an explicit constructor
+    // this allows us to return the correct context type
+    // e.g. calling `game.changeFields` will return a `Game`
+    return new (this.constructor)(_.extend({}, this, fields));
   }
   getPlayer(id) {
     return _.find(this.players, (player) => player.id === id);
@@ -27,23 +30,29 @@ export default class Context {
   hasPlayerWithName(name) {
     return this.getPlayerWithName(name) !== undefined;
   }
+  namedContext() {
+    // this helper method allows us to return the name of the context
+    // the caller will most likely want, for example:
+    // `myGame.addPlayer` will return a `game` field (not `context`)
+    return this.constructor.name.toLowerCase();
+  }
   addPlayer(id) {
     if (this.isAcceptingPlayers()) {
       const newPlayer = new Player({ id });
       const newPlayersList = _.concat(this.players, [ newPlayer ]);
       return {
         player: newPlayer,
-        context: this.updateContext({ players: newPlayersList })
+        [this.namedContext()]: this.changeFields({ players: newPlayersList })
       };
     } else {
-      return { player: undefined, context: this };
+      return { player: undefined, [this.namedContext()]: this };
     }
   }
   removePlayer(id) {
     const player = this.getPlayer(id);
     const newPlayersList = _.filter(this.players, (player) => player.id !== id);
-    const context = this.updateContext({ players: newPlayersList });
-    return { context, player };
+    const context = this.changeFields({ players: newPlayersList });
+    return { [this.namedContext()]: context, player };
   }
   isAcceptingPlayers() {
     return this.players.length < this.maxPlayers;
