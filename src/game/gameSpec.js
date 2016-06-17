@@ -170,7 +170,7 @@ describe('Game', () => {
     });
   });
 
-  describe('handleChatMessage', () => {
+  describe('handleMessage', () => {
     // TODO
   });
 

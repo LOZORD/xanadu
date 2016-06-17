@@ -128,7 +128,7 @@ export default class Server {
     if (this.game.isRunning()) {
       // TODO
     } else {
-      this.game.handleChatMessage(messageObj, this.game.getPlayer(socket.id))
+      this.game.handleMessage(messageObj, this.game.getPlayer(socket.id))
         .forEach((msg) => this.sendMessage(msg, socket));
     }
   }

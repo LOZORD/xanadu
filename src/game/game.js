@@ -31,7 +31,7 @@ export default class Game extends Context {
     this.hasEnded   = kwargs.hasEnded   || false;
   }
   
-  handleChatMessage(messageObj, player) {
+  handleMessage(messageObj, player) {
     if (player.state === PLAYER_STATES.ANON) {
       player.name = messageObj.message;
       player.state = PLAYER_STATES.NAMED;

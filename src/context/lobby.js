@@ -73,7 +73,7 @@ export default class Lobby extends Context {
           // the caller will have to check for `isReadyForNextContext`
         } else {
           // TODO: handle using some modular communication function
-          // something similar to 'handleChatMessage' in Game
+          // something similar to 'handleMessage' in Game
         }
 
         break;
