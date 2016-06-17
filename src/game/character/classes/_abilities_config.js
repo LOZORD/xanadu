@@ -1,12 +1,15 @@
 // This file contains a proposed Bethesda-style
 // skill interface, as well as a list of ablities, stats and how different
 // classes have different skills
+
+// These are the minimum stat levels required for
+// characters to perform abilities in the game
 const STATS_FOR_ABILITIES = {
     canTranslateModern: {
         intelligence: 50
     },
     canTranslateAncient: {
-        intelligence: 50,
+        intelligence: 50
     },
     canIdentifyPoison: {
         intelligence: 50
@@ -75,6 +78,10 @@ const STATS_FOR_ABILITIES = {
     }
 };
 
+// These are the beginning stat levels for character classes
+// With the current design, these are the "max" stats for the respective
+// classes, meaning that in game, these numbers can never go above their
+// starting values.
 const STATS_FOR_CLASSES = {
     benefactor: {
         health: 30,
@@ -138,6 +145,7 @@ const STATS_FOR_CLASSES = {
     }
 };
 
+// Now, a small script to show what character classes have what abilities
 let classAbilities = {};
 
 let hasAbility = (abilityStats, classStats) => {
@@ -153,6 +161,8 @@ for (let characterClass in STATS_FOR_CLASSES) {
     classAbilities[characterClass] = [];
 
     // sanity check
+    // As an intended way of balancing the character classes, all stat
+    // allocations must sum to 100. This is, of course, subject to change!
     let stats = STATS_FOR_CLASSES[characterClass];
     let health = stats.health;
     let intelligence = stats.intelligence;
@@ -172,4 +182,5 @@ for (let characterClass in STATS_FOR_CLASSES) {
     }
 }
 
+// pretty print the abilities for each character class
 console.log(JSON.stringify(classAbilities, null, 2));
