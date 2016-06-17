@@ -1,3 +1,4 @@
+import { it, beforeEach } from 'arrow-mocha/es5';
 import { expect } from 'chai';
 import _ from 'lodash';
 import Player, { PLAYER_STATES } from '../game/player';
@@ -35,24 +36,24 @@ describe('Lobby', () => {
   });
   describe('handleMessage', () => {
     testContext('when the player is anonymous', () => {
-      testContext('when the name given is valid', function() {
-        beforeEach(function() {
-          this.l1 = new Lobby();
+      testContext('when the name given is valid', () => {
+        beforeEach((test) => {
+          test.l1 = new Lobby();
 
-          const { lobby: l2, player: p1 } = this.l1.addPlayer('007');
+          const { lobby: l2, player: p1 } = test.l1.addPlayer('007');
 
-          this.p1 = p1;
-          this.l2 = l2;
+          test.p1 = p1;
+          test.l2 = l2;
 
-          this.responses =
-            this.l2.handleMessage({ message: 'James_Bond' }, this.p1);
+          test.responses =
+            test.l2.handleMessage({ message: 'James_Bond' }, test.p1);
         });
-        it('should make their first message their name', function() {
-          expect(this.l2.hasPlayerWithName('James_Bond')).to.be.true;
-          expect(this.p1.state).to.equal(PLAYER_STATES.NAMED)
+        it('should make their first message their name', (test) => {
+          expect(test.l2.hasPlayerWithName('James_Bond')).to.be.true;
+          expect(test.p1.state).to.equal(PLAYER_STATES.NAMED)
         });
-        it('should broadcast their name', function() {
-          const theBroadcast = _.find(this.responses, (response) => response instanceof BroadcastResponse);
+        it('should broadcast their name', (test) => {
+          const theBroadcast = _.find(test.responses, (response) => response instanceof BroadcastResponse);
 
           expect(theBroadcast).to.exist;
 
