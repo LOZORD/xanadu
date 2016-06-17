@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import _ from 'lodash';
 import Player, { PLAYER_STATES } from '../game/player';
-import Lobby from './lobby';
+import Lobby, { NAME_VALIDATIONS } from './lobby';
 
 describe('Lobby', () => {
   // again, for the sake of clarity
@@ -57,15 +57,40 @@ describe('Lobby', () => {
   });
   describe('validateName', () => {
     testContext('when the name is valid', () => {
-      it('should return a `true` in the `isValidName` field');
-     });
+      it('should return `NAME_VALIDATIONS.VALID`', () => {
+        const lobby = new Lobby();
+
+        const validName = 'James_Bond';
+
+        // since the lobby is empty, there should be no one with the same name
+        expect(lobby.validateName(validName)).to.equal(NAME_VALIDATIONS.VALID);
+      });
+    });
     testContext('when the name is NOT valid', () => {
-      it('should return `false` in the `isValidName` field');
       testContext('when the name has been taken', () => {
-        it('should return the appropriate `reason`');
+        it('should return NAME_VALIDATIONS.TAKEN', () => {
+          const l1 = new Lobby();
+
+          const validName = 'James_Bond';
+
+          const { lobby: l2, player: p1 } = l1.addPlayer('007');
+
+          p1.name = validName;
+
+          const { lobby: l3, player: p2 } = l2.addPlayer('008');
+
+          expect(l3.validateName(validName)).to.equal(NAME_VALIDATIONS.TAKEN);
+        });
       });
       testContext('when the name has invalid characters', () => {
-        it('should return the appropriate `reason`');
+        it('should return NAME_VALIDATIONS.INVALID_CHARACTERS', () => {
+          const lobby = new Lobby();
+
+          const invalidName = 'James( )Bond$%^&';
+
+          expect(lobby.validateName(invalidName))
+          .to.equal(NAME_VALIDATIONS.INVALID_CHARACTERS);
+        });
       });
     });
   });

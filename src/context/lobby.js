@@ -3,8 +3,12 @@ import Context from './context';
 import { PLAYER_STATES } from '../game/player';
 import { BroadcastResponse, EchoResponse, GameResponse } from '../game/messaging';
 
-const NAME_TAKEN = 1;
-const NAME_CONTAINS_INVALID_CHARACTERS = 2;
+export const NAME_VALIDATIONS = {
+  REGEX: /^\w+$/,
+  VALID: 0,
+  TAKEN: 1,
+  INVALID_CHARACTERS: 2
+};
 
 export default class Lobby extends Context {
   isReadyForNextContext() {
@@ -35,12 +39,12 @@ export default class Lobby extends Context {
             message: `Player '${ name }' has joined the game!`,
             from: player.id
           }));
-        } else if (reason == NAME_TAKEN) {
+        } else if (reason == NAME_VALIDATIONS.TAKEN) {
           responses.push(new GameResponse({
             message: `The name '${ name }' has already been taken.`,
             to: player.id
           }));
-        } else if (reason == NAME_CONTAINS_INVALID_CHARACTERS) {
+        } else if (reason == NAME_VALIDATIONS.INVALID_CHARACTERS) {
           responses.push(new GameResponse({
             message: `The name '${ name }' contains invalid characters. Use only alphanumeric characters.`,
             to: player.id
@@ -90,8 +94,13 @@ export default class Lobby extends Context {
 
     return responses;
   }
-  // TODO
   validateName(name) {
-    return {};
+    if (this.hasPlayerWithName(name)) {
+      return NAME_VALIDATIONS.TAKEN;
+    } else if (!NAME_VALIDATIONS.REGEX.test(name)) {
+      return NAME_VALIDATIONS.INVALID_CHARACTERS;
+    } else {
+      return NAME_VALIDATIONS.VALID;
+    }
   }
 }
