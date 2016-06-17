@@ -31,7 +31,7 @@ export default class Game extends Context {
     this.hasEnded   = kwargs.hasEnded   || false;
   }
   
-  handleChatMessage(messageObj, player, game = this) {
+  handleChatMessage(messageObj, player) {
     if (player.state === PLAYER_STATES.ANON) {
       player.name = messageObj.message;
       player.state = PLAYER_STATES.NAMED;
@@ -51,7 +51,7 @@ export default class Game extends Context {
       switch (words[0]) {
         case 'whisper':
         {
-          const recipient = game.getPlayerWithName(words[1]);
+          const recipient = this.getPlayerWithName(words[1]);
           if (recipient) {
             const message = {
               from: player,
@@ -82,12 +82,12 @@ export default class Game extends Context {
     }
   }
   
-  isAcceptingPlayers(game = this) {
-    return !game.hasStarted && game.players.length < game.maxPlayers;
+  isAcceptingPlayers() {
+    return !this.hasStarted && this.players.length < this.maxPlayers;
   }
   
-  isRunning(game = this) {
-    return game.hasStarted && !game.hasEnded;
+  isRunning() {
+    return this.hasStarted && !this.hasEnded;
   }
 
   isReadyForNextContext() {

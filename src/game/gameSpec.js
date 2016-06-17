@@ -188,12 +188,6 @@ describe('Game', () => {
       const other = game.changeFields({ players: [1, 2] });
       expect(other.isAcceptingPlayers()).to.equal(false);
     });
-
-    it('should optionally work on a different game', () => {
-      const g = createGame().changeFields({ players: [1, 2, 3] });
-      const other = g.changeFields({ maxPlayers: 1 });
-      expect(g.isAcceptingPlayers(other)).to.equal(false);
-    });
   });
 
   describe('isRunning', () => {
