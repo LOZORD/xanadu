@@ -27,8 +27,8 @@ export default class Lobby extends Context {
     switch (player.state) {
       case PLAYER_STATES.ANON: {
         const name = messageObj.message;
-        const { nameIsValid, reason } = this.validateName(name);
-        if (nameIsValid) {
+        const validationResult = this.validateName(name);
+        if (validationResult === NAME_VALIDATIONS.VALID) {
           player.name = name;
           player.state = PLAYER_STATES.NAMED;
           responses.push(new GameResponse({
@@ -39,12 +39,12 @@ export default class Lobby extends Context {
             message: `Player '${ name }' has joined the game!`,
             from: player.id
           }));
-        } else if (reason == NAME_VALIDATIONS.TAKEN) {
+        } else if (validationResult == NAME_VALIDATIONS.TAKEN) {
           responses.push(new GameResponse({
             message: `The name '${ name }' has already been taken.`,
             to: player.id
           }));
-        } else if (reason == NAME_VALIDATIONS.INVALID_CHARACTERS) {
+        } else if (validationResult == NAME_VALIDATIONS.INVALID_CHARACTERS) {
           responses.push(new GameResponse({
             message: `The name '${ name }' contains invalid characters. Use only alphanumeric characters.`,
             to: player.id

@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import _ from 'lodash';
 import Player, { PLAYER_STATES } from '../game/player';
 import Lobby, { NAME_VALIDATIONS } from './lobby';
+import { BroadcastResponse } from '../game/messaging';
 
 describe('Lobby', () => {
   // again, for the sake of clarity
@@ -34,9 +35,29 @@ describe('Lobby', () => {
   });
   describe('handleMessage', () => {
     testContext('when the player is anonymous', () => {
-      testContext('when the name given is valid', () => {
-        it('should make their first message their name');
-        it('should broadcast their name');
+      testContext('when the name given is valid', function() {
+        beforeEach(function() {
+          this.l1 = new Lobby();
+
+          const { lobby: l2, player: p1 } = this.l1.addPlayer('007');
+
+          this.p1 = p1;
+          this.l2 = l2;
+
+          this.responses =
+            this.l2.handleMessage({ message: 'James_Bond' }, this.p1);
+        });
+        it('should make their first message their name', function() {
+          expect(this.l2.hasPlayerWithName('James_Bond')).to.be.true;
+          expect(this.p1.state).to.equal(PLAYER_STATES.NAMED)
+        });
+        it('should broadcast their name', function() {
+          const theBroadcast = _.find(this.responses, (response) => response instanceof BroadcastResponse);
+
+          expect(theBroadcast).to.exist;
+
+          expect(theBroadcast.message).to.include('James_Bond');
+        });
       });
       testContext('when the name given is NOT valid', () => {
         it('should ask for another name');
