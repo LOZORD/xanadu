@@ -2,6 +2,7 @@ import _ from 'lodash';
 import Context from './context';
 import { PLAYER_STATES } from '../game/player';
 import { BroadcastResponse, EchoResponse, GameResponse } from '../game/messaging';
+import SimpleCommunicationHandler from './communicationHandler';
 
 export const NAME_VALIDATIONS = {
   REGEX: /^\w+$/,
@@ -78,12 +79,14 @@ export default class Lobby extends Context {
         } else {
           // TODO: handle using some modular communication function
           // something similar to 'handleMessage' in Game
+          responses.push(SimpleCommunicationHandler(messageObj, player, this));
         }
 
         break;
       }
       case PLAYER_STATES.READY: {
         // TODO: similar communication logic can happen here
+        responses.push(SimpleCommunicationHandler(messageObj, player, this));
         break;
       }
       default: {

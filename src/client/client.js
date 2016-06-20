@@ -12,8 +12,11 @@ $(document).ready(() => {
     event.preventDefault();
     let msg = input.val().trim();
     input.val('');
-    console.log('Sending message: ', msg);
-    sendMessage(msg);
+    // don't send a blank message!
+    if (msg.length) {
+      console.log('Sending message: ', msg);
+      sendMessage(msg);
+    }
   });
 
   let sendMessage = (msg) => {
