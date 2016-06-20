@@ -46,7 +46,7 @@ export default class Lobby extends Context {
           }));
         } else if (validationResult == NAME_VALIDATIONS.INVALID_CHARACTERS) {
           responses.push(new GameResponse({
-            message: `The name '${ name }' contains invalid characters. Use only alphanumeric characters.`,
+            message: `The name '${ name }' contains invalid characters. Use only alphanumeric, underscore, and hyphen characters.`,
             to: player.id
           }));
         } else {

@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import _ from 'lodash';
 import Player, { PLAYER_STATES } from '../game/player';
 import Lobby, { NAME_VALIDATIONS } from './lobby';
-import { BroadcastResponse } from '../game/messaging';
+import { BroadcastResponse, EchoResponse, GameResponse } from '../game/messaging';
 
 describe('Lobby', () => {
   // again, for the sake of clarity
@@ -61,20 +61,86 @@ describe('Lobby', () => {
         });
       });
       testContext('when the name given is NOT valid', () => {
-        it('should ask for another name');
+        it('should ask for another name', () => {
+          const l1 = new Lobby();
+
+          const { lobby: l2, player: p1 } = l1.addPlayer('007');
+
+          const r1 = l2.handleMessage({ message: 'James_Bond' }, p1);
+
+          // now to work with invalid naming attempts
+
+          const { lobby: l3, player: p2 } = l2.addPlayer('008');
+
+          const r2 = l3.handleMessage({ message: 'James_Bond' }, p2);
+
+          expect(p2.name).to.not.equal('James_Bond');
+
+          const takenResponse = _.find(r2, (response) => response instanceof GameResponse);
+
+          expect(takenResponse).to.exist;
+
+          expect(takenResponse.message).to.include('already been taken');
+
+          // now for an invalid character name
+
+          const r3 = l3.handleMessage({ message: 'James^&^Bond' }, p2);
+
+          const patternResponse = _.find(r3, (response) => response instanceof GameResponse);
+
+          expect(patternResponse).to.exist;
+
+          expect(patternResponse.message)
+            .to.include('only alphanumeric, underscore, and hyphen characters');
+        });
       });
     });
     testContext('when the player is named', () => {
-      it('should broadcast all non-whisper messages');
-      it('should send whisper messages');
-      it('should change the player\'s state on `ready`');
+      // do we really need to test these here?
+      //it('should broadcast all non-whisper messages');
+      //it('should send whisper messages');
+      it('should change the player\'s state on `ready` and broadcast', () => {
+        const l0 = new Lobby();
+
+        const { lobby: l1, player: p1 } = l0.addPlayer('007');
+
+        const r1 = l1.handleMessage({ message: 'James_Bond' }, p1);
+
+        const r2 = l1.handleMessage({ message: 'Shaken, not stirred' }, p1);
+
+        expect(p1.state).to.not.equal(PLAYER_STATES.READY);
+
+        const r3 = l1.handleMessage({ message: 'ready' }, p1);
+
+        expect(p1.state).to.equal(PLAYER_STATES.READY);
+
+        const theBroadcast = _.find(r3, (response) => response instanceof BroadcastResponse);
+
+        expect(theBroadcast.message).to.include('READY');
+      });
     });
     testContext('when the player is ready', () => {
-      it('should broadcast all non-whisper messages');
-      it('should send whisper messages');
+      // do we really need to test these here?
+      //it('should broadcast all non-whisper messages');
+      //it('should send whisper messages');
     });
     testContext('when the player is in another state', () => {
-      it('should produce no responses');
+      it('should produce no responses', () => {
+        const l1 = new Lobby();
+
+        const { lobby: l2, player: p1 } = l1.addPlayer('007');
+
+        // should never happen :^)
+        p1.state = PLAYER_STATES.DEAD;
+
+        const r1 = l2.handleMessage({ message: 'James_Bond' }, p1);
+
+        expect(p1.name).to.not.equal('James_Bond');
+
+        expect(r1.length).to.equal(1);
+
+        expect(r1[0]).to.be.an.instanceof(EchoResponse);
+      });
     });
   });
   describe('validateName', () => {
