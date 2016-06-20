@@ -34,7 +34,9 @@ export function abstractHandler(responseHandling) {
     const messagePayload = defaultUsed ? words : _.tail(words);
 
     if (myResponseType.includesNames) {
-      to = _.takeWhile(messagePayload, (possibleName) => context.getPlayerWithName(possibleName));
+      const toNames = _.takeWhile(messagePayload, (possibleName) => context.hasPlayerWithName(possibleName));
+
+      to = _.map(toNames, (name) => context.getPlayerWithName(name));
 
       messageToSend = _.drop(messagePayload, to.length).join(' ');
 
@@ -75,4 +77,3 @@ const RESPONSE_HANDLING = [
 ];
 
 export default abstractHandler(RESPONSE_HANDLING);
-
