@@ -8,6 +8,9 @@ import Game from '../game/game.js';
 import Lobby from '../context/lobby';
 import Response, * as Responses from '../game/messaging';
 
+const MUTATE = true;
+const DO_NOT_MUTATE = false;
+
 export default class Server {
   constructor(kwargs = { maxPlayers: 8, debug: true, port: 3000, seed: Date.now() }) {
     // using this default param + destructuring strategy,
@@ -82,8 +85,8 @@ export default class Server {
   acceptSocket(socket) {
     console.log(`Server accepted socket ${ socket.id }`);
     this.sockets.push(socket);
-    let { context } = this.currentContext.addPlayer(socket.id);
-    this.currentContext = context;
+
+    this.addPlayer(socket.id, MUTATE);
 
     // when people send _anything_ from the client
     // the game handles the message, and then passes the server a response
@@ -113,8 +116,7 @@ export default class Server {
     // when people disconnect
     socket.on('disconnect', () => {
       if (this.currentContext.hasPlayer(socket.id)) {
-        let { context, player } = this.removePlayer(socket.id);
-        this.currentContext = context;
+        const { player } = this.removePlayer(socket.id, MUTATE);
         console.log(`\tPlayer ${ player.id + '--' + player.name } disconnected`);
         // FIXME: socket/player communication needs to be redone
         socket.broadcast.emit(`${ player.name } has left the game.`);
@@ -136,9 +138,24 @@ export default class Server {
     return _.find(server.sockets, (s) => s.id === socketId);
   }
 
-  removePlayer(socketId) {
-    // XXX: should this mutate the currentContext?
-    return this.currentContext.removePlayer(socketId);
+  addPlayer(socketId, shouldMutate = DO_NOT_MUTATE) {
+    const result = this.currentContext.addPlayer(socketId);
+
+    if (shouldMutate) {
+      this.currentContext = result.context;
+    }
+
+    return result;
+  }
+
+  removePlayer(socketId, shouldMutate = DO_NOT_MUTATE) {
+    const result = this.currentContext.removePlayer(socketId);
+
+    if (shouldMutate) {
+      this.currentContext = result.context;
+    }
+
+    return result;
   }
 
   removeSocket(socketId) {
