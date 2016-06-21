@@ -40,9 +40,11 @@ export default class Context {
     if (this.isAcceptingPlayers()) {
       const newPlayer = new Player({ id });
       const newPlayersList = _.concat(this.players, [ newPlayer ]);
+      const newContext = this.changeFields({ players: newPlayersList });
       return {
         player: newPlayer,
-        [this.namedContext()]: this.changeFields({ players: newPlayersList })
+        [this.namedContext()]: newContext,
+        context: newContext
       };
     } else {
       return { player: undefined, [this.namedContext()]: this };
