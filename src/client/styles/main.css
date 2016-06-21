@@ -89,11 +89,12 @@ body {
 
 #main-input {
   border: none;
-  padding: 1.0vh 0;
+  padding: 1vh 0 1vh 1vw;
   width: 100%;
   outline: none;
   height: 5vh;
-  color: var(--xanadu-black);
+  color: var(--xanadu-white);
+  background-color: var(--xanadu-near-black);
 }
 
 #messages-wrapper {
