@@ -1,5 +1,8 @@
 /* global io */
-let socket = io('/game');
+let socket = io('/game', {
+  // don't attempt to reconnect if the server dies
+  reconnection: false
+});
 
 $(document).ready(() => {
   let messageOutput   = $('#messages');
@@ -106,16 +109,24 @@ $(document).ready(() => {
     addMessage(messageText, styleClasses);
   });
 
+  /*** DISCONNECT ***/
+  socket.on('disconnect', (data) => {
+    addMessage('The server has encountered a fatal error!', ['error']);
+    console.log('Error data', data);
+  });
+
   /*** ERROR HANDLER ***/
 
   // TODO: find a way to gracefully handle and report server crashes to client
   // this might help:
   // http://socket.io/docs/server-api/#namespace#use(fn:function):namespace
+  /*
   socket.on('error', (error) => {
     addMessage('The server has encountered a fatal error!', ['error']);
     console.log('Received error data: ', error);
     socket.disconnect();
   });
+  */
 
   /*** REJECTED FROM ROOM ***/
 

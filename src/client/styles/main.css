@@ -140,7 +140,7 @@ body {
   border: 1px dashed var(--xanadu-grey);
 }
 
-#message li.error {
+#messages li.error {
   border: 1px dashed var(--xanadu-red);
   background-color: var(--xanadu-magenta);
   color: var(--xanadu-white);
