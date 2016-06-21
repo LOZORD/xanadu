@@ -10,11 +10,12 @@
   },
   "scripts": {
     "lint": "node_modules/eslint/bin/eslint.js src",
-    "t": "node_modules/mocha/bin/mocha -R dot ./dist/**/*Spec.js",
     "build": "node_modules/babel-cli/bin/babel.js src -D -d dist &> /dev/null",
-    "test": "npm run lint && npm run build && npm run t",
+    "test:only": "node_modules/mocha/bin/mocha -R dot ./dist/**/*Spec.js",
+    "test:cover": "node_modules/istanbul/lib/cli.js cover node_modules/mocha/bin/_mocha -- -R dot ./dist/**/*Spec.js",
+    "test:full": "npm run lint && npm run build && npm run test:cover",
     "launch": "node dist/main.js",
-    "now": "npm run test && npm run launch"
+    "now": "npm run test:full && npm run launch"
   },
   "repository": {
     "type": "git",
@@ -56,6 +57,7 @@
     "babel-register": ">=6.4.2",
     "chai": "^3.5.0",
     "eslint": "^2.6.0",
+    "istanbul": "^0.4.4",
     "mocha": "^2.5.3"
   },
   "babel": {
