@@ -5,6 +5,8 @@ import Http from 'http';
 import Express from 'express';
 import IoFunction from 'socket.io';
 import Game from '../game/game.js';
+import Lobby from '../context/lobby';
+import Response from '../game/messaging';
 
 export default class Server {
   constructor(kwargs = { maxPlayers: 8, debug: true, port: 3000, seed: Date.now() }) {
@@ -29,7 +31,8 @@ export default class Server {
     this.ns         = '/';
     this.seed       = seed;
     this.sockets = [];
-    this.game = this.createGame();
+    //this.game = this.createGame();
+    this.currentContext = this.createLobby();
 
     this.createServer();
   }
@@ -69,7 +72,7 @@ export default class Server {
 
   handleConnection(socket) {
     // when people connect...
-    if (this.game.isAcceptingPlayers()) {
+    if (this.currentContext.isAcceptingPlayers()) {
       this.acceptSocket(socket);
     } else {
       this.rejectSocket(socket);
@@ -79,8 +82,8 @@ export default class Server {
   acceptSocket(socket) {
     console.log(`Server accepted socket ${ socket.id }`);
     this.sockets.push(socket);
-    let { game } = this.game.addPlayer(socket.id);
-    this.game = game;
+    let { context } = this.currentContext.addPlayer(socket.id);
+    this.currentContext = context;
 
     // when people send _anything_ from the client
     // the game handles the message, and then passes the server a response
@@ -88,13 +91,30 @@ export default class Server {
     socket.on('message', (messageObj) => {
       console.log(`Socket ${ socket.id }: ${ JSON.stringify(messageObj) }`);
 
-      this.handleMessage(messageObj, socket);
+      let readyForNextContext = this.handleMessage(messageObj, socket);
+
+      // TODO: do something with the context's player lists
+      if (readyForNextContext) {
+        if (this.currentContext instanceof Lobby) {
+          this.currentContext = new Game({
+            players: this.currentContext.players,
+            maxPlayers: this.maxPlayers,
+            rng: gen(this.seed)
+          });
+        } else {
+          this.currentContext = new Lobby({
+            players: this.currentContext.players,
+            maxPlayers: this.maxPlayers
+          });
+        }
+      }
     });
 
     // when people disconnect
     socket.on('disconnect', () => {
-      if (this.game.hasPlayer(socket.id)) {
-        let { player } = this.removePlayer(socket.id);
+      if (this.currentContext.hasPlayer(socket.id)) {
+        let { context, player } = this.removePlayer(socket.id);
+        this.currentContext = context;
         console.log(`\tPlayer ${ player.id + '--' + player.name } disconnected`);
         // FIXME: socket/player communication needs to be redone
         socket.broadcast.emit(`${ player.name } has left the game.`);
@@ -116,32 +136,42 @@ export default class Server {
     return _.find(server.sockets, (s) => s.id === socketId);
   }
 
-  removePlayer(socketId, server = this) {
-    return server.game.removePlayer(socketId);
+  removePlayer(socketId) {
+    // XXX: should this mutate the currentContext?
+    return this.currentContext.removePlayer(socketId);
   }
 
-  removeSocket(socketId, server = this) {
-    server.sockets = _.filter(server.sockets, (socket) => socket.id !== socketId);
+  removeSocket(socketId) {
+    this.sockets = _.filter(this.sockets, (socket) => socket.id !== socketId);
   }
 
   handleMessage(messageObj, socket) {
-    if (this.game.isRunning()) {
-      // TODO
-    } else {
-      this.game.handleMessage(messageObj, this.game.getPlayer(socket.id))
-        .forEach((msg) => this.sendMessage(msg, socket));
-    }
+    this.currentContext.handleMessage(messageObj, this.currentContext.getPlayer(socket.id))
+      .forEach((msg) => this.sendMessage(msg, socket));
+
+    return this.currentContext.isReadyForNextContext();
   }
 
   // Reason for `createGame`: we may want one server but many games!
   createGame() {
     return new Game({
       rng: gen(this.seed),
-      maxPlayers: 8
+      maxPlayers: this.maxPlayers
+    });
+  }
+
+  createLobby() {
+    return new Lobby({
+      maxPlayers: this.maxPlayers
     });
   }
 
   sendMessage(response) {
+
+    if (!(response instanceof Response)) {
+      throw new Error(`Expected ${ JSON.stringify(response) } to be an instance of Response!`);
+    }
+
     if (response.type === 'broadcast') {
       const toSocket = this.getSocket(response.from.id);
       toSocket.broadcast.emit('message', response.toJSON());
@@ -154,7 +184,14 @@ export default class Server {
       });
       */
     } else {
-      this.getSocket(response.to.id).emit('message', response.toJSON());
+      // TODO: handle MultiplePlayerResponse...
+      const toSocket = this.getSocket(response.to.id);
+
+      if (!toSocket) {
+        throw new Error(`Could not find socket with id ${ response.to.id }; to: ${ JSON.stringify(response.to) }`);
+      }
+
+      toSocket.emit('message', response.toJSON());
       if (response.from) {
         this.getSocket(response.from.id).emit('message', response.toJSON());
       }

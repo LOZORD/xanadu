@@ -54,7 +54,7 @@ export default class Context {
     const player = this.getPlayer(id);
     const newPlayersList = _.filter(this.players, (player) => player.id !== id);
     const context = this.changeFields({ players: newPlayersList });
-    return { [this.namedContext()]: context, player };
+    return { context, player, [this.namedContext()]: context };
   }
   isAcceptingPlayers() {
     return this.players.length < this.maxPlayers;
