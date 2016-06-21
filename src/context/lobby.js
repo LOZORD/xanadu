@@ -22,7 +22,7 @@ export default class Lobby extends Context {
     let responses = [
         new EchoResponse({
           message: messageObj.message,
-          to: player.id
+          to: player
         })
     ];
     switch (player.state) {
@@ -38,22 +38,22 @@ export default class Lobby extends Context {
           }));
           responses.push(new BroadcastResponse({
             message: `Player '${ name }' has joined the game!`,
-            from: player.id
+            from: player
           }));
         } else if (validationResult == NAME_VALIDATIONS.TAKEN) {
           responses.push(new GameResponse({
             message: `The name '${ name }' has already been taken.`,
-            to: player.id
+            to: player
           }));
         } else if (validationResult == NAME_VALIDATIONS.INVALID_CHARACTERS) {
           responses.push(new GameResponse({
             message: `The name '${ name }' contains invalid characters. Use only alphanumeric, underscore, and hyphen characters.`,
-            to: player.id
+            to: player
           }));
         } else {
           responses.push(new GameResponse({
             message: `The name '${ name }' is invalid.`,
-            to: player.id
+            to: player
           }));
         }
 
@@ -72,20 +72,17 @@ export default class Lobby extends Context {
 
           responses.push(new BroadcastResponse({
             message: 'READY!',
-            from: player.id
+            from: player
           }));
 
           // the caller will have to check for `isReadyForNextContext`
         } else {
-          // TODO: handle using some modular communication function
-          // something similar to 'handleMessage' in Game
           responses.push(SimpleCommunicationHandler(messageObj, player, this));
         }
 
         break;
       }
       case PLAYER_STATES.READY: {
-        // TODO: similar communication logic can happen here
         responses.push(SimpleCommunicationHandler(messageObj, player, this));
         break;
       }

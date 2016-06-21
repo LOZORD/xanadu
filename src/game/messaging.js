@@ -1,7 +1,7 @@
 import _ from 'lodash';
 
 // Abstract Response class
-export class Response {
+export default class Response {
   constructor(kwargs = {}) {
     this.response = kwargs.message || '[NO CONTENT]';
     this.from = kwargs.from || null;
@@ -21,8 +21,16 @@ export class Response {
   toJSON() {
     return {
       message:  this.response,
-      from: this.from,
-      to:   this.to,
+      //from: this.from,
+      from: {
+        id: this.from.id,
+        name: this.from.name
+      },
+      //to:   this.to,
+      to: {
+        id: this.to.id,
+        name: this.to.id
+      },
       type: this.type
     };
   }
@@ -38,7 +46,10 @@ export class EchoResponse extends Response {
     return {
       type: this.type,
       message:  this.response,
-      to:   this.to
+      to: {
+        id: this.to.id,
+        name: this.to.name
+      }
     };
   }
 }
@@ -56,7 +67,10 @@ export class BroadcastResponse extends Response {
   toJSON() {
     return {
       type: this.type, // i.e. 'broadcast'
-      from: this.from,
+      from: {
+        id: this.from.id,
+        name: this.from.name
+      },
       message:  this.response
     };
   }
@@ -71,7 +85,10 @@ export class GameResponse extends Response {
     return {
       type: this.type,
       message:  this.response,
-      to:   this.to
+      to: {
+        id: this.to.id,
+        name: this.to.name
+      }
     };
   }
 }
@@ -131,6 +148,48 @@ export class MultiplePlayerResponse extends PlayerResponse {
   isPersonalized() {
     return _.isPlainObject(this.response);
   }
+  toPersonalizedJSON(socketId = null) {
+    if (this.isPersonalized()) {
+      if (!socketId) {
+        throw new Error('Need a socket id to personalize!');
+      }
+
+      const toPlayer = _.find(this.to, (p) => p.id === socketId);
+
+      return {
+        message: this.response[socketId],
+        type: this.type,
+        to: {
+          id: socketId,
+          name: toPlayer.name
+        },
+        from: {
+          id: this.from.id,
+          name: this.from.name
+        }
+      };
+    } else {
+      return this.toJSON();
+    }
+  }
+
+  toJSON() {
+    if (this.isPersonalized()) {
+      throw new Error('Only works with personalized socket ids!');
+    }
+
+    return {
+      message: this.response,
+      type: this.type,
+      to: _.map(this.to, (p) => ({ id: p.id, name: p.name })),
+      from: {
+        id: this.from.id,
+        name: this.from.name
+      }
+    };
+  }
+
+  /*
   toJSON(socketId) {
     if (this.isPersonalized()) {
 
@@ -153,6 +212,7 @@ export class MultiplePlayerResponse extends PlayerResponse {
       };
     }
   }
+  */
 }
 
 // The chat range is determined __by the game__

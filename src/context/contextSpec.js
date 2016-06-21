@@ -186,7 +186,10 @@ describe('Context', () => {
       expect(echo.toJSON()).to.eql({
         type: 'echo',
         message: 'hello world',
-        to: '007'
+        to: {
+          id: '007',
+          name: '[NO NAME]'
+        }
       });
     });
   });

@@ -68,7 +68,7 @@ export default class Context {
     return [
       new EchoResponse({
         message: messageObj.message,
-        to: player.id
+        to: player
       })
     ];
   }
