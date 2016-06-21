@@ -11,9 +11,10 @@
   "scripts": {
     "lint": "node_modules/eslint/bin/eslint.js src",
     "build": "node_modules/babel-cli/bin/babel.js src -D -d dist &> /dev/null",
-    "test:only": "node_modules/mocha/bin/mocha -R dot ./dist/**/*Spec.js",
-    "test:cover": "node_modules/istanbul/lib/cli.js cover node_modules/mocha/bin/_mocha -- -R dot ./dist/**/*Spec.js",
+    "test:only": "node_modules/mocha/bin/mocha -R dot dist/**/*Spec.js",
+    "test:cover": "node_modules/istanbul/lib/cli.js cover -x 'dist/**/*Spec.js' node_modules/mocha/bin/_mocha -- -R dot dist/**/*Spec.js",
     "test:full": "npm run lint && npm run build && npm run test:cover",
+    "test": "npm run test:cover",
     "launch": "node dist/main.js",
     "now": "npm run test:full && npm run launch"
   },
