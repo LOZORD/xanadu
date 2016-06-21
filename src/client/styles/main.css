@@ -133,7 +133,7 @@ body {
 }
 
 #messages li.whisper {
-  color: var(--xandu-magenta);
+  color: var(--xanadu-magenta);
 }
 
 #messages li.unknown {
@@ -180,8 +180,9 @@ div.item-box:nth-child(odd) {
   overflow: scroll;
 }
 
-div.item-condition {
+div.item-condition, div.item-stack {
   padding-bottom: 1em;
+  /* XXX: any border? */
 }
 
 div.item-condition.good-condition {

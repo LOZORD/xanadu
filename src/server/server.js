@@ -167,22 +167,14 @@ export default class Server {
   }
 
   sendMessage(response) {
-
     if (!(response instanceof Response)) {
       throw new Error(`Expected ${ JSON.stringify(response) } to be an instance of Response!`);
     }
 
     if (response.type === 'broadcast') {
-      const toSocket = this.getSocket(response.from.id);
-      toSocket.broadcast.emit('message', response.toJSON());
-      toSocket.emit('message', response.toJSON());
-      /*
-    } else if (['chat', 'shout'].indexOf(response.type) > -1) {
-      const receivingSockets = _.map(response.to, (socketId) => this.getSocket(socketId));
-      _.forEach(receivingSockets, (socket) => {
-        socket.emit('message', response.toJSON(socket.id));
-      });
-      */
+      const broadcastingSocket = this.getSocket(response.from.id);
+
+      broadcastingSocket.broadcast.emit('message', response.toJSON());
     } else {
       // TODO: handle MultiplePlayerResponse...
       const toSocket = this.getSocket(response.to.id);
@@ -192,9 +184,6 @@ export default class Server {
       }
 
       toSocket.emit('message', response.toJSON());
-      if (response.from) {
-        this.getSocket(response.from.id).emit('message', response.toJSON());
-      }
     }
   }
 }
