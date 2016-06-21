@@ -34,16 +34,20 @@ export function abstractHandler(responseHandling) {
     const messagePayload = defaultUsed ? words : _.tail(words);
 
     if (myResponseType.includesNames) {
-      const toNames = _.takeWhile(messagePayload, (possibleName) => context.hasPlayerWithName(possibleName));
 
-      to = _.map(toNames, (name) => context.getPlayerWithName(name));
+      const shouldHandleMultipleRecipients =
+        Responses.MultiplePlayerResponse.isPrototypeOf(myResponseType.responseConstructor);
 
-      messageToSend = _.drop(messagePayload, to.length).join(' ');
+      if (shouldHandleMultipleRecipients) {
+        const toNames = _.takeWhile(messagePayload, (possibleName) => context.hasPlayerWithName(possibleName));
 
-      if (myResponseType instanceof Responses.MultiplePlayerResponse) {
-        // `to` is already an Array, so all is well
+        to = _.map(toNames, (name) => context.getPlayerWithName(name));
+
+        messageToSend = _.drop(messagePayload, to.length).join(' ');
       } else {
-        to = to[0];
+        to = context.getPlayerWithName(messagePayload[0]);
+
+        messageToSend = _.tail(messagePayload).join(' ');
       }
     } else {
       messageToSend = messagePayload.join(' ');

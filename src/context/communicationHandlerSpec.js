@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { it, beforeEach } from 'arrow-mocha/es5';
 import { expect } from 'chai';
 import * as Responses from '../game/messaging';
@@ -28,7 +29,7 @@ describe('SimpleCommunicationHandler', () => {
 
   context('when given a `whisper` prefix', () => {
     it('should return a WhisperResponse', (test) => {
-      const messages = ['whisper beta wazzup', 'w gamma yo gamma'];
+      const messages = ['whisper beta wazzup', 'w gamma yo gamma', 'w beta gamma is playing'];
 
       const fromPlayer = test.myContext.getPlayer('123');
 
@@ -49,10 +50,41 @@ describe('SimpleCommunicationHandler', () => {
       expect(r2.message).to.equal('yo gamma');
       expect(r2.from).to.eql(fromPlayer);
       expect(r2.to).to.eql(test.myContext.getPlayerWithName('gamma'));
+
+      const mO3 = { message: messages[2] };
+
+      const r3 = SimpleCommunicationHandler(mO3, fromPlayer, test.myContext);
+
+      expect(r3.message).to.equal('gamma is playing');
+      expect(r3.from).to.eql(fromPlayer);
+      expect(r3.to).to.eql(test.myContext.getPlayerWithName('beta'));
     });
   });
 
   context('when given a `chat` prefix', () => {
-    it('should return a ChatResponse');
+    it('should return a ChatResponse', (test) => {
+      const message = 'c gamma beta shaken not stirred';
+
+      const fromPlayer = test.myContext.getPlayer('123');
+
+      const messageObj = { message };
+
+      const resp = SimpleCommunicationHandler(messageObj, fromPlayer, test.myContext);
+
+      expect(resp).to.be.an.instanceof(Responses.ChatResponse);
+      expect(resp.from).to.eql(fromPlayer);
+      expect(resp.to).to.include(test.myContext.getPlayerWithName('beta'))
+      .and.to.include(test.myContext.getPlayerWithName('gamma'));
+      expect(resp.message).to.equal('shaken not stirred');
+
+      const similarMO = { message: 'chat beta gamma shaken not stirred' };
+
+      const similarResp = SimpleCommunicationHandler(similarMO, fromPlayer, test.myContext);
+
+      expect(similarResp).to.be.an.instanceof(Responses.ChatResponse);
+      expect(resp.message).to.equal(similarResp.message);
+      expect(resp.from).to.eql(similarResp.from);
+      expect(_.sortBy(resp.to, 'name')).to.eql(_.sortBy(similarResp.to, 'name'));
+    });
   });
 });
