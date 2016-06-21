@@ -6,7 +6,7 @@ import Express from 'express';
 import IoFunction from 'socket.io';
 import Game from '../game/game.js';
 import Lobby from '../context/lobby';
-import Response from '../game/messaging';
+import Response, * as Responses from '../game/messaging';
 
 export default class Server {
   constructor(kwargs = { maxPlayers: 8, debug: true, port: 3000, seed: Date.now() }) {
@@ -171,12 +171,17 @@ export default class Server {
       throw new Error(`Expected ${ JSON.stringify(response) } to be an instance of Response!`);
     }
 
-    if (response.type === 'broadcast') {
+    if (response instanceof Responses.BroadcastResponse) {
       const broadcastingSocket = this.getSocket(response.from.id);
 
       broadcastingSocket.broadcast.emit('message', response.toJSON());
+    } else if (response instanceof Responses.MultiplePlayerResponse) {
+      response.to.forEach((recipient) => {
+        const recipientSocket =  this.getSocket(recipient.id);
+
+        recipientSocket.emit('message', response.toJSON(recipient.id));
+      });
     } else {
-      // TODO: handle MultiplePlayerResponse...
       const toSocket = this.getSocket(response.to.id);
 
       if (!toSocket) {

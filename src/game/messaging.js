@@ -156,6 +156,10 @@ export class MultiplePlayerResponse extends PlayerResponse {
 
       const toPlayer = _.find(this.to, (p) => p.id === socketId);
 
+      if (!toPlayer) {
+        throw new Error('Missing player for personalization!');
+      }
+
       return {
         message: this.response[socketId],
         type: this.type,
@@ -173,9 +177,13 @@ export class MultiplePlayerResponse extends PlayerResponse {
     }
   }
 
-  toJSON() {
+  toJSON(socketId = null) {
     if (this.isPersonalized()) {
-      throw new Error('Only works with personalized socket ids!');
+      if (socketId) {
+        return this.toPersonalizedJSON(socketId);
+      } else {
+        throw new Error('Only works with personalized socket ids!');
+      }
     }
 
     return {
