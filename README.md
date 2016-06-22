@@ -16,7 +16,7 @@ __This project uses ES6 + Babel. Please follow that convention.__
 ```bash
 $ npm install
 # ...
-$ npm run now # lints, builds, and launches
+$ npm run now # lints, builds, tests, covers, and launches
 ```
 
 ## To lint:
@@ -31,14 +31,29 @@ $ npm run build
 
 The `dist/` directory now contains all ES5- and Node-runnable code.
 
+## To test:
+
+```bash
+# Assuming you've already built the project (i.e. `dist/` exists)
+$ npm run test:only
+```
+
+## To test and get coverage
+
+```bash
+# Assuming you've already built the project (i.e. `dist/` exists)
+$ npm run test
+```
+
 ## To launch:
 ```bash
 $ npm run launch
 ```
 
-This command creates a new `Game` instance and fires up the server.
+This command runs a file which parses args and creates a new Server.
 
 ## Debug page
+
 To access the `debug` page (in the browser), visit
 `localhost:<port>/debug.html`.
 
