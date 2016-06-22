@@ -94,6 +94,8 @@ export default class Lobby extends Context {
     return responses;
   }
   validateName(name) {
+    // TODO: validate against "subset" names
+    // e.g. "James_Bond" and "James_Bond_007"
     if (this.hasPlayerWithName(name)) {
       return NAME_VALIDATIONS.TAKEN;
     } else if (!NAME_VALIDATIONS.REGEX.test(name)) {

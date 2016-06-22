@@ -58,7 +58,7 @@ export class BroadcastResponse extends Response {
   constructor(kwargs = {}) {
     super(kwargs);
     this.type = 'broadcast';
-
+    // TODO: add boolean `withName` property (e.g. announcement with name might be redundant)
     if (!this.to && !this.from) {
       throw new Error('Need a socket id to broadcast from!');
     }

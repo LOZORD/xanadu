@@ -35,6 +35,7 @@ export function abstractHandler(responseHandling) {
 
     if (myResponseType.includesNames) {
       // TODO: handle case of missing recipient name (1st name for Multiple)
+      // TODO: allow for "startsWith" and case-insensitive matching
       const shouldHandleMultipleRecipients =
         Responses.MultiplePlayerResponse.isPrototypeOf(myResponseType.responseConstructor);
 
