@@ -9,7 +9,7 @@ export default class Animal extends MoveableEntity {
     this.MAX_HEALTH   = this.health;
     this.strength     = args.strength     || 100;
     this.intelligence = args.intelligence || 100;
-    this.inventory    = args.inventory    || new Inventory({ owner: this });
+    this.inventory    = args.inventory    || new Inventory();
     this.agility      = args.agility      || 100;
     // lineOfSight for both sight AND HEARING
     this.senseRadius  = args.senseRadius  || 1;

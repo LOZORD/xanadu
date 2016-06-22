@@ -2,10 +2,9 @@ import _ from 'lodash';
 import StackableItem from './items/stackableItem';
 
 export default class Inventory {
-  constructor(kwargs) {
-    this.maxNumItems = kwargs.maxNumItems || 10;
-    this.items = kwargs.items || [];
-    this.owner = kwargs.owner || null;
+  constructor(maxNumItems = 10, items = []) {
+    this.maxNumItems = maxNumItems;
+    this.items = _.take(this.maxNumItems, items);
   }
   isEmpty() {
     return this.items.length === 0;
