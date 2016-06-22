@@ -1,11 +1,9 @@
 // Simple parser for movement
 export default (game, player, command) => {
   let resultMessage;
-  //const map = game.map;
 
   switch (command) {
     case 'go north': {
-      //if (map.hasCell(
       break;
     }
     case 'go south': {
@@ -18,7 +16,7 @@ export default (game, player, command) => {
       break;
     }
     default: {
-      resultMessage = `Unknown command "${ command }".`
+      resultMessage = `Unknown command "${ command }".`;
       break;
     }
   }

@@ -1,25 +1,64 @@
+/* For all CSS variables */
+:root {
+  /* Typefaces/Fonts */
+  --xanadu-fonts: 'Nova Mono', Menlo, monospace;
+  /* Colors
+   *
+   * Black
+   * Near Black
+   * White
+   * Grey
+   * Red
+   * Green
+   * Blue
+   * Cyan
+   * Magenta
+   * Yellow
+   * Orange
+   *
+   */
+  --xanadu-black:       black;
+  --xanadu-near-black:  #222;
+  --xanadu-white:       white;
+  --xanadu-grey:        grey;
+  --xanadu-red:         #FF7F7F;
+  --xanadu-green:       #63C78D;
+  --xanadu-blue:        #7893F0;
+  --xanadu-cyan:        #6FA6DE;
+  --xanadu-magenta:     #FF7FE1;
+  --xanadu-yellow:      #FEE07F;
+  --xanadu-orange:      #FFB575;
+}
+
 body {
-  font-family: Menlo, monospace;
-  background-color: skyblue;
+  font-family: var(--xanadu-fonts);
+  background-color: var(--xanadu-black);
+  color: var(--xanadu-white);
 }
 
 #parent-container {
-  border: 1px solid black;
-  width: 95vw;
-  height: 95vh;
+  border: 1px solid var(--xanadu-grey);
+  margin-top: 0.5vh;
+  width: 99vw;
+  height: 99vh;
+}
+
+#parent-container > .row{
+  height: 100%;
 }
 
 #left-half, #right-half {
   height: 95vh;
-  padding: 0;
+  padding: 1em;
+  height: 100%;
 }
 
 #left-half {
-  border: 1px dashed gold;
+  /* for design debugging */
 }
 
 #right-half {
-  border: 1px dotted red;
+  /* for design debugging */
 }
 
 #form-wrapper {
@@ -30,11 +69,13 @@ body {
 }
 
 #main-input {
-  border: 0;
-  padding: 1.0vh 0;
+  border: none;
+  padding: 1vh 0 1vh 1vw;
   width: 100%;
   outline: none;
   height: 5vh;
+  color: var(--xanadu-white);
+  background-color: var(--xanadu-near-black);
 }
 
 #messages-wrapper {
@@ -49,37 +90,98 @@ body {
   overflow-y: scroll;
 }
 
-li.via-echo {
-  color: white;
-}
-
-li.via-message {
-  color: black;
-}
-
-li.via-whisper {
-  color: magenta;
-}
-
-li.via-broadcast {
-  color: yellow;
-}
-
-li.unknown-message-data-type {
-  color: firebrick;
-}
-
-/*
-
 #messages li {
-  padding: 1vh 1.5vw;
 }
 
-#messages li:nth-child(odd) {
-  background-color: #pink;
+#messages li.broadcast {
+  color: var(--xanadu-yellow);
 }
-*/
+
+#messages li.chat {
+  color: var(--xanadu-green);
+}
+
+#messages li.echo {
+  color: var(--xanadu-white);
+}
+
+#messages li.game {
+  color: var(--xanadu-blue);
+}
+
+#messages li.shout {
+  color: var(--xanadu-red);
+}
+
+#messages li.whisper {
+  color: var(--xanadu-magenta);
+}
+
+#messages li.unknown {
+  border: 1px dashed var(--xanadu-grey);
+}
+
+#messages li.error {
+  border: 1px dashed var(--xanadu-red);
+  background-color: var(--xanadu-magenta);
+  color: var(--xanadu-white);
+  font-weight: bold;
+}
 
 #player-map {
   overflow: scroll;
+}
+
+#details-wrapper {
+  height: 33%;
+}
+
+#inventory-wrapper {
+  /* don't constrain the height; this can be as tall as possible */
+}
+
+#gold-amount {
+  text-align: center;
+  color: var(--xanadu-yellow);
+}
+
+div.item-box {
+ width: 100%;
+ margin: 0;
+ height: 5vh;
+ border-top: 1px solid var(--xanadu-grey);
+ /* border-bottom: 1px solid grey; */
+}
+
+div.item-box:nth-child(odd) {
+  background-color: var(--xanadu-near-black);
+}
+
+#item-wrapper {
+  overflow: scroll;
+}
+
+div.item-condition, div.item-stack {
+  padding-bottom: 1em;
+  /* XXX: any border? */
+}
+
+div.item-condition.good-condition {
+  background-color: var(--xanadu-green);
+}
+
+div.item-condition.fair-condition {
+  background-color: var(--xanadu-orange);
+}
+
+div.item-condition.poor-condition {
+  background-color: var(--xanadu-red);
+}
+
+div.item-stack {
+  background-color: var(--xanadu-grey);
+}
+
+#map-wrapper {
+  height: 33%;
 }

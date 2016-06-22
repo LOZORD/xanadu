@@ -1,6 +1,6 @@
 {
   "name": "xanadu",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A game of precarious alliances and breaking fast on honeydew.",
   "main": "src/main.js",
   "directories": {
@@ -10,11 +10,13 @@
   },
   "scripts": {
     "lint": "node_modules/eslint/bin/eslint.js src",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "node_modules/babel-cli/bin/babel.js src -D -d dist",
-    "lb": "npm run lint && npm run build",
-    "launch": "echo \"Open localhost:3000\" && node dist/main.js",
-    "now": "npm run lint && npm run build && npm run launch"
+    "build": "node_modules/babel-cli/bin/babel.js src -D -d dist &> /dev/null",
+    "test:only": "node_modules/mocha/bin/mocha -R dot dist/**/*Spec.js",
+    "test:cover": "node_modules/istanbul/lib/cli.js cover -x 'dist/**/*Spec.js' node_modules/mocha/bin/_mocha -- -R dot dist/**/*Spec.js",
+    "test:full": "npm run lint && npm run build && npm run test:cover",
+    "test": "npm run test:cover",
+    "launch": "node dist/main.js",
+    "now": "npm run test:full && npm run launch"
   },
   "repository": {
     "type": "git",
@@ -24,7 +26,16 @@
     "game",
     "multiuser dungeon"
   ],
-  "author": "Leo Rudberg",
+  "author": {
+    "name": "Leo Rudberg",
+    "url": "http://github.com/LOZORD/me#readme"
+  },
+  "contributors": [
+    {
+      "name": "Zach Thomae",
+      "url": "https://github.com/zthomae"
+    }
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/LOZORD/xanadu/issues"
@@ -40,11 +51,15 @@
     "socket.io": "^1.4.5"
   },
   "devDependencies": {
+    "arrow-mocha": "^1.0.1",
     "babel-cli": ">=6.6.5",
     "babel-eslint": "^6.0.2",
     "babel-preset-es2015": ">=6.6.0",
     "babel-register": ">=6.4.2",
-    "eslint": "^2.6.0"
+    "chai": "^3.5.0",
+    "eslint": "^2.6.0",
+    "istanbul": "^0.4.4",
+    "mocha": "^2.5.3"
   },
   "babel": {
     "presets": [
@@ -56,11 +71,13 @@
     "extends": "eslint:recommended",
     "env": {
       "browser": true,
+      "mocha": true,
       "node": true,
       "jquery": true
     },
     "rules": {
-      "no-console": 1,
+      "no-console": 0,
+      "no-unused-vars": 0,
       "no-constant-condition": 1
     }
   }
