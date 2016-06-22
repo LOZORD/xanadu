@@ -44,8 +44,16 @@ export default class Player {
     return this.state === PLAYER_STATES.ANON;
   }
 
+  isAnonymous() {
+    return this.isAnon();
+  }
+
   isNamed() {
     return this.state === PLAYER_STATES.NAMED;
+  }
+
+  isReady() {
+    return this.state === PLAYER_STATES.READY;
   }
 
   isPlaying() {

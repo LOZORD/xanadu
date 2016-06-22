@@ -34,7 +34,7 @@ export function abstractHandler(responseHandling) {
     const messagePayload = defaultUsed ? words : _.tail(words);
 
     if (myResponseType.includesNames) {
-
+      // TODO: handle case of missing recipient name (1st name for Multiple)
       const shouldHandleMultipleRecipients =
         Responses.MultiplePlayerResponse.isPrototypeOf(myResponseType.responseConstructor);
 

@@ -1,22 +1,3 @@
-/* Suggested (message) color scheme
- * Pinkish-red: #FF5F5F
- * Blue: #587AF0
- * Purple: #AF5FAF
- * Orange: #FFAF5F
- * Pink: #FF87D7
- * Green: #65C78E
- *
- * Amiga-ish color scheme
- * Red: #D73628
- * Blue: #5499DE
- * Salmon: #FFA98B
- * Yellow: #FEDD70
- * Orange: #FF974D
- *
- * TODO: use CSS variables
- * https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_variables
- */
-
 /* For all CSS variables */
 :root {
   /* Typefaces/Fonts */
@@ -36,7 +17,7 @@
    * Orange
    *
    */
-  --xanadu-black: black;
+  --xanadu-black:       black;
   --xanadu-near-black:  #222;
   --xanadu-white:       white;
   --xanadu-grey:        grey;

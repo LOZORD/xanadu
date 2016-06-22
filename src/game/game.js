@@ -32,7 +32,7 @@ export default class Game extends Context {
   }
   
   handleMessage(messageObj, player) {
-    if (player.state === PLAYER_STATES.ANON) {
+    if (player.isAnonymous()) {
       player.name = messageObj.message;
       player.state = PLAYER_STATES.NAMED;
 

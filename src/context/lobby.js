@@ -13,8 +13,7 @@ export const NAME_VALIDATIONS = {
 
 export default class Lobby extends Context {
   isReadyForNextContext() {
-    return _.every(this.players,
-        (player) => player.state === PLAYER_STATES.READY);
+    return _.every(this.players, (player) => player.isReady());
   }
   handleMessage(messageObj, player) {
     // XXX: this will need to be updated if we want flip-flopping between

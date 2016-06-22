@@ -140,7 +140,7 @@ $(document).ready(() => {
 
   /*** DETAILS (RHS PANE) ***/
 
-  // TODO: see below --> eventually need to render data in correct places
+  // TODO: add player name and character class somewhere too
   let updateDetails = (data) => {
     // quasi-debug
     detailOutput.text(JSON.stringify(data));
@@ -238,7 +238,6 @@ $(document).ready(() => {
 
   };
 
-  // TODO: details stream (i.e. inventory, map, etc.) on RHS
   socket.on('details', (data) => {
     console.log('details', data);
     updateDetails(data);

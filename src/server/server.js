@@ -104,6 +104,9 @@ export default class Server {
             maxPlayers: this.maxPlayers,
             rng: gen(this.seed)
           });
+          // TODO: message players that the game has begun
+          // TODO: start the round interval update
+          // TODO: send details to players
         } else {
           this.currentContext = new Lobby({
             players: this.currentContext.players,
