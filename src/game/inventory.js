@@ -4,7 +4,10 @@ import StackableItem from './items/stackableItem';
 export default class Inventory {
   constructor(maxNumItems = 10, items = []) {
     this.maxNumItems = maxNumItems;
-    this.items = _.take(this.maxNumItems, items);
+    this.items = _.take(items, this.maxNumItems);
+  }
+  get capacity() {
+    return this.maxNumItems;
   }
   isEmpty() {
     return this.items.length === 0;
@@ -56,7 +59,8 @@ export default class Inventory {
         // XXX: this looks suspicious (depth-dependent)
         // What I want to do is check if this
         // constructor function is a subclass of StackableItem
-        if (Object.getPrototypeOf(constructor) === StackableItem) {
+        //if (Object.getPrototypeOf(constructor) === StackableItem) {
+        if (StackableItem.isPrototypeOf(constructor)) {
           newItem = new (constructor)({
             stackAmount: n
           });
