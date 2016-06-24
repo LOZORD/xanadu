@@ -125,8 +125,30 @@ describe('Inventory', () => {
   describe('removeItem', () => {
     context('when the item is present', () => {
       context('and is a StackableItem', () => {
-        it.skip('should remove and return the correct amount');
-        it.skip('should delete the item from the inventory if it is empty');
+        beforeEach((test) => {
+          test.i = new Inventory();
+          test.i.addItem(Stew);
+
+          test.stewStack = test.i.findItem(Stew);
+
+          test.stewStack.maxStackAmount = 5;
+          // 3 stacks in total
+          test.stewStack.addToStack(2);
+
+          // then remove 2 (should have one left)
+          test.removed = test.i.removeItem(Stew, { amount: 2 });
+        });
+        it('should remove and return the correct amount', (test) => {
+          expect(test.removed).to.be.an.instanceof(Stew);
+          expect(test.removed.hasAny()).to.be.true;
+          expect(test.removed.stackAmount).to.equal(2);
+        });
+        it('should delete the item from the inventory if it is empty', (test) => {
+          expect(test.i.hasItem('Stew')).to.be.true;
+          test.i.removeItem('Stew');
+          // now it should be all gone (3 - 2 - 1 = 0)
+          expect(test.i.hasItem('Stew')).to.be.false;
+        });
       });
       context('and is NOT a StackableItem', () => {
         it('should remove and return the object', () => {

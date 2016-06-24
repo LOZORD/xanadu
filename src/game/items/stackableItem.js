@@ -3,8 +3,8 @@ import Item from './item';
 export default class StackableItem extends Item {
   constructor(kwargs = {}) {
     super(kwargs);
-    this.stackAmount = kwargs.stackAmount || 0;
-    this.maxStackAmount = kwargs.maxStackAmount || 0;
+    this.stackAmount = kwargs.stackAmount || 1;
+    this.maxStackAmount = kwargs.maxStackAmount || 1;
   }
   isEmpty() {
     return this.stackAmount === 0;
@@ -22,6 +22,9 @@ export default class StackableItem extends Item {
       stackAmount: n,
       maxStackAmount: this.maxStackAmount
     });
+  }
+  removeAllFromStack() {
+    return this.removeFromStack(this.stackAmount);
   }
   toJSONObject() {
     return {

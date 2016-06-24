@@ -43,6 +43,10 @@ export default class Inventory {
     return this.findItemIndex(constructor) > -1;
   }
   // XXX: allow for construction args?
+  // TODO: allow for adding already created objects
+  // in fact, this could be a wrapper method that passes the object
+  // to another method, or if a constructor is given, creates a new object
+  // and passes _that_ to the other method
   addItem(constructor, kwargs = {}) {
     let existingItem = this.findItem(constructor);
     let n = kwargs.amount || 1;
@@ -56,10 +60,6 @@ export default class Inventory {
     } else {
       if (this.hasRoom()) {
         let newItem;
-        // XXX: this looks suspicious (depth-dependent)
-        // What I want to do is check if this
-        // constructor function is a subclass of StackableItem
-        //if (Object.getPrototypeOf(constructor) === StackableItem) {
         if (StackableItem.isPrototypeOf(constructor)) {
           newItem = new (constructor)({
             stackAmount: n
