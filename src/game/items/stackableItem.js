@@ -17,6 +17,10 @@ export default class StackableItem extends Item {
     return this.stackAmount;
   }
   removeFromStack(n = 1) {
+    if (n > this.stackAmount) {
+      n = this.stackAmount;
+    }
+
     this.stackAmount = Math.max(this.stackAmount - n, 0);
     return new (this.constructor)({
       stackAmount: n,

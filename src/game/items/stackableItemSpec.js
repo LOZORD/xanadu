@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import StackableItem from './stackableItem';
 
 // TODO: need to fix test globbing pattern to find this test
-describe.skip('StackableItem', () => {
+describe('StackableItem', () => {
   describe('constructor', () => {
     it('should default stackAmount and maxStackAmount to 1', () => {
       const si = new StackableItem();
