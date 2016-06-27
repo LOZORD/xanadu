@@ -164,7 +164,8 @@ $(document).ready(() => {
     $('#strength-current' ).text(data.stats.strength.cur);
     $('#strength-max'     ).text(data.stats.strength.max);
 
-    // modifiers
+    // TODO: modifiers
+    /*
     if (data.modifiers) {
       $('#modifier-stats-list').empty();
 
@@ -183,8 +184,10 @@ $(document).ready(() => {
         .empty()
         .html('<li>No active modifiers</li>');
     }
+    */
 
-    // effects
+    // TODO: effects
+    /*
     if (data.effects) {
       $('#effect-stats-list').empty();
       data.effects.sort().forEach((effect) => {
@@ -197,6 +200,7 @@ $(document).ready(() => {
         .empty()
         .html('<li>No active effects</li>');
     }
+    */
 
     // map
     if (data.map) {
@@ -211,36 +215,40 @@ $(document).ready(() => {
     $('#gold-amount').text(data.gold);
 
     // items
-    $('#item-wrapper').empty();
-    data.items.forEach((item) => {
-      let itemData = item.stack || item.condition || -1;
-      let appendedElem = $(
-        `
-        <div class='item-box row'>
-          <div class='col-xs-9 item-name'>${ item.name }</div>
-          <div class='col-xs-3 item-data'>${ itemData }</div>
-        </div>
-        `
-      ).appendTo('#item-wrapper');
+    $('#items-wrapper').empty();
+    if (data.items.length > 0) {
+      data.items.forEach((item) => {
+        let itemData = item.stack || item.condition || -1;
+        let appendedElem = $(
+          `
+          <div class='item-box row'>
+            <div class='col-xs-9 item-name'>${ item.name }</div>
+            <div class='col-xs-3 item-data'>${ itemData }</div>
+          </div>
+          `
+        ).appendTo('#items-wrapper');
 
-      if (item.stack) {
-        appendedElem.find('.item-data').addClass('item-stack');
-      } else if (item.condition) {
-        appendedElem.find('.item-data').addClass(() => {
-          let ret = 'item-condition';
+        if (item.stack) {
+          appendedElem.find('.item-data').addClass('item-stack');
+        } else if (item.condition) {
+          appendedElem.find('.item-data').addClass(() => {
+            let ret = 'item-condition';
 
-          if (itemData > 66) {
-            return ret + ' good-condition';
-          } else if (itemData > 33) {
-            return ret + ' fair-condition';
-          } else {
-            return ret + ' poor-condition';
-          }
-        });
-      } else {
-        console.error('unknown item data type');
-      }
-    });
+            if (itemData > 66) {
+              return ret + ' good-condition';
+            } else if (itemData > 33) {
+              return ret + ' fair-condition';
+            } else {
+              return ret + ' poor-condition';
+            }
+          });
+        } else {
+          console.error('unknown item data type');
+        }
+      });
+    } else {
+      $('#items-wrapper').append('<div>Your inventory is empty.</div>');
+    }
 
   };
 

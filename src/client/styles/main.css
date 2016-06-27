@@ -161,7 +161,7 @@ div.item-box:nth-child(odd) {
   background-color: var(--xanadu-near-black);
 }
 
-#item-wrapper {
+#items-wrapper {
   overflow: scroll;
 }
 
