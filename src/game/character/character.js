@@ -150,6 +150,15 @@ class Character extends Animal {
               this.strength >= requiredStats.strength
     );
   }
+  attackPlayerWithFists(otherPlayer) {
+    // TODO
+  }
+  attackPlayerWithMelee(weapon, otherPlayer) {
+    // TODO
+  }
+  attackPlayerWithGun(gun, numShots, otherPlayer) {
+    // TODO
+  }
 }
 
 // A little metaprogramming...

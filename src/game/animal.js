@@ -5,12 +5,15 @@ import Inventory from './inventory';
 export default class Animal extends MoveableEntity {
   constructor(args = {}) {
     super(args);
-    this.health       = args.health       || 100;
+    this.health       = args.health       || 10;
     this.maxHealth    = this.health;
-    this.strength     = args.strength     || 100;
-    this.intelligence = args.intelligence || 100;
+    this.strength     = args.strength     || 10;
+    this.maxStrength  = this.strength;
+    this.intelligence = args.intelligence || 10;
+    this.maxIntelligence = this.intelligence;
+    this.agility      = args.agility      || 10;
+    this.maxAgility   = this.agility;
     this.inventory    = args.inventory    || new Inventory();
-    this.agility      = args.agility      || 100;
     // lineOfSight for both sight AND HEARING
     this.senseRadius  = args.senseRadius  || 1;
   }
