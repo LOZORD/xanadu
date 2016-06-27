@@ -81,7 +81,25 @@ export default class Server {
       this.rejectSocket(socket);
     }
   }
-
+  changeContext() {
+    if (this.currentContext instanceof Lobby) {
+      this.currentContext = new Game({
+        players: this.currentContext.players,
+        maxPlayers: this.maxPlayers,
+        rng: gen(this.seed)
+      });
+      // message players that the game has begun
+      //this.sendMessage(new Responses.GameResponse({
+      //}));
+      // TODO: start the round interval update
+      // TODO: send details to players
+    } else {
+      this.currentContext = new Lobby({
+        players: this.currentContext.players,
+        maxPlayers: this.maxPlayers
+      });
+    }
+  }
   acceptSocket(socket) {
     console.log(`Server accepted socket ${ socket.id }`);
     this.sockets.push(socket);
@@ -98,21 +116,7 @@ export default class Server {
 
       // TODO: do something with the context's player lists
       if (readyForNextContext) {
-        if (this.currentContext instanceof Lobby) {
-          this.currentContext = new Game({
-            players: this.currentContext.players,
-            maxPlayers: this.maxPlayers,
-            rng: gen(this.seed)
-          });
-          // TODO: message players that the game has begun
-          // TODO: start the round interval update
-          // TODO: send details to players
-        } else {
-          this.currentContext = new Lobby({
-            players: this.currentContext.players,
-            maxPlayers: this.maxPlayers
-          });
-        }
+        this.changeContext();
       }
     });
 
