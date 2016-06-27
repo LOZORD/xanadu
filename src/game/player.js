@@ -30,6 +30,7 @@ export default class Player {
     }
 
     // TODO: make this a non-generic Character class using the Character Factory
+    // TODO: might not want to make this UNTIL we know that the current context is a game
     this.character = new Character({
       player: this,
       x: args.x || 0,
@@ -103,8 +104,14 @@ export default class Player {
     }
   }
 
-  // creates an object summarizing the state of the player
+  // for the RHS pane in the client UI
   getDetails() {
+    return _.merge({ name: this.name, state: this.state },
+        this.character.getDetails());
+  }
+
+  // creates an object summarizing the state of the player
+  getDebugDetails() {
     // TODO: offload this gathering code onto Character class
 
     // get all the active modifiers

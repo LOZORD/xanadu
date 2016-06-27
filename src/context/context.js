@@ -56,6 +56,20 @@ export default class Context {
     const context = this.changeFields({ players: newPlayersList });
     return { context, player, [this.namedContext()]: context };
   }
+  getPlayerDetails() {
+    return _.reduce(
+        this.players,
+        (acc, player) => _.assign(acc,
+          { [player.id] : { name: player.name, state: player.state } }),
+        {}
+    );
+  }
+  isReadyForUpdate() {
+    return false;
+  }
+  update() {
+    return false;
+  }
   isAcceptingPlayers() {
     return this.players.length < this.maxPlayers;
   }

@@ -5,7 +5,7 @@ export default class Item extends Entity {
     super(kwargs);
     this.owningPlayer = null;
   }
-  toJSONObject() {
+  toJSON() {
     return {
       type: 'Item',
       item: this.constructor.name

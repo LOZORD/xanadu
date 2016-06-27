@@ -90,10 +90,31 @@ export default class Game extends Context {
     return this.hasStarted && !this.hasEnded;
   }
 
+  getPlayerDetails() {
+    return _.reduce(
+        this.players,
+        (acc, player) => _.assign(acc, { [player.id] : player.getDetails() }),
+        {}
+    );
+  }
+
   isReadyForNextContext() {
     // XXX: might be more 'correct' to check that no players have their state
     // as `PLAYING` or whatever...
     return this.hasEnded;
+  }
+
+  isReadyForUpdate() {
+    return _
+      .chain(this.players)
+      .map((player) => player.character)
+      .every('character.nextAction')
+      .value();
+  }
+
+  update() {
+    const actions = _.map(this.players, 'character.nextAction');
+    return performActions(this, actions);
   }
 }
 
@@ -117,11 +138,11 @@ class _GameUpdate {
 // Factory function for game updates
 const GameUpdate = (game, log) => new _GameUpdate(game, log);
 
-// TODO: given an initial game state and a move to perform, return new game state
-const update = (game, move) => game;
+// TODO: given an initial game state and an action to perform, return new game state
+const update = (game, action) => game;
 
-const foldMoves = (game, moves) => _.reduce(moves, update, GameUpdate(game, []));
+const foldActions = (game, actions) => _.reduce(actions, update, GameUpdate(game, []));
 
-const sortMoves = (moves) => _.sortBy(moves, ['player.character.agility', 'move.timestamp']);
+const sortActions = (actions) => _.sortBy(actions, ['character.agility', 'timestamp']);
 
-const performMoves = (game, msgs) => foldMoves(game, sortMoves(msgs));
+const performActions = (game, msgs) => foldActions(game, sortActions(msgs));

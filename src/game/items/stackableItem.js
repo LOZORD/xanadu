@@ -30,7 +30,7 @@ export default class StackableItem extends Item {
   removeAllFromStack() {
     return this.removeFromStack(this.stackAmount);
   }
-  toJSONObject() {
+  toJSON() {
     return {
       type: 'StackableItem',
       item: this.constructor.name,

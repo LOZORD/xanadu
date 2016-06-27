@@ -118,16 +118,20 @@ class Character extends Animal {
 
     super(kwargs);
 
+    this.goldAmount = 0;
+
     // TODO: set up modifiers
+    this.modifiers = {};
+
+    // TODO: effects
+    this.effects = {};
 
     // Fields w/o groups
     this.characterClass = CLASSES.UNDEFINED_CLASS;
     this.allegiance = ALLEGIANCES.UNDEFINED_ALLEGIANCE;
 
-    this.nextMove = {
-      phrase: '',
-      timeStamp: 0
-    };
+    // TODO: implement Action classes
+    this.nextAction = null;
   }
   hasAbility(abilityName) {
     const abilityStats = ABILITIES[abilityName];
@@ -158,6 +162,33 @@ class Character extends Animal {
   }
   attackPlayerWithGun(gun, numShots, otherPlayer) {
     // TODO
+  }
+  getDetails() {
+    return {
+      stats: {
+        health: {
+          cur: this.health,
+          max: this.maxHealth
+        },
+        intelligence: {
+          cur: this.intelligence,
+          max: this.maxIntelligence
+        },
+        agility: {
+          cur: this.agility,
+          max: this.maxAgility
+        },
+        strength: {
+          cur: this.strength,
+          max: this.maxStrength
+        }
+      },
+      modifiers: this.modifiers,
+      effects: this.effects,
+      map: this.characterMap ? this.characterMap.toJSON() : null,
+      gold: this.goldAmount,
+      items: this.inventory
+    };
   }
 }
 

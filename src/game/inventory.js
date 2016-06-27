@@ -98,8 +98,6 @@ export default class Inventory {
     }
   }
   toJSON() {
-    let outputObjs = _.map(this.items, (item) => item.toJSONObject());
-
-    return JSON.stringify(outputObjs);
+    return _.map(this.items, (item) => item.toJSON());
   }
 }

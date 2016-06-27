@@ -174,17 +174,17 @@ describe('Inventory', () => {
     it('should return the correct JSON', () => {
       const i = new Inventory();
 
-      expect(i.toJSON()).to.eql('[]');
+      expect(i.toJSON()).to.eql([]);
 
       i.addItem(Stew);
       i.addItem(Rifle);
 
       const expectedInvArray = [
-        (new Stew({ maxStackAmount: 1, stackAmount: 1 })).toJSONObject(),
-        (new Rifle()).toJSONObject()
+        (new Stew({ maxStackAmount: 1, stackAmount: 1 })).toJSON(),
+        (new Rifle()).toJSON()
       ];
 
-      expect(JSON.parse(i.toJSON())).to.eql(expectedInvArray);
+      expect(i.toJSON()).to.eql(expectedInvArray);
     });
   });
 });
