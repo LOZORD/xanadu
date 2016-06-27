@@ -2,18 +2,14 @@ import _ from 'lodash';
 
 // Abstract Response class
 export default class Response {
-  constructor(kwargs = {}) {
-    this.response = kwargs.message || '[NO CONTENT]';
-    this.from = kwargs.from || null;
-    this.to   = kwargs.to   || null;
-
-    /* XXX: do we want this check?
-     if (!this.to || this.to.length === 0) {
-     throw new Error('Attempted to send a message to no one!')
-     }
-     */
-
+  // message : String
+  // to : Player
+  // from : Player
+  constructor(message, to, from) {
     this.type = null; // abstract class
+    this.response = message || '[NO CONTENT]';
+    this.to       = to      || null;
+    this.from     = from    || null;
   }
   get message () {
     return this.response;
@@ -21,12 +17,10 @@ export default class Response {
   toJSON() {
     return {
       message:  this.response,
-      //from: this.from,
       from: {
         id: this.from.id,
         name: this.from.name
       },
-      //to:   this.to,
       to: {
         id: this.to.id,
         name: this.to.id
@@ -37,10 +31,10 @@ export default class Response {
 }
 
 export class EchoResponse extends Response {
-  constructor(kwargs = {}) {
-    super(kwargs);
+  constructor(message, to) {
+    super(message, to, null);
     this.type = 'echo';
-    this.to = this.to || this.from;
+    this.to = this.to;
   }
   toJSON() {
     return {
@@ -55,30 +49,41 @@ export class EchoResponse extends Response {
 }
 
 export class BroadcastResponse extends Response {
-  constructor(kwargs = {}) {
-    super(kwargs);
+  constructor(message, from, withName) {
+    super(message, null, from);
     this.type = 'broadcast';
-    // TODO: add boolean `withName` property (e.g. announcement with name might be redundant)
-    if (!this.to && !this.from) {
-      throw new Error('Need a socket id to broadcast from!');
-    }
+    this.withName = withName || true;
   }
   // this sent to everyone so, the `to` field doesn't matter
   toJSON() {
     return {
-      type: this.type, // i.e. 'broadcast'
+      type: this.type,
       from: {
         id: this.from.id,
         name: this.from.name
       },
-      message:  this.response
+      message:  this.response,
+      withName: this.withName
+    };
+  }
+}
+
+export class GameBroadcastResponse extends BroadcastResponse {
+  constructor(message) {
+    super(message, null, false);
+    this.type = 'game-broadcast';
+  }
+  toJSON() {
+    return {
+      type: this.type,
+      message: this.response
     };
   }
 }
 
 export class GameResponse extends Response {
-  constructor(kwargs = {}) {
-    super(kwargs);
+  constructor(message, to) {
+    super(message, to, null);
     this.type = 'game';
   }
   toJSON() {
@@ -93,16 +98,16 @@ export class GameResponse extends Response {
   }
 }
 
-// TODO: this is a generic/abstract class to messaging between players
+// This is a generic/abstract class to messaging between players
 // e.g. this is the parent class for WhisperResponse, ShoutResponse, and ChatResponse
 /*
  Whisper -> only allowed between two players
- Chat    -> anyone in the current room can hear (given language understanding)
+ Chat    -> anyone in the current room can hear (given language understanding during gameplay)
  Shout   -> anyone in the current vicinity (e.g. 3-room radius) can hear
 
- Maybe have a Gesture type? (for players who cannot communicate)
+ XXX: Maybe have a Gesture type? (for players who cannot communicate)
 
- As for 'language understanding', if a player cannot understand the language a
+ XXX: As for 'language understanding', if a player cannot understand the language a
  a message/response is uttered in, then the message content is substituted for
  something like "[player] says something to the room".
  */
@@ -110,8 +115,8 @@ export class GameResponse extends Response {
 // only supports messaging between two players
 // a single `from` and a single `to`
 export class PlayerResponse extends Response {
-  constructor(kwargs = {}) {
-    super(kwargs);
+  constructor(message, to, from) {
+    super(message, to, from);
 
     this.type = null; // this is an abstract class
 
@@ -127,8 +132,8 @@ export class PlayerResponse extends Response {
 }
 
 export class WhisperResponse extends PlayerResponse {
-  constructor(kwargs = {}) {
-    super(kwargs);
+  constructor(message, to, from) {
+    super(message, to, from);
 
     this.type = 'whisper';
   }
@@ -136,8 +141,8 @@ export class WhisperResponse extends PlayerResponse {
 }
 
 export class MultiplePlayerResponse extends PlayerResponse {
-  constructor(kwargs = {}) {
-    super(kwargs);
+  constructor(message, toList, from) {
+    super(message, toList, from);
 
     this.type = null; // abstract class
 
@@ -196,37 +201,12 @@ export class MultiplePlayerResponse extends PlayerResponse {
       }
     };
   }
-
-  /*
-  toJSON(socketId) {
-    if (this.isPersonalized()) {
-
-      if (!socketId) {
-        throw new Error('Need a socket id to personalize!');
-      }
-
-      return {
-        message: this.response[socketId],
-        type: this.type,
-        to: socketId,
-        from: this.from
-      };
-    } else {
-      return {
-        message: this.response,
-        type: this.type,
-        to: socketId || this.to,
-        from: this.from
-      };
-    }
-  }
-  */
 }
 
 // The chat range is determined __by the game__
 export class ChatResponse extends MultiplePlayerResponse {
-  constructor(kwargs = {}) {
-    super(kwargs);
+  constructor(message, toList, from) {
+    super(message, toList, from);
 
     this.type = 'chat';
   }
@@ -235,8 +215,8 @@ export class ChatResponse extends MultiplePlayerResponse {
 
 // The shout range is determined __by the game__
 export class ShoutResponse extends MultiplePlayerResponse {
-  constructor(kwargs = {}) {
-    super(kwargs);
+  constructor(message, toList, from) {
+    super(message, toList, from);
 
     this.type = 'shout';
   }
