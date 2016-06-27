@@ -46,6 +46,12 @@ $(document).ready(() => {
           styleClasses: ['broadcast']
         };
       }
+      case 'game-broadcast': {
+        return {
+          messageText: data.message,
+          styleClasses: ['game-broadcast']
+        };
+      }
       case 'chat': {
         return {
           messageText: `${ data.from.name }: ${ data.message }`,

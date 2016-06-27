@@ -66,10 +66,7 @@ export default class Context {
   // an abstract method implemented by subclasses
   handleMessage(messageObj, player) {
     return [
-      new EchoResponse({
-        message: messageObj.message,
-        to: player
-      })
+      new EchoResponse(messageObj.message, player)
     ];
   }
 }

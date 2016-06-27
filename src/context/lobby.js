@@ -18,12 +18,7 @@ export default class Lobby extends Context {
   handleMessage(messageObj, player) {
     // XXX: this will need to be updated if we want flip-flopping between
     // games and lobbies
-    let responses = [
-        new EchoResponse({
-          message: messageObj.message,
-          to: player
-        })
-    ];
+    let responses = [ (new EchoResponse(messageObj.message, player)) ];
     switch (player.state) {
       case PLAYER_STATES.ANON: {
         const name = messageObj.message;
@@ -31,29 +26,29 @@ export default class Lobby extends Context {
         if (validationResult === NAME_VALIDATIONS.VALID) {
           player.name = name;
           player.state = PLAYER_STATES.NAMED;
-          responses.push(new GameResponse({
-            message: `Welcome to Xanadu ${ name }! Enter \`ready\` to start.`,
-            to: player
-          }));
-          responses.push(new BroadcastResponse({
-            message: `Player '${ name }' has joined the game!`,
-            from: player
-          }));
+          responses.push(new GameResponse(
+            `Welcome to Xanadu ${ name }! Enter \`ready\` to start.`,
+            player
+          ));
+          responses.push(new BroadcastResponse(
+            `Player '${ name }' has joined the game!`,
+            player
+          ));
         } else if (validationResult == NAME_VALIDATIONS.TAKEN) {
-          responses.push(new GameResponse({
-            message: `The name '${ name }' has already been taken.`,
-            to: player
-          }));
+          responses.push(new GameResponse(
+            `The name '${ name }' has already been taken.`,
+            player
+          ));
         } else if (validationResult == NAME_VALIDATIONS.INVALID_CHARACTERS) {
-          responses.push(new GameResponse({
-            message: `The name '${ name }' contains invalid characters. Use only alphanumeric, underscore, and hyphen characters.`,
-            to: player
-          }));
+          responses.push(new GameResponse(
+            `The name '${ name }' contains invalid characters. Use only alphanumeric, underscore, and hyphen characters.`,
+            player
+          ));
         } else {
-          responses.push(new GameResponse({
-            message: `The name '${ name }' is invalid.`,
-            to: player
-          }));
+          responses.push(new GameResponse(
+            `The name '${ name }' is invalid.`,
+            player
+          ));
         }
 
         break;
@@ -69,10 +64,9 @@ export default class Lobby extends Context {
 
           player.state = PLAYER_STATES.READY;
 
-          responses.push(new BroadcastResponse({
-            message: 'READY!',
-            from: player
-          }));
+          responses.push(new BroadcastResponse(
+            'READY!', player
+          ));
 
           // the caller will have to check for `isReadyForNextContext`
         } else {

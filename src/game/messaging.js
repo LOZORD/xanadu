@@ -49,10 +49,10 @@ export class EchoResponse extends Response {
 }
 
 export class BroadcastResponse extends Response {
-  constructor(message, from, withName) {
+  constructor(message, from, withName = true) {
     super(message, null, from);
     this.type = 'broadcast';
-    this.withName = withName || true;
+    this.withName = withName;
   }
   // this sent to everyone so, the `to` field doesn't matter
   toJSON() {
@@ -147,7 +147,7 @@ export class MultiplePlayerResponse extends PlayerResponse {
     this.type = null; // abstract class
 
     if (!_.isArray(this.to)) {
-      this.to = [this.to];
+      throw new Error('`to` argument must be an Array!');
     }
   }
   isPersonalized() {

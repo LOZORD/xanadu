@@ -97,6 +97,10 @@ body {
   color: var(--xanadu-yellow);
 }
 
+#messages li.game-broadcast {
+  color: var(--xanadu-cyan);
+}
+
 #messages li.chat {
   color: var(--xanadu-green);
 }

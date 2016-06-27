@@ -89,8 +89,9 @@ export default class Server {
         rng: gen(this.seed)
       });
       // message players that the game has begun
-      //this.sendMessage(new Responses.GameResponse({
-      //}));
+      this.sendMessage(new Responses.GameBroadcastResponse(
+            'THE GAME HAS BEGUN!'
+      ));
       // TODO: start the round interval update
       // TODO: send details to players
     } else {
@@ -196,9 +197,13 @@ export default class Server {
     }
 
     if (response instanceof Responses.BroadcastResponse) {
-      const broadcastingSocket = this.getSocket(response.from.id);
-
-      broadcastingSocket.broadcast.emit('message', response.toJSON());
+      if (response instanceof Responses.GameBroadcastResponse) {
+        // send to ALL sockets
+        this.gameNS.emit('message', response.toJSON());
+      } else {
+        let broadcastingSocket = this.getSocket(response.from.id);
+        broadcastingSocket.broadcast.emit('message', response.toJSON());
+      }
     } else if (response instanceof Responses.MultiplePlayerResponse) {
       response.to.forEach((recipient) => {
         const recipientSocket =  this.getSocket(recipient.id);

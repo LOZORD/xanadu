@@ -54,28 +54,41 @@ export function abstractHandler(responseHandling) {
       messageToSend = messagePayload.join(' ');
     }
 
-    const responsePayload = {
-      message: messageToSend,
-      from: fromPlayer,
-      to: to
-    };
+    return myResponseType.create(messageToSend, to, fromPlayer);
 
-    return new (myResponseType.responseConstructor)(responsePayload);
+    /*
+    return new (myResponseType.responseConstructor)(
+        messageToSend, to, fromPlayer
+    );
+
+    if (myResponseType.responseConstructor === BroadcastResponse
+        || BroadcastResponse.isPrototypeOf(myResponseType.responseConstructor)) {
+      return new (myResponseType.responseConstructor)(messageToSend, fromPlayer);
+    } else {
+      return
+    }
+    */
   };
 }
 
 const RESPONSE_HANDLING = [
   {
     responseConstructor: Responses.BroadcastResponse,
+    create: (message, to, from, withName = true) =>
+      new Responses.BroadcastResponse(message, from, withName),
     matches: true // default to Broadcast in the Lobby
   },
   {
     responseConstructor: Responses.ChatResponse,
+    create: (message, to, from) =>
+      new Responses.ChatResponse(message, to, from),
     matches: ['c', 'chat'],
     includesNames: true
   },
   {
     responseConstructor: Responses.WhisperResponse,
+    create: (message, to, from) =>
+      new Responses.WhisperResponse(message, to, from),
     matches: ['w', 'whisper'],
     includesNames: true
   }
