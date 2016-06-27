@@ -67,7 +67,7 @@ export default class Server {
     this.debugNS.on('connection', (socket) => {
       socket.on('get', () => {
         socket.emit('debug-update', this.players
-          .map(player => JSON.stringify(player.getDetails()))
+          .map(player => JSON.stringify(player.getDebugDetails()))
           .join('\n'));
       });
     });
@@ -92,8 +92,9 @@ export default class Server {
       this.sendMessage(new Responses.GameBroadcastResponse(
             'THE GAME HAS BEGUN!'
       ));
+      // send details to players
+      this.sendDetails();
       // TODO: start the round interval update
-      // TODO: send details to players
     } else {
       this.currentContext = new Lobby({
         players: this.currentContext.players,
@@ -219,5 +220,18 @@ export default class Server {
 
       toSocket.emit('message', response.toJSON());
     }
+  }
+  sendDetails() {
+    const idsToDetails = this.currentContext.getPlayerDetails();
+    //console.log(JSON.stringify(idsToDetails));
+    _.forEach(idsToDetails, (details, socketId) => {
+      const recipientSocket = this.getSocket(socketId);
+
+      if (!recipientSocket) {
+        throw new Error(`Unknown socket: ${ socketId }`);
+      }
+
+      recipientSocket.emit('details', details);
+    });
   }
 }
