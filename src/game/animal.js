@@ -6,7 +6,7 @@ export default class Animal extends MoveableEntity {
   constructor(args = {}) {
     super(args);
     this.health       = args.health       || 100;
-    this.MAX_HEALTH   = this.health;
+    this.maxHealth    = this.health;
     this.strength     = args.strength     || 100;
     this.intelligence = args.intelligence || 100;
     this.inventory    = args.inventory    || new Inventory();

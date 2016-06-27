@@ -15,12 +15,88 @@ export const CLASSES = {
   SMITH:            9
 };
 
+export const ABILITIES = {
+  canTranslateModern: {
+      intelligence: 50
+  },
+  canTranslateAncient: {
+      intelligence: 50
+  },
+  canIdentifyPoison: {
+      intelligence: 50
+  },
+  canIdentifyTraps: {
+      intelligence: 30,
+      agility: 30
+  },
+  isHunter: {
+      intelligence: 10,
+      agility: 30,
+      strength: 30
+  },
+  canFillet: {
+      intelligence: 10,
+      strength: 30
+  },
+  canSetUpCamp: {
+      strength: 40
+  },
+  canSmelt: {
+      intelligence: 20,
+      strength: 30
+  },
+  canRepairSmall: {
+      intelligence: 10,
+      strength: 10
+  },
+  canRepairMedium: {
+      intelligence: 20,
+      strength: 20
+  },
+  canRepairFull: {
+      intelligence: 30,
+      strength: 30
+  },
+  canHealSmall: {
+      health: 10,
+      intelligence: 30,
+      strength: 10
+  },
+  canHealMedium: {
+      health: 10,
+      intelligence: 40,
+      strength: 10
+  },
+  canHealFull: {
+      health: 20,
+      intelligence: 50,
+      strength: 10
+  },
+  canCraftEasy: {
+      intelligence: 20,
+      agility: 20,
+      strength: 20
+  },
+  canCraftMedium: {
+      intelligence: 40,
+      agility: 20,
+      strength: 20
+  },
+  canCraftDifficult: {
+      intelligence: 40,
+      agility: 20,
+      strength: 30
+  }
+};
+
 export const ALLEGIANCES = {
   UNDEFINED_ALLEGIANCE:  -1,
   EASTERN:                0,
   WESTERN:                1
 };
 
+// TODO: figure out how we want to model these in the character class
+// we may need to have "more" data than just booleans
 export const MODIFIERS = {
   KILLER:         false,
   IMMORTAL:       false,
@@ -37,37 +113,14 @@ export const MODIFIERS = {
   MISSIONARY:     false
 };
 
-export const ABILITIES = {
-  canTranslateModern:     false,
-  canTranslateAncient:    false,
-  canIdentifyPoison:      false,
-  isHunter:               false,
-  canFillet:              false,
-  canSetUpCamp:           false,
-  canUpdateMaps:          false,
-  canSmelt:               false,
-  repairAmount:           0.0,
-  healAmount:             0.0,
-  //lineOfSight:            1, applicable to all animals (called senseRadius)
-  craftables:             []
-};
-
-export default class Character extends Animal {
+class Character extends Animal {
   constructor(kwargs = {}) {
 
     super(kwargs);
 
-    // Field groupings
-    this.modifiers = {};
-
-    _.forEach(kwargs.modifiers, (_v, modifierName) => {
-      this.modifiers[modifierName] = true;
-    });
-
-    this.abilities = _.cloneDeep(ABILITIES);
+    // TODO: set up modifiers
 
     // Fields w/o groups
-    //this.name = 'DEFAULT_CHARACTER_NAME'; not nec.
     this.characterClass = CLASSES.UNDEFINED_CLASS;
     this.allegiance = ALLEGIANCES.UNDEFINED_ALLEGIANCE;
 
@@ -76,4 +129,32 @@ export default class Character extends Animal {
       timeStamp: 0
     };
   }
+  hasAbility(abilityName) {
+    const abilityStats = ABILITIES[abilityName];
+
+    if (!abilityStats) {
+      throw new Error(`Unknown ability: ${ abilityName }`);
+    }
+
+    const requiredStats = {
+      health: abilityStats.health || 0,
+      intelligence: abilityStats.intelligence || 0,
+      agility: abilityStats.agility || 0,
+      strength: abilityStats.strength || 0
+    };
+
+    return (
+              this.health >= requiredStats.health &&
+              this.intelligence >= requiredStats.intelligence &&
+              this.agility >= requiredStats.agility &&
+              this.strength >= requiredStats.strength
+    );
+  }
 }
+
+// A little metaprogramming...
+_.keys(ABILITIES).forEach((abilityName) => {
+  Character.prototype[abilityName] = (() => this.hasAbility(abilityName));
+});
+
+export default Character;

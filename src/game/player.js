@@ -72,6 +72,37 @@ export default class Player {
     return this.state === PLAYER_STATES.ABSENT;
   }
 
+  canCommunicateWithPlayer(otherPlayer) {
+    // two players can always talk if neither of them are playing
+
+    // if both are playing,
+    // then they must either be of the same alliance,
+    // or one must have the proper translation skill
+    // or one must have the translation book in their inventory
+
+    // if only one is playing, they cannot communicate
+
+    if (this.isPlaying() === otherPlayer.isPlaying()) {
+      if (this.isPlaying()) {
+        if (this.character.alliance === otherPlayer.character.alliance) {
+          return true;
+        } else if (this.character.canTranslateModern()
+            || otherPlayer.character.canTranslateModern()) {
+          return true;
+        } else if (this.character.inventory.hasItem('ModernTranslationBook')
+            || otherPlayer.character.inventory.hasItem('ModernTranslationBook')) {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return true;
+      }
+    } else {
+      return false;
+    }
+  }
+
   // creates an object summarizing the state of the player
   getDetails() {
     // TODO: offload this gathering code onto Character class
