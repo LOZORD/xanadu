@@ -9,6 +9,7 @@ import {
 } from './messaging';
 
 import Context from '../context/context';
+import { TEST_MAP_DATA } from './map/parseGrid';
 
 // TODO: one of the game parameters should be the number of modifiers randomly assigned
 // TODO: Game should extend Context (other subclass is Lobby)
@@ -23,8 +24,8 @@ export default class Game extends Context {
     }
 
     this.players    = kwargs.players    || [];
-    let mapOpts     = kwargs.mapOptions || {};
-    this.map        = kwargs.map        || new Map(mapOpts);
+    const characterGrid = kwargs.characterGrid || TEST_MAP_DATA;
+    this.map        = kwargs.map        || new Map(TEST_MAP_DATA.characterGrid, TEST_MAP_DATA.startingPosition, this.rng);
     this.maxPlayers = kwargs.maxPlayers || 8;
     this.turnNumber = kwargs.turnNumber || 0;
     this.hasStarted = kwargs.hasStarted || false;

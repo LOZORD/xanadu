@@ -1,11 +1,23 @@
+//import { it, before } from 'arrow-mocha/es5';
 import { expect } from 'chai';
 import _ from 'lodash';
 
 import Game from './game';
 import Map from './map/map';
+import { TEST_MAP_DATA } from './map/parseGrid';
 import Player from './player';
 
-const createGame = () => (new Game({rng: () => 4}));
+const createGame = () => {
+  return new Game({ rng: _.constant(4) });
+};
+
+/*
+const createMap = () => {
+  return new Map(TEST_MAP_DATA.characterGrid, TEST_MAP_DATA.startingPosition,
+      _.constant(4)
+  );
+};
+*/
 
 describe('Game', () => {
   describe('constructor', () => {
@@ -15,8 +27,10 @@ describe('Game', () => {
 
     it('should set default arguments', () => {
       const g = createGame();
+      //const m = createMap();
       expect(g.players).to.eql([]);
-      expect(g.map).to.eql((new Map({})));
+      //expect(g.map).to.eql(m);
+      expect(g.map.toJSON()).to.eql(TEST_MAP_DATA.characterGrid);
       expect(g.maxPlayers).to.equal(8);
       expect(g.turnNumber).to.equal(0);
       expect(g.hasStarted).to.equal(false);
@@ -161,8 +175,10 @@ describe('Game', () => {
         hasStarted: null,
         hasEnded: null
       });
+      //const m = createMap();
       expect(g.players).to.eql([]);
-      expect(g.map).to.eql((new Map({})));
+      //expect(g.map).to.eql(m);
+      expect(g.map.toJSON()).to.eql(TEST_MAP_DATA.characterGrid);
       expect(g.maxPlayers).to.equal(8);
       expect(g.turnNumber).to.equal(0);
       expect(g.hasStarted).to.equal(false);
