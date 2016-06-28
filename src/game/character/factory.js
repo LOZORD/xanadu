@@ -1,5 +1,5 @@
 // Character factory
-// import ... [character class classes]
+import Doctor from './classes/doctor';
 import RNG from 'random-seed';
 import _ from 'lodash';
 import { MODIFIERS } from './character';
@@ -8,7 +8,7 @@ export const CLASS_CONSTRUCTOR_MAP = {
   BENEFACTOR:   null,
   GUNSLINGER:   null,
   EXCAVATOR:    null,
-  DOCTOR:       null,
+  Doctor,
   CHEF:         null,
   SHAMAN:       null,
   CAVEMAN:      null,
@@ -33,13 +33,16 @@ let shuffle = (list, seed) => {
 };
 
 export default (className, kwargs = {}) => {
+  let classConstructor = CLASS_CONSTRUCTOR_MAP[className];
+
   if (!classConstructor) {
     throw new Error(`Unknown className: ${ className }`);
   }
 
-  let classConstructor = CLASS_CONSTRUCTOR_MAP[className];
   const seed = kwargs.seed;
-  let rand = new RNG(seed);
+  // in order to make the RNG truly random (i.e. not repetitive)
+  const offset = kwargs.offset;
+  let rand = new RNG(seed + offset);
   let numModifiers;
 
   if (_.has(kwargs, 'numModifiers')) {
