@@ -1,90 +1,44 @@
-import _            from 'lodash';
-import Room         from './room';
-import TreasureRoom from './treasureRoom';
-import PassageRoom  from './passageRoom';
-import Barrier      from './barrier';
+import _ from 'lodash';
+import parseGrid from './parseGrid';
 
-export const CONSTRUCTOR_MAP = {
-  '_': Room,
-  '#': Barrier,
-  'X': TreasureRoom,
-  '^': PassageRoom
-};
+export class BaseMap {
+  constructor(characterGrid, startingPosition) {
+    const { grid, treasureRoom, startingPassageRoom }
+      = parseGrid(characterGrid, startingPosition);
 
-export default class Map {
-  constructor(kwargs = []) {
-    this.seed = kwargs.seed;
-    this.rng  = kwargs.rng;
-    let d = this.dimension = kwargs.dimension;
-    const percentWalls = 50;
-    let textMap = this.generateMap(this.seed, d, percentWalls);
-    //console.log(textMap);
-
-    this.cells = [[]];
-    this.treasureRoom = null;
-    this.startingPassageRoom = null;
-
-    _.range(d, (y) => {
-      _.range(d, (x) => {
-        /*
-        this.cells[y][x] = new Cell({
-          x: x,
-          y: y,
-          map: this
-        });
-        */
-
-        let cellType = textMap[y][x];
-
-        let cellConstructor = CONSTRUCTOR_MAP[cellType];
-
-        if (!cellConstructor) {
-          console.err('UNKNOWN CELL CONSTRUCTOR!');
-        }
-
-        this.cells[y][x] = new cellConstructor({
-          map: this,
-          x: x,
-          y: y
-        });
-
-        if (this.cells[y][x] instanceof PassageRoom &&
-            !this.startingPassageRoom) {
-          this.startingPassageRoom = this.cells[y][x];
-        }
-
-        if (this.cells[y][x] instanceof TreasureRoom) {
-          this.treasureRoom = this.cells[y][x];
-        }
-      });
-    });
+    this.grid = grid;
+    this.width = this.grid.getWidth();
+    this.height = this.grid.getHeight();
+    this.treasureRoom = treasureRoom;
+    this.startingPassageRoom = startingPassageRoom;
   }
-  generateMap(rng, dim) {
-    let map = [[]];
+  toJSON() {
+    let res = [];
 
-    _.range(dim, (y) => {
-      _.range(dim, (x) => {
-        // TODO: random generation logic
-        if (x === 0 && y === 0) {
-          map[y][x] = '^';
-        } else if (x === (dim - 1) && y === (dim - 1)) {
-          map[y][x] = 'T';
-        } else {
-          map[y][x] = '_';
-        }
-      })
-    });
+    for (let y = 0; y < this.height; y++) {
+      let row = [];
+      for (let x = 0; x < this.width; x++) {
+        let someCell = this.grid.get(x, y);
+        //res.push(someCell.toJSON())
+        row.push(someCell.toJSON());
+      }
+      res.push(row.join(''));
+    }
+
+    return res;
   }
-  hasCell(x, y) {
-    let d = this.dimension;
-    return (
-      0 <= x &&
-      x <  d &&
-      0 <= y &&
-      y <  d
-    );
+}
+
+export default class GameMap extends BaseMap {
+  constructor(characterGrid, startingPosition, rng) {
+    super(characterGrid, startingPosition);
+    this.rng = rng;
   }
-  getCell(x, y) {
-    return this.cells[y][x];
+}
+
+export class CharacterMap extends BaseMap {
+  constructor(characterGrid, startingPosition, gameMap) {
+    super(characterGrid, startingPosition);
+    this.gameMap = gameMap;
   }
 }

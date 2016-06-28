@@ -58,4 +58,7 @@ export default class Cell {
 
     return myNeighbors;
   }
+  toJSON() {
+    return '?';
+  }
 }

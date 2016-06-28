@@ -55,4 +55,7 @@ export default class Room extends Cell {
 
     return ret;
   }
+  toJSON() {
+    return '_';
+  }
 }
