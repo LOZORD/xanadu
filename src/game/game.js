@@ -23,15 +23,23 @@ export default class Game extends Context {
       throw new Error('No default value for missing RNG!');
     }
 
-    this.players    = kwargs.players    || [];
-    const characterGrid = kwargs.characterGrid || TEST_MAP_DATA;
-    this.map        = kwargs.map        || new Map(TEST_MAP_DATA.characterGrid, TEST_MAP_DATA.startingPosition, this.rng);
-    this.maxPlayers = kwargs.maxPlayers || 8;
+    //const characterGrid = kwargs.characterGrid || TEST_MAP_DATA;
+    this.map        = kwargs.map        ||
+      new Map(TEST_MAP_DATA.characterGrid, TEST_MAP_DATA.startingPosition, this.rng);
+
+    // place all the players in the starting position on the map's grid
+    this.players.forEach((player) => {
+      player.character.setPosition({
+        row: this.map.startingPassageRoom.row,
+        col: this.map.startingPassageRoom.col
+      });
+    });
+
     this.turnNumber = kwargs.turnNumber || 0;
-    this.hasStarted = kwargs.hasStarted || false;
+    //this.hasStarted = kwargs.hasStarted || false;
     this.hasEnded   = kwargs.hasEnded   || false;
   }
-  
+
   handleMessage(messageObj, player) {
     if (player.isAnonymous()) {
       player.name = messageObj.message;
@@ -82,13 +90,16 @@ export default class Game extends Context {
       }
     }
   }
-  
+
   isAcceptingPlayers() {
-    return !this.hasStarted && this.players.length < this.maxPlayers;
+    //return !this.hasStarted && this.players.length < this.maxPlayers;
+    // once the game has started (i.e. been created), no new players can join
+    return false;
   }
-  
+
   isRunning() {
-    return this.hasStarted && !this.hasEnded;
+    //return this.hasStarted && !this.hasEnded;
+    return !this.hasEnded;
   }
 
   getPlayerDetails() {

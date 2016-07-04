@@ -37,6 +37,7 @@ export default class Context {
     return this.constructor.name.toLowerCase();
   }
   addPlayer(id) {
+    // TODO: check for duplicate id!
     if (this.isAcceptingPlayers()) {
       const newPlayer = new Player({ id });
       const newPlayersList = _.concat(this.players, [ newPlayer ]);
