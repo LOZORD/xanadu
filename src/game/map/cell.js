@@ -14,6 +14,12 @@ export default class Cell {
   get grid() {
     return this.map;
   }
+  get col() {
+    return this.x;
+  }
+  get row() {
+    return this.y;
+  }
   toJSON() {
     // should never be stringified
     return '?';

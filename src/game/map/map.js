@@ -12,6 +12,14 @@ export class BaseMap {
     this.treasureRoom = treasureRoom;
     this.startingPassageRoom = startingPassageRoom;
   }
+  withinBounds(row, col) {
+    return (
+        0 <= row &&
+        row < this.height &&
+        0 <= col &&
+        col < this.width
+    );
+  }
   toJSON() {
     let res = [];
 

@@ -1,5 +1,6 @@
 export default class Action {
-  constructor(timestamp, text) {
+  constructor(player, timestamp, text) {
+    this.player = player;
     this.timestamp = timestamp;
     this.text = text;
   }
@@ -7,7 +8,7 @@ export default class Action {
 
 
 export class MoveAction extends Action {
-  constructor(timestamp, text, character, direction, distance = 1) {
-    super(timestamp, text);
+  constructor(player, timestamp, text, character, direction, distance = 1) {
+    super(player, timestamp, text);
   }
 }
