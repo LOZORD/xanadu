@@ -31,8 +31,7 @@ export const getMapFileContents = (fileName) => {
   };
 };
 
-// parseGrid
-export default (characterGrid, startingPosition = null) => {
+const parseGrid = (characterGrid, startingPosition = null) => {
   const mapHeight = characterGrid.length;
   const mapWidth  = characterGrid[0].length;
 
@@ -51,7 +50,7 @@ export default (characterGrid, startingPosition = null) => {
         throw new Error(`Unknown cell constructor type: ${ cellType }`);
       }
 
-      map.set(x, y, (new (cellConstructor)({ map, x, y })));
+      map.set(x, y, (new (cellConstructor)(map, x, y)));
 
       if (!startingPassageRoom) {
         let startInThisCell = false;
@@ -84,6 +83,13 @@ export default (characterGrid, startingPosition = null) => {
   };
 };
 
+export default parseGrid;
+
 export const TEST_FILE = path.join(__dirname, 'testMap.txt');
 
 export const TEST_MAP_DATA = getMapFileContents(TEST_FILE);
+
+export const TEST_GRID_PARSE = parseGrid(
+    TEST_MAP_DATA.characterGrid,
+    TEST_MAP_DATA.startingPosition
+);

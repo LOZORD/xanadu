@@ -1,10 +1,10 @@
 import _ from 'lodash';
-import parseGrid from './parseGrid';
+import { TEST_GRID_PARSE } from './parseGrid';
 
 export class BaseMap {
   constructor(characterGrid, startingPosition) {
     const { grid, treasureRoom, startingPassageRoom }
-      = parseGrid(characterGrid, startingPosition);
+      = TEST_GRID_PARSE;
 
     this.grid = grid;
     this.width = this.grid.getWidth();

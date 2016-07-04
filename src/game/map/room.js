@@ -3,12 +3,10 @@ import Cell from './cell';
 import Character from './../character/character';
 
 export default class Room extends Cell {
-  constructor(kwargs = {}) {
-    super(kwargs);
+  constructor(map, x, y, kwargs = {}) {
+    super(map, x, y);
     this.animals  = kwargs.animals  || [];
     this.items    = kwargs.items    || [];
-    this.x = kwargs.x || -1;
-    this.y = kwargs.y || -1;
   }
   entities() {
     return _.concat(this.animals, this.items);
