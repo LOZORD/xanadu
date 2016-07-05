@@ -10,5 +10,7 @@ export default class Action {
 export class MoveAction extends Action {
   constructor(player, timestamp, text, direction, distance = 1) {
     super(player, timestamp, text);
+    this.direction  = direction;
+    this.distance   = distance;
   }
 }

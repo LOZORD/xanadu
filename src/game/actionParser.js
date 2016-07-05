@@ -10,7 +10,9 @@ export const parseActionUsingParser = (parserObj) => {
         (key) => keyToRegExp(key).test(actionString));
 
     if (key) {
-      return parserObj[key].call(null, actionString.match(RegExp(key)));
+      const matches = actionString.match(keyToRegExp(key));
+
+      return parserObj[key](matches);
     } else {
       return null;
     }
@@ -18,7 +20,9 @@ export const parseActionUsingParser = (parserObj) => {
 };
 
 export default {
-  parseAction: parseActionUsingParser(this),
+  parseAction(action) {
+    return parseActionUsingParser(this)(action);
+  },
   // don't worry about movement distance for now
   'go (north|south|east|west)': (matches) => {
     const direction = matches[1];
