@@ -8,7 +8,7 @@ export default class Action {
 
 
 export class MoveAction extends Action {
-  constructor(player, timestamp, text, character, direction, distance = 1) {
+  constructor(player, timestamp, text, direction, distance = 1) {
     super(player, timestamp, text);
   }
 }

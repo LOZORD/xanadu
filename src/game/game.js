@@ -10,6 +10,7 @@ import {
 
 import Context from '../context/context';
 import { TEST_MAP_DATA } from './map/parseGrid';
+import actionParser from './actionParser';
 
 // TODO: one of the game parameters should be the number of modifiers randomly assigned
 // TODO: Game should extend Context (other subclass is Lobby)
@@ -41,6 +42,19 @@ export default class Game extends Context {
   }
 
   handleMessage(messageObj, player) {
+    const message = messageObj.message;
+    const actionFunc = actionParser.parseAction(message);
+
+    if (actionFunc) {
+      // we can test if this is a valid action
+
+    } else {
+      // it may be a communication command
+      // otherwise, it is garbage
+    }
+
+
+    /*
     if (player.isAnonymous()) {
       player.name = messageObj.message;
       player.state = PLAYER_STATES.NAMED;
@@ -89,6 +103,7 @@ export default class Game extends Context {
         }
       }
     }
+    */
   }
 
   isAcceptingPlayers() {
