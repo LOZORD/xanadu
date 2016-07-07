@@ -6,19 +6,19 @@
   - Barrier/Wall (a solid rock that can be excavated into a room)
 */
 export default class Cell {
-  constructor(map, x, y) {
-    this.map = map;
-    this.x = x;
-    this.y = y;
+  constructor(grid, row, col) {
+    this.grid = grid;
+    this.row = row;
+    this.col = col;
   }
-  get grid() {
-    return this.map;
+  get map() {
+    return this.grid;
   }
-  get col() {
-    return this.x;
+  get x() {
+    return this.col;
   }
-  get row() {
-    return this.y;
+  get y() {
+    return this.row;
   }
   toJSON() {
     // should never be stringified

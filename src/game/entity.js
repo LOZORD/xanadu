@@ -25,4 +25,12 @@ export default class Entity {
     this.y = val;
     return val;
   }
+  get position() {
+    return {
+      x: this.x,
+      y: this.y,
+      row: this.row,
+      col: this.col
+    };
+  }
 }

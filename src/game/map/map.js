@@ -7,10 +7,14 @@ export class BaseMap {
       = TEST_GRID_PARSE;
 
     this.grid = grid;
-    this.width = this.grid.getWidth();
-    this.height = this.grid.getHeight();
     this.treasureRoom = treasureRoom;
     this.startingPassageRoom = startingPassageRoom;
+  }
+  get height() {
+    return this.grid.getHeight();
+  }
+  get width() {
+    return this.grid.getWidth();
   }
   withinBounds(row, col) {
     return (
@@ -23,14 +27,9 @@ export class BaseMap {
   toJSON() {
     let res = [];
 
-    for (let y = 0; y < this.height; y++) {
-      let row = [];
-      for (let x = 0; x < this.width; x++) {
-        let someCell = this.grid.get(x, y);
-        //res.push(someCell.toJSON())
-        row.push(someCell.toJSON());
-      }
-      res.push(row.join(''));
+    for (let row = 0; row < this.height; row++) {
+      const rowData = this.grid.getRow(row);
+      res.push(_.map(rowData, (cell) => cell.toJSON()).join(''));
     }
 
     return res;

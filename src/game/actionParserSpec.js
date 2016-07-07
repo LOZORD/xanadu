@@ -2,18 +2,23 @@ import { it, beforeEach } from 'arrow-mocha/es5';
 import { expect } from 'chai';
 import actionParser from './actionParser';
 import * as Actions from './actions';
+import Player from './player';
 
 describe('Action Parser', () => {
+  beforeEach(test => {
+    test.player = new Player({
+      id: '007'
+    });
+    test.args = [test.player.character, null, null];
+  });
   describe('Move Actions', () => {
-    it('should return a MoveAction creator', () => {
-      const otherArgs = [null, null, null]; // don't care about these...
-
+    it('should return a MoveAction creator', (test) => {
       ['north','south','west','east'].forEach((dir) => {
         const ret = actionParser.parseAction(`go ${ dir }`);
 
         expect(ret).to.be.a('function');
 
-        const action = ret.apply(null, otherArgs);
+        const action = ret.apply(null, test.args);
 
         expect(action.direction).to.equal(dir);
       });

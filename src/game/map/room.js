@@ -20,7 +20,7 @@ export default class Room extends Cell {
     let ret = ``;
 
     let otherCharacters = _(this.characters).without([observingCharacter]);
-    let nonCharacters   = _.difference(this.animals(), this.characters());
+    let nonCharacters   = _.difference(this.animals, this.characters());
 
     let otherCharactersArePresent = !_.isEmpty(otherCharacters);
     let nonCharactersArePresent   = !_.isEmpty(nonCharacters);

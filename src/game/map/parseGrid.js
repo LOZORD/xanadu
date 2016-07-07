@@ -1,7 +1,8 @@
 import _ from 'lodash';
 import fs from 'fs';
 import path from 'path';
-import F2DA from 'fixed-2d-array';
+//import F2DA from 'fixed-2d-array';
+import Grid from './grid';
 
 import Room         from './room';
 import TreasureRoom from './treasureRoom';
@@ -32,17 +33,18 @@ export const getMapFileContents = (fileName) => {
 };
 
 const parseGrid = (characterGrid, startingPosition = null) => {
-  const mapHeight = characterGrid.length;
-  const mapWidth  = characterGrid[0].length;
+  // characterGrid is a list of rows
+  const numRows = characterGrid.length;
+  const numCols = characterGrid[0].length;
 
-  const map = new F2DA(mapWidth, mapHeight, null);
+  const grid = new Grid(numRows, numCols);
 
   let treasureRoom = null;
   let startingPassageRoom = null;
 
-  for (let y = 0; y < mapHeight; y++) {
-    for (let x = 0; x < mapWidth; x++) {
-      const cellType = characterGrid[y][x];
+  for (let row = 0; row < numRows; row++) {
+    for (let col = 0; col < numCols; col++) {
+      const cellType = characterGrid[row][col];
 
       const cellConstructor = CELL_CONSTRUCTORS[cellType];
 
@@ -50,36 +52,37 @@ const parseGrid = (characterGrid, startingPosition = null) => {
         throw new Error(`Unknown cell constructor type: ${ cellType }`);
       }
 
-      map.set(x, y, (new (cellConstructor)(map, x, y)));
+
+      grid.set(row, col, (new (cellConstructor)(grid, row, col)));
 
       if (!startingPassageRoom) {
         let startInThisCell = false;
 
         if (startingPosition) {
           startInThisCell = (
-              y === startingPosition.row &&
-              x === startingPosition.col
+              row === startingPosition.row &&
+              col === startingPosition.col
           );
         } else if (cellConstructor === PassageRoom) {
           startInThisCell = true;
         }
 
         if (startInThisCell) {
-          startingPassageRoom = map.get(x, y);
+          startingPassageRoom = grid.get(row, col);
         }
       }
 
       if (!treasureRoom && cellConstructor === TreasureRoom) {
-        treasureRoom = map.get(x, y);
+        treasureRoom = grid.get(row, col);
       }
     }
   }
 
   return {
-    map,
+    grid,
     treasureRoom,
     startingPassageRoom,
-    grid: map
+    map: grid
   };
 };
 
