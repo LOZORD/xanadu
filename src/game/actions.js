@@ -16,11 +16,11 @@ export default class Action {
 export class MoveAction extends Action {
   constructor(actor, timestamp, text, direction, distance = 1) {
     super(actor, timestamp, text);
-    this.direction = direction;
+    this.direction = direction.toLowerCase();
     this.distance = distance;
   }
   newPosition() {
-    const {row, col } = this.actor.position;
+    const { row, col } = this.actor.position;
 
     switch (this.direction) {
       case 'north': {

@@ -5,6 +5,7 @@ import actionParser from './actionParser';
 import updateGame from './updateGame';
 import Game from './game';
 import Player from './player';
+import Action from './actions';
 
 describe('Update Game', () => {
   beforeEach(test => {
@@ -19,7 +20,7 @@ describe('Update Game', () => {
     test.args = [test.player.character, null, null];
   });
   describe('on MoveAction', () => {
-    it.skip('should move the player\'s character', test => {
+    it('should move the player\'s character', test => {
       const moveMessages = [
         { message: 'go south', dest: { row: 2, col: 1 } },
         { message: 'go north', dest: { row: 1, col: 1 } },
@@ -28,20 +29,17 @@ describe('Update Game', () => {
         { message: 'go west', dest: { row: 1, col: 0 } }
       ];
 
-      /*
       _.forEach(moveMessages, ({ message, dest }) => {
         const move = actionParser.parseAction(message).apply(null, test.args);
 
-        expect(move).to.be.ok;
-
-        updateGame(test.game, move);
+        // true -> fail loudly on any invalid moves
+        updateGame(test.game, move, true);
 
         const newPos = test.player.character.position;
 
-        expect(newPos.row).to.equal(dest.row, message);
-        expect(newPos.col).to.equal(dest.col, message);
+        expect(newPos.row).to.equal(dest.row, message + ' row');
+        expect(newPos.col).to.equal(dest.col, message + ' col');
       });
-      */
     });
   })
 });

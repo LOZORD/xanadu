@@ -20,7 +20,7 @@ describe('Action Validator', () => {
   });
   context('when NOT passed an Action object', () => {
     it('should return `false`', (test) => {
-      expect(actionValidator(test.game, {})).to.be.false;
+      expect(actionValidator(test.game, {}).isValid).to.be.false;
     });
   });
   describe('on MoveAction', () => {
@@ -30,16 +30,16 @@ describe('Action Validator', () => {
           actionParser.parseAction('go south').apply(null, test.args);
         const validAction = actionValidator(test.game, move);
 
-        expect(validAction).to.be.true;
+        expect(validAction.isValid).to.be.true;
       });
     });
     describe('when given an invalid move', () => {
       it('should return `false`', (test) => {
         const move =
           actionParser.parseAction('go north').apply(null, test.args);
-        const validAction = actionValidator(test.game, move);
+        const invalidAction = actionValidator(test.game, move);
 
-        expect(validAction).to.be.false;
+        expect(invalidAction.isValid).to.be.false;
       });
     });
   });
