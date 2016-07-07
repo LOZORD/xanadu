@@ -9,25 +9,8 @@ export default (game, action) => {
     switch (action.constructor) {
       case Actions.MoveAction: {
         const currPos = action.actor.position;
-
-        const desiredPos = _.clone(currPos);
-
-        switch (action.direction) {
-          case 'north':
-            desiredPos.row -= 1;
-            break;
-          case 'south':
-            desiredPos.row += 1;
-            break;
-          case 'east':
-            desiredPos.col += 1;
-            break;
-          case 'west':
-            desiredPos.col -= 1;
-            break;
-          default:
-            return false;
-        }
+        
+        const desiredPos = action.newPosition();
 
         const boundsOK = game.map.withinBounds(desiredPos.row, desiredPos.col);
 

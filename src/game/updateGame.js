@@ -14,19 +14,7 @@ export default (game, action, validate = false) => {
     }
     switch (action.constructor) {
       case Actions.MoveAction: {
-        const pos = action.actor.position;
-
-        if (action.direction === 'north') {
-          pos.row -= 1;
-        } else if (action.direction === 'south') {
-          pos.row += 1;
-        } else if (action.direction === 'west') {
-          pos.col -= 1;
-        } else if (action.direction === 'east') {
-          pos.col += 1;
-        } else {
-          throw new Error();
-        }
+        const pos = action.newPosition();
 
         // TODO: return new game, don't mutate
         action.actor.setPos(pos);

@@ -8,8 +8,12 @@ import Mocha from 'Mocha';
 
 const distDir = './dist';
 const testPattern = 'Spec.js';
+
+// assuming this will be called as `node dist/test.js <reporter>`
+const possibleReporter = process.argv[2];
+
 const mochaOptions = {
-  reporter: 'dot'
+  reporter: possibleReporter || 'dot'
 };
 
 const getTestFiles = (dir) => {
