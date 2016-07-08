@@ -69,7 +69,7 @@ export default class Context {
     return false;
   }
   update() {
-    return false;
+    return this;
   }
   isAcceptingPlayers() {
     return this.players.length < this.maxPlayers;

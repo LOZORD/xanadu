@@ -129,9 +129,7 @@ class Character extends Animal {
     // Fields w/o groups
     this.characterClass = CLASSES.UNDEFINED_CLASS;
     this.allegiance = ALLEGIANCES.UNDEFINED_ALLEGIANCE;
-
-    // TODO: implement Action classes
-    this.nextAction = null;
+    this.player = kwargs.player;
   }
   hasAbility(abilityName) {
     const abilityStats = ABILITIES[abilityName];

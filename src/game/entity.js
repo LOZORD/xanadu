@@ -5,20 +5,13 @@ export default class Entity {
     this.x = args.x || 0;
     this.y = args.y || 0;
   }
-  setPos(...args) {
-    if (_.isPlainObject(args[0])) {
-      const newPos = args[0];
-      this.x = newPos.x || newPos.col;
-      this.y = newPos.y || newPos.row;
-    } else if (_.isNumber(args[0]) && _.isNumber(args[1])) {
-      this.row = args[0];
-      this.col = args[1];
-    } else {
-      throw new TypeError('`setPos` must be passed a coordinate pair or two numbers!');
-    }
+  setRowCol(row, col) {
+    this.x = col;
+    this.y = row;
   }
-  setPosition(newPos) {
-    this.setPos(newPos);
+  setXY(x, y) {
+    this.x = x;
+    this.y = y;
   }
   get col() {
     return this.x;

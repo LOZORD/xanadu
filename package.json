@@ -46,7 +46,7 @@
   "dependencies": {
     "bootstrap": "^3.3.6",
     "express": "^4.13.4",
-    "fixed-2d-array": "^1.2.0",
+    "fixed-2d-array": ">=1.2.0",
     "jquery": "^2.2.0",
     "lodash": "^4.1.0",
     "random-seed": "^0.3.0",

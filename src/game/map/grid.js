@@ -1,13 +1,9 @@
-/* fixed-2d-array is borked, shame on them!
-import FTDA from 'fixed-2d-array';
 
-export default class Grid extends FTDA {
-  constructor(numRows, numCols) {
-    super(numCols, numRows, null);
-  }
-}
-*/
+import F2DA from 'fixed-2d-array';
 
+export default class Grid extends F2DA {}
+
+/*
 export default class Grid {
   constructor(numRows, numCols, defaultVal = null) {
     this.cells = [];
@@ -34,3 +30,4 @@ export default class Grid {
     return this.cells[row];
   }
 }
+*/

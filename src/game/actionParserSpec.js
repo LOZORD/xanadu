@@ -11,6 +11,19 @@ describe('Action Parser', () => {
     });
     test.args = [test.player.character, null, null];
   });
+  describe('isParsableAction', () => {
+    context('when given a valid action command', () => {
+      it('should return true', () => {
+        expect(actionParser.isParsableAction('go south')).to.be.true;
+      });
+    });
+    context('when given an invalid action command', () => {
+      it('should return false', () => {
+        // sadly false
+        expect(actionParser.isParsableAction('listen to 2112')).to.be.false;
+      });
+    });
+  })
   describe('Move Actions', () => {
     it('should return a MoveAction creator', (test) => {
       ['north','south','west','east'].forEach((dir) => {

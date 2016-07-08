@@ -16,6 +16,7 @@ export default class Animal extends MoveableEntity {
     this.inventory    = args.inventory    || new Inventory();
     // lineOfSight for both sight AND HEARING
     this.senseRadius  = args.senseRadius  || 1;
+    this.nextAction = null;
   }
   damage(amount = 0) {
     this.health = _.max([0, this.health - amount]);
