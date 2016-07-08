@@ -3,7 +3,7 @@ import Action, * as Actions from './actions';
 import actionValidator from './actionValidator';
 
 // TODO: incorporate the GameUpdate object in `game.js`
-export default (game, action, validate = false) => {
+export default ({ game, log }, action, validate = false) => {
 
   if (validate) {
     const validation = actionValidator(game, action);
@@ -13,19 +13,20 @@ export default (game, action, validate = false) => {
   }
   if (!(action instanceof Action)) {
     // don't do anything
-    return game;
+    return { game, log };
   } else {
-    //const newGame = _.clone(game);
     switch (action.constructor) {
       case Actions.MoveAction: {
-        const newPos = action.newPosition();
+        const { row: oldRow, col: oldCol } = action.actor.position;
+        const { row: newRow, col: newCol } = action.newPosition();
 
         // TODO: do a pure state change instead
-        action.actor.setPosition(newPos);
+        action.actor.setRowCol(newRow, newCol);
+
+        log.push(`Moved ${ action.actor.player.id } from (${ oldRow }, ${ oldCol }) to (${ newRow }, ${ newCol })`);
       }
     }
 
-    //return newGame;
-    return game;
+    return { game, log };
   }
 };

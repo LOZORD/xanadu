@@ -66,8 +66,8 @@ export default class Server {
     console.log('Launching the debug server...');
     this.debugNS.on('connection', (socket) => {
       socket.on('get', () => {
-        socket.emit('debug-update', this.players
-          .map(player => JSON.stringify(player.getDebugDetails()))
+        socket.emit('debug-update', this.currentContext.players
+          .map(player => JSON.stringify(player.getDebugDetails(), null, 2))
           .join('\n'));
       });
     });
@@ -114,10 +114,15 @@ export default class Server {
     socket.on('message', (messageObj) => {
       console.log(`Socket ${ socket.id }: ${ JSON.stringify(messageObj) }`);
 
-      let readyForNextContext = this.handleMessage(messageObj, socket);
+      let { isReadyForNextContext, isReadyForUpdate } = this.handleMessage(messageObj, socket);
+
+      if (isReadyForUpdate) {
+        const updatedContext = this.currentContext.update();
+        this.currentContext = updatedContext;
+      }
 
       // TODO: do something with the context's player lists
-      if (readyForNextContext) {
+      if (isReadyForNextContext) {
         this.changeContext();
       }
     });
@@ -175,7 +180,10 @@ export default class Server {
     this.currentContext.handleMessage(messageObj, this.currentContext.getPlayer(socket.id))
       .forEach((msg) => this.sendMessage(msg, socket));
 
-    return this.currentContext.isReadyForNextContext();
+    return {
+      isReadyForNextContext: this.currentContext.isReadyForNextContext(),
+      isReadyForUpdate: this.currentContext.isReadyForUpdate()
+    };
   }
 
   // Reason for `createGame`: we may want one server but many games!

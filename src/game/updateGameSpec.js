@@ -17,7 +17,6 @@ describe('Update Game', () => {
       players: [test.player],
       rng: () => 42
     });
-    test.args = [test.player.character, null, null];
   });
   describe('on MoveAction', () => {
     it('should move the player\'s character', test => {
@@ -30,10 +29,14 @@ describe('Update Game', () => {
       ];
 
       _.forEach(moveMessages, ({ message, dest }) => {
-        const move = actionParser.parseAction(message).apply(null, test.args);
+        const args = [test.player.character, Date.now(), message];
+        const move = actionParser.parseAction(message).apply(null, args);
+
+        expect(move.text).to.eql(message);
 
         // true -> fail loudly on any invalid moves
-        updateGame(test.game, move, true);
+        // since updateGame isn't fully "functional/immutable" yet, updatedGame == game (state was changed)
+        const { game: updatedGame, log } = updateGame({ game: test.game, log: [] }, move, true);
 
         const newPos = test.player.character.position;
 

@@ -11,6 +11,8 @@ import {
 import Context from '../context/context';
 import { TEST_MAP_DATA } from './map/parseGrid';
 import actionParser from './actionParser';
+import communicationHandler from '../context/communicationHandler';
+import updateGame from './updateGame';
 
 // TODO: one of the game parameters should be the number of modifiers randomly assigned
 // TODO: Game should extend Context (other subclass is Lobby)
@@ -28,12 +30,14 @@ export default class Game extends Context {
     this.map        = kwargs.map        ||
       new Map(TEST_MAP_DATA.characterGrid, TEST_MAP_DATA.startingPosition, this.rng);
 
-    // place all the players in the starting position on the map's grid
     this.players.forEach((player) => {
-      player.character.setPosition({
-        row: this.map.startingPassageRoom.row,
-        col: this.map.startingPassageRoom.col
-      });
+      // set all the players' states to playing
+      player.state = PLAYER_STATES.PLAYING;
+      // place all the players in the starting position on the map's grid
+      player.character.setRowCol(
+          this.map.startingPassageRoom.row,
+          this.map.startingPassageRoom.col
+      );
     });
 
     this.turnNumber = kwargs.turnNumber || 0;
@@ -43,16 +47,27 @@ export default class Game extends Context {
 
   handleMessage(messageObj, player) {
     const message = messageObj.message;
-    const actionFunc = actionParser.parseAction(message);
+    let responses = [
+      (new EchoResponse(message, player))
+    ];
 
-    if (actionFunc) {
-      // we can test if this is a valid action
+    // is the player sending an action?
+    if (actionParser.isParsableAction(message)) {
+      const actionArgs = [player.character, messageObj.ts, message];
 
+      const newAction = actionParser.parseAction(message).apply(null, actionArgs);
+
+      player.character.nextAction = newAction;
+      responses.push(new GameResponse(`Next move: ${ newAction.text }`, player));
     } else {
-      // it may be a communication command
-      // otherwise, it is garbage
+      // TODO: ok for now until communicationHandler is made more flexible
+      // XXX: what to do with non-action, non-communication junk messages?
+      responses.push(
+        communicationHandler(messageObj, player, this)
+      );
     }
 
+    return responses;
 
     /*
     if (player.isAnonymous()) {
@@ -134,14 +149,26 @@ export default class Game extends Context {
   isReadyForUpdate() {
     return _
       .chain(this.players)
-      .map((player) => player.character)
-      .every('character.nextAction')
+      .map('character')
+      .every('nextAction')
       .value();
   }
 
   update() {
     const actions = _.map(this.players, 'character.nextAction');
-    return performActions(this, actions);
+
+    const { game: updatedGame, log } = performActions(this, actions);
+
+    updatedGame.turnNumber = this.turnNumber + 1;
+
+    console.log(`
+      \t\tCOMPLETED ROUND
+      \t\tNEXT ROUND: #${ updatedGame.turnNumber }
+    `);
+
+    console.log('Got log: ' + JSON.stringify(log));
+
+    return updatedGame;
   }
 }
 
@@ -149,10 +176,15 @@ export default class Game extends Context {
 // game state and updates to the message log
 class _GameUpdate {
   constructor(game, log) {
-    this.game = game;
-    this.log = log;
+    this._game = game;
+    this._log = log;
   }
-
+  get game() {
+    return this._game;
+  }
+  get log() {
+    return this._log;
+  }
   set game(g) {
     throw new Error("Can't set 'game' field on GameUpdate");
   }
@@ -166,10 +198,15 @@ class _GameUpdate {
 const GameUpdate = (game, log) => new _GameUpdate(game, log);
 
 // TODO: given an initial game state and an action to perform, return new game state
-const update = (game, action) => game;
+//const update = (game, action) => game;
+// true arg -> validate actions (useful for debugging)
+const update = ({ game, log }, action) => updateGame({ game, log }, action, true);
 
-const foldActions = (game, actions) => _.reduce(actions, update, GameUpdate(game, []));
+// TODO: go back to using GameUpdate (sorry Zach!)
+//const foldActions = (game, actions) => _.reduce(actions, update, GameUpdate(game, []));
 
-const sortActions = (actions) => _.sortBy(actions, ['character.agility', 'timestamp']);
+const foldActions = (game, actions) => _.reduce(actions, update, { log: [], game });
 
-const performActions = (game, msgs) => foldActions(game, sortActions(msgs));
+const sortActions = (actions) => _.sortBy(actions, ['actor.agility', 'timestamp']);
+
+const performActions = (game, actions) => foldActions(game, sortActions(actions));

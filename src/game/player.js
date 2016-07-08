@@ -124,14 +124,23 @@ export default class Player {
     // TODO: send the (player's concept) of the map as well
     return {
       name: this.name,
+      state: this.state,
       class: this.character.characterClass,
       inventory: this.character.inventory,
       modifiers: modifiers,
+      position: {
+        row: this.character.position.row,
+        col: this.character.position.col
+      },
       stats: {
         health: this.character.health,
         strength: this.character.strength,
         intelligence: this.character.intelligence,
         agility: this.character.agility
+      },
+      action: {
+        text: this.character.nextAction ? this.character.nextAction.text : '',
+        timestamp: this.character.nextAction ? this.character.nextAction.timestamp : ''
       }
     };
   }
