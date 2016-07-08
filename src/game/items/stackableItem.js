@@ -1,20 +1,34 @@
+import _ from 'lodash';
 import Item from './item';
 
 export default class StackableItem extends Item {
   constructor(kwargs = {}) {
     super(kwargs);
-    this.stackAmount = kwargs.stackAmount || 1;
+    this.stackAmount = _.isNumber(kwargs.stackAmount) ? kwargs.stackAmount : 1;
     this.maxStackAmount = kwargs.maxStackAmount || 1;
   }
   isEmpty() {
     return this.stackAmount === 0;
   }
+  isFull() {
+    return this.stackAmount === this.maxStackAmount;
+  }
   hasAny() {
     return !this.isEmpty();
   }
   addToStack(n = 1) {
-    this.stackAmount = Math.min(this.stackAmount + n, this.maxStackAmount);
-    return this.stackAmount;
+    if (n < 1) {
+      n = 1;
+    }
+
+    const oldStackAmount = this.stackAmount;
+
+    const newStackAmount = Math.min(oldStackAmount + n, this.maxStackAmount);
+
+    this.stackAmount = newStackAmount;
+
+    // return the amount added
+    return newStackAmount - oldStackAmount;
   }
   removeFromStack(n = 1) {
     if (n > this.stackAmount) {
@@ -28,7 +42,10 @@ export default class StackableItem extends Item {
     });
   }
   removeAllFromStack() {
-    return this.removeFromStack(this.stackAmount);
+    return this.removeFromStack(this.maxStackAmount);
+  }
+  fillStack() {
+    return this.addToStack(this.maxStackAmount);
   }
   toJSON() {
     return {

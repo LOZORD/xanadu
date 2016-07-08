@@ -74,8 +74,23 @@ describe('Game', () => {
     });
   });
 
-  describe.skip('handleMessage', () => {
-    // TODO
+  describe('handleMessage', () => {
+    context('when given a valid action command', () => {
+      it('should update the sender\'s character\'s `nextAction` field');
+      it('should send a response to the player confirming their next action');
+    });
+    context('when given an invalid action command', () => {
+      it('should send a response to the player');
+    });
+    context('when given a communication command', () => {
+      it('should be tested!');
+    });
+  });
+
+  describe('isAcceptingPlayers', () => {
+    it('should always return `false`', () => {
+      expect(createGame().isAcceptingPlayers()).to.be.false;
+    });
   });
 
   describe.skip('isRunning', () => {
@@ -90,7 +105,15 @@ describe('Game', () => {
     });
   });
 
-  describe.skip('isReadyForNextContext', () => {
+  describe('isReadyForNextContext', () => {
     it('should return true when the game has ended');
+  });
+
+  describe('update', () => {
+    it('should be tested!');
+  });
+
+  describe('isReadyForUpdate', () => {
+    it('should be tested!');
   });
 });

@@ -67,6 +67,7 @@ export default class Server {
     this.debugNS.on('connection', (socket) => {
       socket.on('get', () => {
         socket.emit('debug-update', this.currentContext.players
+          // pretty print the json
           .map(player => JSON.stringify(player.getDebugDetails(), null, 2))
           .join('\n'));
       });
@@ -114,7 +115,7 @@ export default class Server {
     socket.on('message', (messageObj) => {
       console.log(`Socket ${ socket.id }: ${ JSON.stringify(messageObj) }`);
 
-      let { isReadyForNextContext, isReadyForUpdate } = this.handleMessage(messageObj, socket);
+      let { isReadyForUpdate, isReadyForNextContext } = this.handleMessage(messageObj, socket);
 
       if (isReadyForUpdate) {
         const updatedContext = this.currentContext.update();

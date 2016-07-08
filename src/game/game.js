@@ -5,7 +5,7 @@ import Map      from './map/map';
 import {
   Response, EchoResponse, BroadcastResponse, GameResponse,
   PlayerResponse, WhisperResponse,
-  MultiplePlayerResponse,ChatResponse, ShoutResponse
+  MultiplePlayerResponse, ChatResponse, ShoutResponse
 } from './messaging';
 
 import Context from '../context/context';
@@ -14,20 +14,22 @@ import actionParser from './actionParser';
 import communicationHandler from '../context/communicationHandler';
 import updateGame from './updateGame';
 
+const logging = false;
+
 // TODO: one of the game parameters should be the number of modifiers randomly assigned
 // TODO: Game should extend Context (other subclass is Lobby)
 export default class Game extends Context {
   constructor(kwargs = {}) {
     super(kwargs);
 
-    this.rng        = kwargs.rng;
+    this.rng = kwargs.rng;
 
     if (!this.rng) {
       throw new Error('No default value for missing RNG!');
     }
 
     //const characterGrid = kwargs.characterGrid || TEST_MAP_DATA;
-    this.map        = kwargs.map        ||
+    this.map = kwargs.map ||
       new Map(TEST_MAP_DATA.characterGrid, TEST_MAP_DATA.startingPosition, this.rng);
 
     this.players.forEach((player) => {
@@ -35,14 +37,14 @@ export default class Game extends Context {
       player.state = PLAYER_STATES.PLAYING;
       // place all the players in the starting position on the map's grid
       player.character.setRowCol(
-          this.map.startingPassageRoom.row,
-          this.map.startingPassageRoom.col
+        this.map.startingPassageRoom.row,
+        this.map.startingPassageRoom.col
       );
     });
 
     this.turnNumber = kwargs.turnNumber || 0;
     //this.hasStarted = kwargs.hasStarted || false;
-    this.hasEnded   = kwargs.hasEnded   || false;
+    this.hasEnded = kwargs.hasEnded || false;
   }
 
   handleMessage(messageObj, player) {
@@ -134,9 +136,9 @@ export default class Game extends Context {
 
   getPlayerDetails() {
     return _.reduce(
-        this.players,
-        (acc, player) => _.assign(acc, { [player.id] : player.getDetails() }),
-        {}
+      this.players,
+      (acc, player) => _.assign(acc, { [player.id]: player.getDetails() }),
+      {}
     );
   }
 
@@ -147,11 +149,7 @@ export default class Game extends Context {
   }
 
   isReadyForUpdate() {
-    return _
-      .chain(this.players)
-      .map('character')
-      .every('nextAction')
-      .value();
+    return _.every(this.players, 'character.nextAction');
   }
 
   update() {
@@ -159,14 +157,18 @@ export default class Game extends Context {
 
     const { game: updatedGame, log } = performActions(this, actions);
 
+    if (logging) {
+      console.log('Got log: ' + JSON.stringify(log));
+    }
+
     updatedGame.turnNumber = this.turnNumber + 1;
 
-    console.log(`
-      \t\tCOMPLETED ROUND
-      \t\tNEXT ROUND: #${ updatedGame.turnNumber }
-    `);
-
-    console.log('Got log: ' + JSON.stringify(log));
+    if (logging) {
+      console.log(`
+        \t\tCOMPLETED ROUND
+        \t\tNEXT ROUND: #${ updatedGame.turnNumber }
+      `);
+    }
 
     return updatedGame;
   }

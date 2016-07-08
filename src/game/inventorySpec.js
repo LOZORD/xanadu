@@ -96,7 +96,15 @@ describe('Inventory', () => {
   describe('addItem', () => {
     context('when attempting to add an item already present in the inventory', () => {
       context('and the item is a StackableItem', () => {
-        it('should just increase the stack amount');
+        it('should just increase the stack amount', () => {
+          const i = new Inventory();
+          i.addItem(Stew);
+          const stew = i.findItem('Stew');
+          stew.maxStackAmount = 10;
+          i.addItem(Stew);
+          i.addItem(Stew);
+          expect(i.findItem('Stew').stackAmount).to.equal(3);
+        });
       });
       context('and the item is NOT a StackableItem', () => {
         it('should throw an error', () => {
