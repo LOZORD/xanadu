@@ -1,7 +1,7 @@
 import { it, beforeEach } from 'arrow-mocha/es5';
 import { expect } from 'chai';
 import Inventory from './inventory';
-import Stew from './items/ingestibles/stew';
+import { Stew } from './items/ingestibles/food';
 import Rifle from './items/weapons/rifle';
 
 describe('Inventory', () => {
