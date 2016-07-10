@@ -141,10 +141,10 @@ describe('Inventory', () => {
 
           test.stewStack.maxStackAmount = 5;
           // 3 stacks in total
-          test.stewStack.addToStack(2);
+          test.i.addItem(Stew, 2);
 
           // then remove 2 (should have one left)
-          test.removed = test.i.removeItem(Stew, { amount: 2 });
+          test.removed = test.i.removeItem(Stew, 2);
         });
         it('should remove and return the correct amount', (test) => {
           expect(test.removed).to.be.an.instanceof(Stew);

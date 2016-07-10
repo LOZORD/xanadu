@@ -1,7 +1,7 @@
 import StackableItem from '../stackableItem';
 
-export default class Bullet extends StackableItem {
-  constructor(kwargs = {}) {
-    super(kwargs);
-  }
-}
+export default class Bullet extends StackableItem {}
+
+export class RifleBullet extends Bullet {}
+
+export class RevolverBullet extends Bullet {}

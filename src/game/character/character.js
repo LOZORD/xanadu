@@ -114,9 +114,9 @@ export const MODIFIERS = {
 };
 
 class Character extends Animal {
-  constructor(kwargs = {}) {
+  constructor(player, stats = {}, inventory = null, row = 0, col = 0) {
 
-    super(kwargs);
+    super(stats, inventory, row, col);
 
     this.goldAmount = 0;
 
@@ -129,7 +129,7 @@ class Character extends Animal {
     // Fields w/o groups
     this.characterClass = CLASSES.UNDEFINED_CLASS;
     this.allegiance = ALLEGIANCES.UNDEFINED_ALLEGIANCE;
-    this.player = kwargs.player;
+    this.player = player;
   }
   hasAbility(abilityName) {
     const abilityStats = ABILITIES[abilityName];

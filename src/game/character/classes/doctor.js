@@ -2,8 +2,8 @@ import Character from '../character'
 //import Morphine from '../../items';
 
 export default class Doctor extends Character {
-  constructor(kwargs = {}) {
-    super(kwargs);
+  constructor(stats = {}, inventory = null, row = 0, col = 0) {
+    super(stats, inventory, row, col);
     this.health = 30;
     this.maxHealth = 30;
     this.intelligence = 50;

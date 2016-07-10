@@ -1,36 +1,16 @@
 import _ from 'lodash';
 export default class Entity {
-  // origin (0,0) is at NW corner of the map
-  constructor(args = {}) {
-    this.x = args.x || 0;
-    this.y = args.y || 0;
+  // (0,0) is the NW corner of the grid
+  constructor(row = 0, col = 0) {
+    this.row = row;
+    this.col = col;
   }
-  setRowCol(row, col) {
-    this.x = col;
-    this.y = row;
-  }
-  setXY(x, y) {
-    this.x = x;
-    this.y = y;
-  }
-  get col() {
-    return this.x;
-  }
-  set col(val) {
-    this.x = val;
-    return val;
-  }
-  get row() {
-    return this.y;
-  }
-  set row(val) {
-    this.y = val;
-    return val;
+  setPosition(row, col) {
+    this.row = row;
+    this.col = col;
   }
   get position() {
     return {
-      x: this.x,
-      y: this.y,
       row: this.row,
       col: this.col
     };

@@ -3,9 +3,9 @@ import StackableItem from '../stackableItem';
 // For all Food and Medical Items
 export default class Ingestible extends StackableItem {
   constructor(kwargs = {}) {
-    super(kwargs);
+    super(kwargs.stackAmount, kwargs.maxStackAmount, kwargs.row, kwargs.col);
     // the number of turns that the ingestible relieves addiction effects
-    this.addictionRelief = kwargs.additionRelief || 0;
+    this.addictionRelief = kwargs.addictionRelief || 0;
     this.isPoisoned        = kwargs.isPoisoned || false;
     this.isAddictive       = kwargs.isAddictive || false;
     this.givesImmortality  = kwargs.givesImmortality || false;

@@ -1,9 +1,9 @@
 import Gun from './gun';
-import RevolverBullet from './revolverBullet';
+import { RevolverBullet } from './bullet';
 
 export default class Revolver extends Gun {
-  constructor(kwargs = {}) {
-    super(kwargs);
+  constructor(...args) {
+    super(...args);
     this.currentClipAmount = 6;
     this.totalClipAmount = 6;
     this.bulletDistance = 1;

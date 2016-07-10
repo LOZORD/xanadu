@@ -14,10 +14,7 @@ describe('StackableItem', () => {
   });
   describe('addToStack', () => {
     beforeEach(test => {
-      test.si = new StackableItem({
-        stackAmount: 0,
-        maxStackAmount: 5
-      });
+      test.si = new StackableItem(0, 5);
     });
     context('when given at most the max amount', () => {
       it('should return the amount added', test => {
@@ -45,10 +42,7 @@ describe('StackableItem', () => {
   });
   describe('removeFromStack', () => {
     beforeEach((test) => {
-      test.si = new StackableItem({
-        stackAmount: 3,
-        maxStackAmount: 5
-      });
+      test.si = new StackableItem(3, 5);
     });
     it('should default to one stack removed', (test) => {
       test.si.removeFromStack();
@@ -59,6 +53,8 @@ describe('StackableItem', () => {
       expect(test.si.isEmpty()).to.be.true;
     });
     it('should never go below zero', (test) => {
+      //expect(test.si.stackAmount).to.equal(3, 'Should be initialized to 3!!!');
+      //expect(test.si.maxStackAmount).to.equal(5, 'Should be initialized to 5!!!');
       const retStack = test.si.removeFromStack(1000);
       expect(test.si.isEmpty()).to.be.true;
       expect(retStack.stackAmount).to.equal(3);
@@ -76,7 +72,7 @@ describe('StackableItem', () => {
   });
   describe('removeAllFromStack', () => {
     it('should remove stacks from an item', () => {
-      const si = new StackableItem({ stackAmount: 3, maxStackAmount: 5 });
+      const si = new StackableItem(3, 5);
 
       expect(si.isEmpty()).to.be.false;
 

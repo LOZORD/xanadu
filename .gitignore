@@ -6,3 +6,4 @@ dist/
 coverage/
 npm-debug.log
 .vscode
+jsconfig.json

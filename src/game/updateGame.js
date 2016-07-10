@@ -21,7 +21,7 @@ export default ({ game, log }, action, validate = false) => {
         const { row: newRow, col: newCol } = action.newPosition();
 
         // TODO: do a pure state change instead
-        action.actor.setRowCol(newRow, newCol);
+        action.actor.setPosition(newRow, newCol);
 
         log.push(`Moved ${ action.actor.player.id } from (${ oldRow }, ${ oldCol }) to (${ newRow }, ${ newCol })`);
       }

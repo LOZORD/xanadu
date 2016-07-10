@@ -31,11 +31,8 @@ export default class Player {
 
     // TODO: make this a non-generic Character class using the Character Factory
     // TODO: might not want to make this UNTIL we know that the current context is a game
-    this.character = new Character({
-      player: this,
-      x: args.x || 0,
-      y: args.y || 0
-    }); // TODO
+    this.character =
+      new Character(this, args.stats, args.inventory, args.row, args.col);
     this.state = PLAYER_STATES.ANON;
     // XXX this could be buggy (i.e. ANON && "has" name)
     this.name = args.name || '[NO NAME]';

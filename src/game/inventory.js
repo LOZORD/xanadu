@@ -47,13 +47,13 @@ export default class Inventory {
   // in fact, this could be a wrapper method that passes the object
   // to another method, or if a constructor is given, creates a new object
   // and passes _that_ to the other method
-  addItem(constructor, kwargs = {}) {
+  // TODO: allow the ability to add already-constructed items
+  addItem(constructor, amount = 1) {
     let existingItem = this.findItem(constructor);
-    let n = kwargs.amount || 1;
 
     if (existingItem) {
       if (existingItem instanceof StackableItem) {
-        existingItem.addToStack(n);
+        return existingItem.addToStack(amount);
       } else {
         throw new Error(`Tried to add an item ${ constructor.name } already in the inventory!`);
       }
@@ -61,25 +61,23 @@ export default class Inventory {
       if (this.hasRoom()) {
         let newItem;
         if (StackableItem.isPrototypeOf(constructor)) {
-          newItem = new (constructor)({
-            stackAmount: n
-          });
+          newItem = new (constructor)(amount);
         } else {
           newItem = new (constructor)();
         }
 
         this.items.push(newItem);
 
+        return newItem;
       } else {
         throw new Error('Inventory full!');
       }
     }
   }
-  removeItem(constructor, kwargs = {}) {
+  removeItem(constructor, removeAmount = 1) {
     if (this.hasItem(constructor)) {
       let itemIndex = this.findItemIndex(constructor);
       let item = this.items[itemIndex];
-      let removeAmount = kwargs.amount || 1;
 
       if (item instanceof StackableItem) {
         let removedStackItem = item.removeFromStack(removeAmount);

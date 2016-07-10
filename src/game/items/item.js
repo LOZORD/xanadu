@@ -1,8 +1,8 @@
 import Entity from '../entity';
 
 export default class Item extends Entity {
-  constructor(kwargs = {}) {
-    super(kwargs);
+  constructor(row = 0, col = 0) {
+    super(row, col);
     this.owner = null;
   }
   toJSON() {

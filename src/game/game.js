@@ -36,7 +36,7 @@ export default class Game extends Context {
       // set all the players' states to playing
       player.state = PLAYER_STATES.PLAYING;
       // place all the players in the starting position on the map's grid
-      player.character.setRowCol(
+      player.character.setPosition(
         this.map.startingPassageRoom.row,
         this.map.startingPassageRoom.col
       );

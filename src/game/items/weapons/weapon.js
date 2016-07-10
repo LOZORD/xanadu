@@ -1,8 +1,8 @@
 import Item from '../item';
 
 export default class Weapon extends Item {
-  constructor(kwargs = {}) {
-    super(kwargs);
-    this.damageAmount = 0; // how much damage this weapon does 'on hit'
+  constructor(damageAmount = 0, row = 0, col = 0) {
+    super(row, col);
+    this.damageAmount = damageAmount; // how much damage this weapon does 'on hit'
   }
 }

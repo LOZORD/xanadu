@@ -1,18 +1,18 @@
 import Entity from './entity';
 export default class MoveableEntity extends Entity {
-  constructor(args = {}) {
-    super(args);
+  constructor(row = 0, col = 0) {
+    super(row, col);
   }
   moveUp() {
-    this.y -= 1;
+    this.row -= 1;
   }
   moveDown() {
-    this.y += 1;
+    this.row += 1;
   }
   moveLeft() {
-    this.x -= 1;
+    this.col -= 1;
   }
   moveRight() {
-    this.x += 1;
+    this.col += 1;
   }
 }
