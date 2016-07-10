@@ -4,6 +4,8 @@ import StackableItem from '../stackableItem';
 export default class Ingestible extends StackableItem {
   constructor(kwargs = {}) {
     super(kwargs);
+    // the number of turns that the ingestible relieves addiction effects
+    this.addictionRelief = kwargs.additionRelief || 0;
     this.isPoisoned        = kwargs.isPoisoned || false;
     this.isAddictive       = kwargs.isAddictive || false;
     this.givesImmortality  = kwargs.givesImmortality || false;

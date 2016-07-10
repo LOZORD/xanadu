@@ -22,3 +22,17 @@ export class AlphWater extends Water {
     this.givesImmortality = true;
   }
 }
+
+export class Alcohol extends Liquid {
+  constructor(kwargs = {}) {
+    super(kwargs);
+
+    this.addictionRelief = 10;
+    this.stats = {
+      health: +20,
+      strength: +20,
+      intelligence: -10,
+      agility: -10
+    };
+  }
+}
