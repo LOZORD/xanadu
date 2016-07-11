@@ -1,6 +1,6 @@
 import { it, beforeEach } from 'arrow-mocha/es5';
 import { expect } from 'chai';
-import StackableItem from './stackableItem';
+import { ItemStack } from './item';
 
 // TODO: need to fix test globbing pattern to find this test
 describe('StackableItem', () => {

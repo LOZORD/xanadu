@@ -2,7 +2,7 @@ import _ from 'lodash';
 import Action, * as Actions from './actions';
 import actionValidator from './actionValidator';
 
-// TODO: incorporate the GameUpdate object in `game.js`
+// TODO: incorporate the GameUpdate object in `game.ts`
 export default ({ game, log }, action, validate = false) => {
 
   if (validate) {

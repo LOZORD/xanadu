@@ -4,7 +4,7 @@ import gen from 'random-seed';
 import Http from 'http';
 import Express from 'express';
 import IoFunction from 'socket.io';
-import Game from '../game/game.js';
+import Game from '../game/game';
 import Lobby from '../context/lobby';
 import Response, * as Responses from '../game/messaging';
 
