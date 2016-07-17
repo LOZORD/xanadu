@@ -1,10 +1,10 @@
 // Taken from here:
 // https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically
 
-import _ from 'lodash';
-import fs from 'fs';
-import path from 'path';
-import Mocha from 'Mocha';
+import * as _ from 'lodash';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as mocha from 'mocha';
 
 const distDir = './dist';
 const testPattern = 'Spec.js';
@@ -16,16 +16,16 @@ const mochaOptions = {
   reporter: possibleReporter || 'dot'
 };
 
-const getTestFiles = (dir) => {
+const getTestFiles = (dir : string) : string[] => {
   const contents = fs.readdirSync(dir);
 
-  const testFiles = _
+  const testFiles : string[] = _
     .chain(contents)
     .filter((fileName) => _.endsWith(fileName, testPattern))
     .map((fileName) => path.join(dir, fileName))
     .value();
 
-  const newDirs = _
+  const newDirs : string[] = _
     .chain(contents)
     .map((fileName) => path.join(dir, fileName))
     .filter((fileName) => fs.statSync(fileName).isDirectory())
@@ -33,14 +33,14 @@ const getTestFiles = (dir) => {
 
   const newResults = _
     .chain(newDirs)
-    .map((newDir) => getTestFiles(newDir))
-    .flatten()
+    .map((newDir : string) : string[] => getTestFiles(newDir))
+    .flatten<string>()
     .value();
 
   return testFiles.concat(newResults);
 };
 
-const runMocha = (baseDir, mochaOptions, proc) => {
+const runMocha = (baseDir : string, mochaOptions, proc) => {
   const mocha = new Mocha(mochaOptions);
 
   const testFiles = getTestFiles(distDir);
