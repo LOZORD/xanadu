@@ -10,7 +10,9 @@
   },
   "scripts": {
     "lint": "node node_modules/eslint/bin/eslint.js src",
-    "build": "node node_modules/babel-cli/bin/babel.js --quiet --copy-files src -d dist",
+    "build:babel": "node node_modules/babel-cli/bin/babel.js --quiet --copy-files src -d dist",
+    "build:ts": "node node_modules/typescript/bin/tsc",
+    "build": "npm run build:ts",
     "clean": "rm -rf dist/",
     "test:only": "node dist/test.js",
     "test:quick": "npm run build && npm run test:only",
@@ -61,7 +63,9 @@
     "chai": "^3.5.0",
     "eslint": "^2.6.0",
     "istanbul": "^0.4.4",
-    "mocha": "^2.5.3"
+    "mocha": "^2.5.3",
+    "typescript": "^2.0.0",
+    "typings": "^1.3.1"
   },
   "babel": {
     "presets": [

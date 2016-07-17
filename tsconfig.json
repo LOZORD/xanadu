@@ -4,10 +4,15 @@
     "module": "commonjs",
     "moduleResolution": "classic",
     "outDir": "dist",
-    "sourceMap": true
+    "sourceMap": true,
+    "allowJs": true,
+    "pretty": true
   },
   "exclude": [
     "dist",
-    "node_modules"
+    "node_modules",
+    "coverage",
+    "assets",
+    "docs"
   ]
 }
