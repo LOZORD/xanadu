@@ -34,7 +34,11 @@ export default class Game extends Context {
     handleCommand(messageObj: Command, player: Player): Dispatch[] {
         let responses: Messaging.Dispatch[] = [ Messaging.echoMessage(player.id, messageObj.contents) ];
         if (Move.key.test(messageObj.contents)) {
-            const move = makeMoveAction(player.character, messageObj.ts, makeDirection(messageObj.contents.split(' ')[1]));
+            const move = makeMoveAction(
+                player.character,
+                messageObj.ts,
+                makeDirection(messageObj.contents.split(' ')[1])
+            );
             if (Move.validate(move)) {
                 player.character.nextAction = move;
                 responses.push(gameMessage(`Next action: move to ${[move.row, move.col]}`)([player.id]));

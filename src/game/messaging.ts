@@ -7,16 +7,16 @@
 export type MessageType = 'Game' | 'Echo' | 'Whisper' | 'Talk' | 'Shout';
 
 export interface Message {
-    type: MessageType,
-    message: string
+    type: MessageType;
+    message: string;
 }
 
 // TODO: Use Player instances for from/to fields?
 // TODO: Rename
 export interface Dispatch {
-    from: number,
-    to: number[],
-    message: Message
+    from: number;
+    to: number[];
+    message: Message;
 }
 
 // Because the message type &etc determines the recipient of the function, we return
@@ -44,7 +44,7 @@ export function createMessage(from: number, message: string, type: MessageType):
                 message
             }
         };
-    }
+    };
 }
 
 export function gameMessage(message: string): messageFunc {

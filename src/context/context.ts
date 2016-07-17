@@ -57,12 +57,12 @@ export abstract class Context {
     }
 
     updatePlayer(id: number, update: { state?: PlayerState, name?: string }): void {
-        const p = _.find(this.players, p => p.id === id);
+        const player = _.find(this.players, p => p.id === id);
         if (update.name) {
-            p.name = update.name;
+            player.name = update.name;
         }
         if (update.state) {
-            p.state = update.state;
+            player.state = update.state;
         }
     }
 

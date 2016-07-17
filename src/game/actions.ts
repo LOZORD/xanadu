@@ -2,16 +2,16 @@ import { Animal } from './animal';
 import { Map, isWithinMap } from './map/map';
 
 export interface Action {
-    actor: Animal,
-    timestamp: number,
-    text: string
+    actor: Animal;
+    timestamp: number;
+    text: string;
 }
 
 export type Direction = 'North' | 'South' | 'East' | 'West';
 
 export interface MoveAction extends Action {
-    row: number,
-    col: number
+    row: number;
+    col: number;
 }
 
 export function makeMoveAction(a: Animal, timestamp: number, dir: Direction): MoveAction {
@@ -37,15 +37,15 @@ export function makeMoveAction(a: Animal, timestamp: number, dir: Direction): Mo
 
 // TODO: Option type
 export interface ValidationResult {
-    isValid: boolean,
-    error?: string
+    isValid: boolean;
+    error?: string;
 }
 
 // TODO: These types are awful
 export interface ActionParser {
-    action: (...args: any[]) => Action
-    key: RegExp,
-    validate: (a: Action, ...rest: any[]) => ValidationResult
+    action: (...args: any[]) => Action;
+    key: RegExp;
+    validate: (a: Action, ...rest: any[]) => ValidationResult;
 }
 
 function validateMoveAction(action: MoveAction, map: Map): ValidationResult {
@@ -62,7 +62,7 @@ function validateMoveAction(action: MoveAction, map: Map): ValidationResult {
     } else {
         return {
             isValid: true
-        }
+        };
     }
 }
 
@@ -74,8 +74,16 @@ export const Move: ActionParser = {
 
 // This is dumb
 export function makeDirection(s: string): Direction {
-    if (s === 'north') return 'North';
-    if (s === 'south') return 'South';
-    if (s === 'east') return 'East';
-    if (s === 'west') return 'West';
+    if (s === 'north') {
+        return 'North';
+    }
+    if (s === 'south') {
+        return 'South';
+    }
+    if (s === 'east') {
+        return 'East';
+    }
+    if (s === 'west') {
+        return 'West';
+    }
 }

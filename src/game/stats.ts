@@ -16,7 +16,9 @@ export interface PartialStats {
 
 export function changeStats(stats: Stats, changes: PartialStats): void {
     ['health', 'strength', 'intelligence', 'agility'].map(s => {
-        if (changes[s]) stats[s] += changes[s]
+        if (changes[s]) {
+            stats[s] += changes[s];
+        }
     });
 }
 

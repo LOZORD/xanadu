@@ -3,10 +3,10 @@ import { canTranslateModern, Character } from './character';
 export type PlayerState = 'Anon' | 'Preparing' | 'Ready' | 'Playing' | 'Dead' | 'Spectating' | 'Absent';
 
 export interface Player {
-    id: number,
-    name: string,
-    character?: Character,
-    state: PlayerState
+    id: number;
+    name: string;
+    character?: Character;
+    state: PlayerState;
 }
 
 export function isAnon(p: Player): boolean {

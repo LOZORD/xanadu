@@ -5,18 +5,18 @@ import { createInventory, hasItem, Inventory } from './inventory';
 import { meetsRequirements, Stats } from './stats';
 
 export interface Character extends Animal {
-    name: string,
-    characterClass: CharacterClass,
-    allegiance: Allegiance
-    modifiers: Modifiers,
-    goldAmount: number
+    name: string;
+    characterClass: CharacterClass;
+    allegiance: Allegiance;
+    modifiers: Modifiers;
+    goldAmount: number;
 }
 
 interface CharacterClass {
-    name: string,
-    startingStats: Stats,
-    startingGold: number,
-    startingInventory: Inventory
+    name: string;
+    startingStats: Stats;
+    startingGold: number;
+    startingInventory: Inventory;
 }
 
 export const NoClass: CharacterClass = {
@@ -171,19 +171,19 @@ export const Smith: CharacterClass = {
 export type Allegiance = 'None' | 'Eastern' | 'Western';
 
 export interface Modifiers {
-    killer?: boolean,
-    immortal?: boolean,
-    psycho?: boolean,
-    racist?: boolean,
-    cannibal?: boolean,
-    fatalist?: boolean,
-    pacifist?: boolean,
-    rusky?: boolean,
-    arsonist?: boolean,
-    angelOfDeath?: boolean,
-    collector?: boolean
-    scalper?: boolean,
-    missionary?: boolean
+    killer?: boolean;
+    immortal?: boolean;
+    psycho?: boolean;
+    racist?: boolean;
+    cannibal?: boolean;
+    fatalist?: boolean;
+    pacifist?: boolean;
+    rusky?: boolean;
+    arsonist?: boolean;
+    angelOfDeath?: boolean;
+    collector?: boolean;
+    scalper?: boolean;
+    missionary?: boolean;
 }
 
 export function canTranslateModern(c: Character): boolean {
