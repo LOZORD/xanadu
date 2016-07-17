@@ -14,13 +14,10 @@ export interface PartialStats {
     agility?: number;
 }
 
-export function changeStats(stats: Stats, changes: PartialStats): Stats {
-    return {
-        health: changes.health ? stats.health + changes.health : stats.health,
-        strength: changes.strength ? stats.strength + changes.strength : stats.strength,
-        intelligence: changes.intelligence ? stats.intelligence + changes.intelligence : stats.intelligence,
-        agility: changes.agility ? stats.agility + changes.agility : stats.agility
-    };
+export function changeStats(stats: Stats, changes: PartialStats): void {
+    ['health', 'strength', 'intelligence', 'agility'].map(s => {
+        if (changes[s]) stats[s] += changes[s]
+    });
 }
 
 export function meetsRequirements(stats: Stats, requirements: PartialStats): boolean {
