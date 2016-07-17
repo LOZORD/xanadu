@@ -35,11 +35,6 @@ export function makeMoveAction(a: Animal, timestamp: number, dir: Direction): Mo
     };
 }
 
-// convert to a line-search, case-insensitive regex
-export function keyToRegexp(key: string): RegExp {
-    return RegExp('^' + key + '$', 'i');
-}
-
 // TODO: Option type
 export interface ValidationResult {
     isValid: boolean,
@@ -49,7 +44,7 @@ export interface ValidationResult {
 // TODO: These types are awful
 export interface ActionParser {
     action: (...args: any[]) => Action
-    key: string,
+    key: RegExp,
     validate: (a: Action, ...rest: any[]) => ValidationResult
 }
 
@@ -73,6 +68,14 @@ function validateMoveAction(action: MoveAction, map: Map): ValidationResult {
 
 export const Move: ActionParser = {
     action: makeMoveAction,
-    key: 'go (north|south|east|west)',
+    key: /^go (north|south|east|west)$/,
     validate: validateMoveAction
 };
+
+// This is dumb
+export function makeDirection(s: string): Direction {
+    if (s === 'north') return 'North';
+    if (s === 'south') return 'South';
+    if (s === 'east') return 'East';
+    if (s === 'west') return 'West';
+}

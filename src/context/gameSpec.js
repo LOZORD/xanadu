@@ -3,9 +3,9 @@ import { expect } from 'chai';
 import _ from 'lodash';
 
 import Game from './game';
-import Map from './map/map';
-import { TEST_MAP_DATA } from './map/parseGrid';
-import Player from './player';
+import Map from '../game/map/map';
+import { TEST_MAP_DATA } from '../game/map/parseGrid';
+import Player from '../game/player';
 
 const createGame = () => {
   return new Game({ rng: _.constant(4) });

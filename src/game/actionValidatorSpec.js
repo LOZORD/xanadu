@@ -4,7 +4,7 @@ import _ from 'lodash';
 import actionParser from './actionParser';
 import actionValidator from './actionValidator';
 import Player from './player';
-import Game from './game';
+import Game from '../context/game';
 
 describe('Action Validator', () => {
   beforeEach(test => {

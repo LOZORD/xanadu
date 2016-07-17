@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import _ from 'lodash';
 import actionParser from './actionParser';
 import updateGame from './updateGame';
-import Game from './game';
+import Game from '../context/game';
 import Player from './player';
 import Action from './actions';
 

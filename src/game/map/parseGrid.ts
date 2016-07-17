@@ -23,7 +23,7 @@ export function gridRowsFromFile(fileName: string): { startingPosition: Position
 
 type ValidationResult = boolean | string;
 
-function validateGrid(grid: CellType[][], startingPosition: Position): ValidationResult {
+export function validateGrid(grid: CellType[][], startingPosition: Position): ValidationResult {
     if (!_.some(_.flatten(grid), cell => areSameCellType(cell, TreasureRoom))) {
         return 'There is no treasure room';
     }
@@ -37,7 +37,7 @@ function validateGrid(grid: CellType[][], startingPosition: Position): Validatio
     return true;
 }
 
-const parseGrid = (gridRows: string[], startingPosition: Position): Map => {
+export function parseGrid(gridRows: string[], startingPosition: Position): Map {
     const grid = _.map(gridRows, row => _.map(row, col => fromRepr(gridRows[row][col])));
     const validation = validateGrid(grid, startingPosition);
     if (validation !== true) throw new Error(validation as string);
@@ -48,15 +48,9 @@ const parseGrid = (gridRows: string[], startingPosition: Position): Map => {
         startingPosition,
         grid
     };
-};
+}
 
-export default parseGrid;
-
-export const TEST_FILE = path.join(__dirname, 'testMap.txt');
-
-export const TEST_MAP_DATA = gridRowsFromFile(TEST_FILE);
-
-export const TEST_GRID_PARSE = parseGrid(
-    TEST_MAP_DATA.gridRows,
-    TEST_MAP_DATA.startingPosition
-);
+export function testParse() {
+    const rows = gridRowsFromFile('testMap.txt');
+    return parseGrid(rows.gridRows, rows.startingPosition);
+}

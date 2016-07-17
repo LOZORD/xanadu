@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 
 // TODO: move player into its own directory
-import { Dispatch } from '../game/messaging';
+import { Dispatch, gameMessage } from '../game/messaging';
 import { Player, PlayerState } from '../game/player';
 
 export const validName: RegExp = /^\w+$/;
@@ -11,6 +11,7 @@ export type NameValidation = 'Valid' | 'Taken' | 'Invalid characters';
 export interface Command {
     player: Player;
     contents: string;
+    ts: number;
 }
 
 // A Context is a mutable container of Players. Other classes, like Game,
@@ -19,9 +20,9 @@ export abstract class Context {
     players: Player[];
     maxPlayers: number;
 
-    constructor(maxPlayers: number) {
+    constructor(maxPlayers: number, players?: Player[]) {
         this.maxPlayers = maxPlayers;
-        this.players = [];
+        this.players = players || [];
     }
     
     getPlayer(id: number): Player {
@@ -70,16 +71,20 @@ export abstract class Context {
     }
 
     validateName(name: string): NameValidation {
-    // TODO: validate against "subset" names
-    // e.g. "James_Bond" and "James_Bond_007"
-    if (this.hasPlayerByName(name)) {
-        return 'Taken';
-    } else if (!validName.test(name)) {
-        return 'Invalid characters';
-    } else {
-        return 'Valid';
+        // TODO: validate against "subset" names
+        // e.g. "James_Bond" and "James_Bond_007"
+        if (this.hasPlayerByName(name)) {
+            return 'Taken';
+        } else if (!validName.test(name)) {
+            return 'Invalid characters';
+        } else {
+            return 'Valid';
+        }
     }
-}
+
+    broadcast(message: string): Dispatch {
+        return gameMessage(message)(this.players.map(p => p.id));
+    }
 
     // Signal to the server whether it is time to create a new context for the players
     // (Example: everyone in a Lobby is ready, so start a game)

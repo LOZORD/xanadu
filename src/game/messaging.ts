@@ -22,7 +22,7 @@ export interface Dispatch {
 // Because the message type &etc determines the recipient of the function, we return
 // a function that can be given the recipients to give the correct Dispatch instance
 
-type messageFunc = (to: number[]) => Dispatch;
+export type messageFunc = (to: number[]) => Dispatch;
 
 export function echoMessage(from: number, message: string): Dispatch {
     return {

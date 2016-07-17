@@ -1,3 +1,5 @@
+import { Position } from './map/cell';
+
 export interface Entity {
     row: number;
     col: number;
@@ -6,5 +8,9 @@ export interface Entity {
 export interface MoveableEntity {
     row: number;
     col: number;
-    move: (row: number, col: number) => MoveableEntity; // this is bad
+}
+
+export function moveEntity(e: MoveableEntity, pos: Position) {
+    e.row = pos.row;
+    e.col = pos.col;
 }
