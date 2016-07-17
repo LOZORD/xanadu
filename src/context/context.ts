@@ -4,6 +4,10 @@ import * as _ from 'lodash';
 import { Dispatch } from '../game/messaging';
 import { Player, PlayerState } from '../game/player';
 
+export const validName: RegExp = /^\w+$/;
+
+export type NameValidation = 'Valid' | 'Taken' | 'Invalid characters';
+
 export interface Command {
     player: Player;
     contents: string;
@@ -42,6 +46,7 @@ export abstract class Context {
         }
         this.players.push({
             id,
+            name: '', // This is odd
             state: 'Anon'
         });
     }
@@ -51,19 +56,30 @@ export abstract class Context {
     }
 
     updatePlayer(id: number, update: { state?: PlayerState, name?: string }): void {
-        const i = _.findIndex(this.players, p => p.id === id);
-        const newPlayer = {
-            id: this.players[i].id,
-            character: this.players[i].character,
-            name: update.name || this.players[i].name,
-            state: update.state || this.players[i].state
-        };
-        this.players[i] = newPlayer;
+        const p = _.find(this.players, p => p.id === id);
+        if (update.name) {
+            p.name = update.name;
+        }
+        if (update.state) {
+            p.state = update.state;
+        }
     }
 
     isAcceptingPlayers(): boolean {
         return this.players.length < this.maxPlayers;
     }
+
+    validateName(name: string): NameValidation {
+    // TODO: validate against "subset" names
+    // e.g. "James_Bond" and "James_Bond_007"
+    if (this.hasPlayerByName(name)) {
+        return 'Taken';
+    } else if (!validName.test(name)) {
+        return 'Invalid characters';
+    } else {
+        return 'Valid';
+    }
+}
 
     // Signal to the server whether it is time to create a new context for the players
     // (Example: everyone in a Lobby is ready, so start a game)

@@ -26,10 +26,6 @@ export function stackIsFull(stack: ItemStack<Item>): boolean {
     return stack.stackAmount === stack.maxStackAmount;
 }
 
-export function changeStackAmount<I extends Item>(stack: ItemStack<I>, n: number): ItemStack<I> {
-    return {
-        item: stack.item,
-        stackAmount: _.clamp(stack.stackAmount + n, 0, stack.maxStackAmount),
-        maxStackAmount: stack.maxStackAmount
-    };
+export function changeStackAmount(stack: ItemStack<Item>, n: number) {
+    stack.stackAmount = _.clamp(stack.stackAmount + n, 0, stack.maxStackAmount);
 }

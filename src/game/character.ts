@@ -76,7 +76,24 @@ export const Doctor: CharacterClass = {
         agility: 10
     },
     startingGold: 0,
-    startingInventory: createInventory([Ingestible.Morphine, Ingestible.Opium, Ingestible.MedicalKits], 0)
+    // TODO: max stack amounts should be global
+    startingInventory: createInventory([
+        {
+            item: Ingestible.Morphine,
+            stackAmount: 1,
+            maxStackAmount: 5
+        },
+        {
+            item: Ingestible.Opium,
+            stackAmount: 1,
+            maxStackAmount: 5
+        },
+        {
+            item: Ingestible.MedicalKits,
+            stackAmount: 1,
+            maxStackAmount: 5
+        }
+    ], 0)
 };
 
 export const Chef: CharacterClass = {
