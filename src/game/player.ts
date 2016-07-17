@@ -3,7 +3,9 @@ import { canTranslateModern, Character } from './character';
 export type PlayerState = 'Anon' | 'Preparing' | 'Ready' | 'Playing' | 'Dead' | 'Spectating' | 'Absent';
 
 export interface Player {
-    character: Character,
+    id: number,
+    name: string,
+    character?: Character,
     state: PlayerState
 }
 

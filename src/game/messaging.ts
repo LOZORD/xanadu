@@ -4,7 +4,7 @@
 //   determine who the recipients of the message are
 // - The server dispatches the messages to the receiving players
 
-export type MessageType = 'Game' | 'Whisper' | 'Talk' | 'Shout';
+export type MessageType = 'Game' | 'Echo' | 'Whisper' | 'Talk' | 'Shout';
 
 export interface Message {
     type: MessageType,
@@ -24,6 +24,16 @@ export interface Dispatch {
 
 type messageFunc = (to: number[]) => Dispatch;
 
+export function echoMessage(from: number, message: string): Dispatch {
+    return {
+        from,
+        to: [from],
+        message: {
+            type: 'Echo',
+            message
+        }
+    };
+}
 export function createMessage(from: number, message: string, type: MessageType): messageFunc {
     return function(to: number[]): Dispatch {
         return {

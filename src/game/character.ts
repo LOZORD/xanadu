@@ -5,6 +5,7 @@ import { createInventory, hasItem, Inventory } from './inventory';
 import { meetsRequirements, Stats } from './stats';
 
 export interface Character extends Animal {
+    name: string,
     characterClass: CharacterClass,
     allegiance: Allegiance
     modifiers: Modifiers,
