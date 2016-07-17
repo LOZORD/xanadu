@@ -50,9 +50,22 @@ export const EmptyRoom: Room = {
     items: []
 };
 
-export const fromRepr = {
-    '#': Barrier,
-    '^': PassageRoom,
-    'X': TreasureRoom,
-    '_': EmptyRoom
-};
+export function areSameCellType(a: CellType, b: CellType): boolean {
+    // TODO: This is primitive
+    return a.repr === b.repr;
+}
+
+export function fromRepr(c: string): CellType {
+    switch (c[0]) {
+        case '#':
+            return Barrier;
+        case '^':
+            return PassageRoom;
+        case 'X':
+            return TreasureRoom;
+        case '_':
+            return EmptyRoom;
+        default:
+            throw new Error(`Unknown room type: ${c[0]}`); // Not a fan...
+    }
+}
