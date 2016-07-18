@@ -15,16 +15,16 @@ const MUTATE = true;
 const DO_NOT_MUTATE = false;
 
 export default class Server {
-  public expressApp: Express.Express;
-  public httpServer: Http.Server;
-  public io: SocketIO.Server;
-  public port: number;
-  public currentContext: Context;
-  public sockets: SocketIO.Socket[];
-  public gameNS: SocketIO.Namespace;
-  public debugNS: SocketIO.Namespace;
-  public seed: Gen.seedType;
-  public maxPlayers: number;
+  expressApp: Express.Express;
+  httpServer: Http.Server;
+  io: SocketIO.Server;
+  port: number;
+  currentContext: Context;
+  sockets: SocketIO.Socket[];
+  gameNS: SocketIO.Namespace;
+  debugNS: SocketIO.Namespace;
+  seed: Gen.seedType;
+  maxPlayers: number;
   //constructor(kwargs = { maxPlayers: 8, debug: true, port: 3000, seed: Date.now() }) {
   constructor(maxPlayers = 8, debug = true, port = 3000, seed = Date.now().toString()) {
     this.expressApp = Express();
@@ -92,23 +92,27 @@ export default class Server {
   }
   changeContext() {
     if (this.currentContext instanceof Lobby) {
+      // FIXME: what about passing the rng/seed?
+      this.currentContext = this.createGame();
+      /*
       this.currentContext = new Game({
         players: this.currentContext.players,
         maxPlayers: this.maxPlayers,
         rng: Gen(this.seed)
       });
+      */
       // message players that the game has begun
+      this.sendMessage(Responses.gameBroadcastMessage('THE GAME HAS BEGUN!')(null));
+      /*
       this.sendMessage(new Responses.GameBroadcastResponse(
             'THE GAME HAS BEGUN!'
       ));
+      */
       // send details to players
       this.sendDetails();
       // TODO: start the round interval update
     } else {
-      this.currentContext = new Lobby({
-        players: this.currentContext.players,
-        maxPlayers: this.maxPlayers
-      });
+      this.currentContext = this.createLobby();
     }
   }
   acceptSocket(socket: SocketIO.Socket) {
@@ -197,19 +201,27 @@ export default class Server {
 
   // Reason for `createGame`: we may want one server but many games!
   createGame() {
-    return new Game({
-      rng: gen(this.seed),
-      maxPlayers: this.maxPlayers
-    });
+    return new Game(this.maxPlayers, this.currentContext.players);
   }
 
   createLobby() {
-    return new Lobby({
-      maxPlayers: this.maxPlayers
-    });
+    return new Lobby(this.maxPlayers, this.currentContext.players);
   }
 
   sendMessage(response: Responses.Dispatch) {
+    if (response.message.type === 'PlayerBroadcast') {
+      const broadcastingSocket = this.getSocket(response.from.id);
+
+      broadcastingSocket.emit('message', Responses.show(response));
+    } else if (response.message.type === 'GameBroadcast') {
+      this.gameNS.emit('message', Responses.show(response));
+    } else if (response.message.type === 'Multiple') {
+      // TODO
+    } else if (response.message.type === 'Singular') {
+      // TODO
+    }
+
+    /*
     if (response instanceof Responses.BroadcastResponse) {
       if (response instanceof Responses.GameBroadcastResponse) {
         // send to ALL sockets
@@ -233,6 +245,7 @@ export default class Server {
 
       toSocket.emit('message', response.toJSON());
     }
+    */
   }
   sendDetails() {
     const idsToDetails = this.currentContext.getPlayerDetails();

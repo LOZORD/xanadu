@@ -3,7 +3,8 @@ import { canTranslateModern, Character } from './character';
 export type PlayerState = 'Anon' | 'Preparing' | 'Ready' | 'Playing' | 'Dead' | 'Spectating' | 'Absent';
 
 export interface Player {
-    id: number;
+    // this is the id of the socket on which the player is connected
+    id: string;
     name: string;
     character?: Character;
     state: PlayerState;

@@ -4,7 +4,7 @@
 import * as _ from 'lodash';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as mocha from 'mocha';
+import * as Mocha from 'mocha';
 
 const distDir = './dist';
 const testPattern = 'Spec.js';

@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 
 // TODO: move player into its own directory
-import { Dispatch, gameMessage } from '../game/messaging';
+import { Dispatch, gameBroadcastMessage } from '../game/messaging';
 import { Player, PlayerState } from '../game/player';
 
 export const validName: RegExp = /^\w+$/;
@@ -24,8 +24,8 @@ export abstract class Context {
         this.maxPlayers = maxPlayers;
         this.players = players || [];
     }
-    
-    getPlayer(id: number): Player {
+
+    getPlayer(id: string): Player {
         return _.find(this.players, (player) => player.id === id);
     }
 
@@ -33,7 +33,7 @@ export abstract class Context {
         return _.find(this.players, (player) => player.name === name);
     }
 
-    hasPlayer(id: number): boolean {
+    hasPlayer(id: string): boolean {
         return this.getPlayer(id) !== undefined;
     }
 
@@ -41,7 +41,7 @@ export abstract class Context {
         return this.getPlayerByName(name) !== undefined;
     }
 
-    addPlayer(id: number): void {
+    addPlayer(id: string): void {
         if (this.hasPlayer(id)) {
             throw new Error(`Player with id ${id} already exists!`);
         }
@@ -52,11 +52,11 @@ export abstract class Context {
         });
     }
 
-    removePlayer(id: number): void {
+    removePlayer(id: string): void {
         this.players = _.filter(this.players, p => p.id === id);
     }
 
-    updatePlayer(id: number, update: { state?: PlayerState, name?: string }): void {
+    updatePlayer(id: string, update: { state?: PlayerState, name?: string }): void {
         const player = _.find(this.players, p => p.id === id);
         if (update.name) {
             player.name = update.name;
@@ -83,7 +83,8 @@ export abstract class Context {
     }
 
     broadcast(message: string): Dispatch {
-        return gameMessage(message)(this.players.map(p => p.id));
+        //return gameMessage(message)(this.players.map(p => p.id));
+        return gameBroadcastMessage(message)(null);
     }
 
     // Signal to the server whether it is time to create a new context for the players
