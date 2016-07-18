@@ -92,3 +92,5 @@ export abstract class Context {
 
     abstract handleCommand(m: Command, p: Player): Dispatch[];
 }
+
+export default Context;

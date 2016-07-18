@@ -1,26 +1,35 @@
-import _ from 'lodash';
-import Path from 'path';
-import gen from 'random-seed';
-import Http from 'http';
-import Express from 'express';
-import IoFunction from 'socket.io';
+///<xreference path="./random-seed.d.ts" />
+// ^^ fix this ^^
+import * as _ from 'lodash';
+import * as Path from 'path';
+import * as Gen from 'random-seed';
+import * as Http from 'http';
+import * as Express from 'express';
+import * as SocketIO from 'socket.io';
+import Context from '../context/context';
 import Game from '../context/game';
 import Lobby from '../context/lobby';
-import Response, * as Responses from '../game/messaging';
+import * as Responses from '../game/messaging';
 
 const MUTATE = true;
 const DO_NOT_MUTATE = false;
 
 export default class Server {
-  constructor(kwargs = { maxPlayers: 8, debug: true, port: 3000, seed: Date.now() }) {
-    // using this default param + destructuring strategy,
-    // we can get kwargs beyond the required ones,
-    // while also neatly getting the required ones!
-    let { maxPlayers, debug, port, seed } = kwargs;
-
+  public expressApp: Express.Express;
+  public httpServer: Http.Server;
+  public io: SocketIO.Server;
+  public port: number;
+  public currentContext: Context;
+  public sockets: SocketIO.Socket[];
+  public gameNS: SocketIO.Namespace;
+  public debugNS: SocketIO.Namespace;
+  public seed: Gen.seedType;
+  public maxPlayers: number;
+  //constructor(kwargs = { maxPlayers: 8, debug: true, port: 3000, seed: Date.now() }) {
+  constructor(maxPlayers = 8, debug = true, port = 3000, seed = Date.now().toString()) {
     this.expressApp = Express();
-    this.httpServer = Http.Server(this.expressApp);
-    this.io         = IoFunction(this.httpServer);
+    this.httpServer = Http.createServer(this.expressApp);
+    this.io         = SocketIO(this.httpServer);
     this.port       = port;
 
     this.gameNS = this.io.of('/game');
@@ -31,10 +40,9 @@ export default class Server {
       this.createDebugServer();
     }
 
-    this.ns         = '/';
     this.seed       = seed;
     this.sockets = [];
-    //this.game = this.createGame();
+    // server starts out as having a lobby context
     this.currentContext = this.createLobby();
 
     this.createServer();
@@ -74,7 +82,7 @@ export default class Server {
     });
   }
 
-  handleConnection(socket) {
+  handleConnection(socket: SocketIO.Socket) {
     // when people connect...
     if (this.currentContext.isAcceptingPlayers()) {
       this.acceptSocket(socket);
@@ -87,7 +95,7 @@ export default class Server {
       this.currentContext = new Game({
         players: this.currentContext.players,
         maxPlayers: this.maxPlayers,
-        rng: gen(this.seed)
+        rng: Gen(this.seed)
       });
       // message players that the game has begun
       this.sendMessage(new Responses.GameBroadcastResponse(
@@ -103,7 +111,7 @@ export default class Server {
       });
     }
   }
-  acceptSocket(socket) {
+  acceptSocket(socket: SocketIO.Socket) {
     console.log(`Server accepted socket ${ socket.id }`);
     this.sockets.push(socket);
 
@@ -144,16 +152,16 @@ export default class Server {
     socket.emit('request-name');
   }
 
-  rejectSocket(socket) {
+  rejectSocket(socket: SocketIO.Socket) {
     console.log(`socket ${ socket.id } rejected -- game full`);
     socket.emit('rejected-from-room');
   }
 
-  getSocket(socketId, server = this) {
+  getSocket(socketId: string, server = this) {
     return _.find(server.sockets, (s) => s.id === socketId);
   }
 
-  addPlayer(socketId, shouldMutate = DO_NOT_MUTATE) {
+  addPlayer(socketId: string, shouldMutate = DO_NOT_MUTATE) {
     const result = this.currentContext.addPlayer(socketId);
 
     if (shouldMutate) {
@@ -163,7 +171,7 @@ export default class Server {
     return result;
   }
 
-  removePlayer(socketId, shouldMutate = DO_NOT_MUTATE) {
+  removePlayer(socketId: string, shouldMutate = DO_NOT_MUTATE) {
     const result = this.currentContext.removePlayer(socketId);
 
     if (shouldMutate) {
@@ -173,11 +181,11 @@ export default class Server {
     return result;
   }
 
-  removeSocket(socketId) {
+  removeSocket(socketId: string) {
     this.sockets = _.filter(this.sockets, (socket) => socket.id !== socketId);
   }
 
-  handleMessage(messageObj, socket) {
+  handleMessage(messageObj, socket: SocketIO.Socket) {
     this.currentContext.handleMessage(messageObj, this.currentContext.getPlayer(socket.id))
       .forEach((msg) => this.sendMessage(msg, socket));
 
@@ -201,11 +209,7 @@ export default class Server {
     });
   }
 
-  sendMessage(response) {
-    if (!(response instanceof Response)) {
-      throw new Error(`Expected ${ JSON.stringify(response) } to be an instance of Response!`);
-    }
-
+  sendMessage(response: Responses.Dispatch) {
     if (response instanceof Responses.BroadcastResponse) {
       if (response instanceof Responses.GameBroadcastResponse) {
         // send to ALL sockets
@@ -232,7 +236,6 @@ export default class Server {
   }
   sendDetails() {
     const idsToDetails = this.currentContext.getPlayerDetails();
-    //console.log(JSON.stringify(idsToDetails));
     _.forEach(idsToDetails, (details, socketId) => {
       const recipientSocket = this.getSocket(socketId);
 
