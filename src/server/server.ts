@@ -10,7 +10,7 @@ import Context from '../context/context';
 import Game from '../context/game';
 import Lobby from '../context/lobby';
 import { Message, show as showMessage, createGameMessage } from '../game/messaging';
-import { Player } from '../game/player';
+import { Player, debugDetails as playerDebugDetails, playerDetails } from '../game/player';
 
 export default class Server {
   expressApp: Express.Express;
@@ -74,7 +74,7 @@ export default class Server {
       socket.on('get', () => {
         socket.emit('debug-update', this.currentContext.players
           // pretty print the json
-          .map(player => JSON.stringify(player.getDebugDetails(), null, 2))
+          .map(player => JSON.stringify(playerDebugDetails(player), null, 2))
           .join('\n'));
       });
     });
@@ -126,8 +126,10 @@ export default class Server {
       let { isReadyForUpdate, isReadyForNextContext } = this.handleMessage(messageObj, socket);
 
       if (isReadyForUpdate) {
+        /* FIXME: context is missing an `update` function
         const updatedContext = this.currentContext.update();
         this.currentContext = updatedContext;
+        */
       }
 
       // TODO: do something with the context's player lists
@@ -174,12 +176,14 @@ export default class Server {
   }
 
   handleMessage(messageObj, socket: SocketIO.Socket) {
-    this.currentContext.handleMessage(messageObj, this.currentContext.getPlayer(socket.id))
-      .forEach((msg) => this.sendMessage(msg, socket));
+
+    this.currentContext.handleCommand(messageObj, this.currentContext.getPlayer(socket.id))
+      .forEach(message => this.sendMessage(message));
 
     return {
       isReadyForNextContext: this.currentContext.isReadyForNextContext(),
-      isReadyForUpdate: this.currentContext.isReadyForUpdate()
+      // FIXME: context is missing a `isReadyForUpdate` function
+      isReadyForUpdate: false /*this.currentContext.isReadyForUpdate()*/
     };
   }
 
@@ -207,7 +211,12 @@ export default class Server {
     });
   }
   sendDetails() {
-    const idsToDetails = this.currentContext.getPlayerDetails();
+    //const idsToDetails = this.currentContext.getPlayerDetails();
+
+    const idsToDetails = this.currentContext.players.reduce((acc, player) => {
+      return acc[player.id] = playerDetails(player);
+    }, {});
+
     _.forEach(idsToDetails, (details, socketId) => {
       const recipientSocket = this.getSocket(socketId);
 

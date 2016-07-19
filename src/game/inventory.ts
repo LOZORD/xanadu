@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-import { Item, ItemStack } from './items/item';
+import { Item, ItemStack, ItemStackJSON } from './items/item';
 
 export interface Inventory {
     items: ItemStack<Item>[];
@@ -29,4 +29,14 @@ export function getItem(inventory: Inventory, item: Item): ItemStack<Item> {
 
 export function hasItem(inventory: Inventory, item: Item): boolean {
     return !!getItem(inventory, item);
+}
+
+// TODO: put other Item_JSON types in parens:
+export type InventoryJSON = (ItemStackJSON)[];
+
+// FIXME: implement item condition (i.e. how much it needs to be repaired)
+export function toJSON(inventory: Inventory): InventoryJSON {
+    return inventory.items.map(item =>
+        ({name: item.item.name, stack: item.stackAmount})
+    );
 }

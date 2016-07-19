@@ -29,3 +29,11 @@ export function stackIsFull(stack: ItemStack<Item>): boolean {
 export function changeStackAmount(stack: ItemStack<Item>, n: number) {
     stack.stackAmount = _.clamp(stack.stackAmount + n, 0, stack.maxStackAmount);
 }
+
+export interface ItemJSON {
+    name: string;
+}
+
+export interface ItemStackJSON extends ItemJSON {
+    stack: number;
+}
