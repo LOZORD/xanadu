@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import _ from 'lodash';
+import { _ } from 'lodash';
 
 import Context from './context';
 import { EchoResponse } from '../game/messaging';

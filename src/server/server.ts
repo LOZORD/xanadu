@@ -23,7 +23,6 @@ export default class Server {
   debugNS: SocketIO.Namespace;
   seed: Gen.seedType;
   maxPlayers: number;
-  //constructor(kwargs = { maxPlayers: 8, debug: true, port: 3000, seed: Date.now() }) {
   constructor(maxPlayers = 8, debug = true, port = 3000, seed = Date.now().toString()) {
     this.expressApp = Express();
     this.httpServer = Http.createServer(this.expressApp);
@@ -211,20 +210,8 @@ export default class Server {
     });
   }
   sendDetails() {
-    //const idsToDetails = this.currentContext.getPlayerDetails();
-
-    const idsToDetails = this.currentContext.players.reduce((acc, player) => {
-      return acc[player.id] = playerDetails(player);
-    }, {});
-
-    _.forEach(idsToDetails, (details, socketId) => {
-      const recipientSocket = this.getSocket(socketId);
-
-      if (!recipientSocket) {
-        throw new Error(`Unknown socket: ${ socketId }`);
-      }
-
-      recipientSocket.emit('details', details);
+    this.currentContext.players.forEach(player => {
+      this.getSocket(player.id).emit('details', playerDetails(player));
     });
   }
 }

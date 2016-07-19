@@ -11,7 +11,7 @@ declare module 'random-seed' {
     string(count: number): string;
     cleanString(inStr: string): string;
     hashString(inStr: string): string;
-    addEntropy(...args:any[]): void;
+    addEntropy(...args: any[]): void;
     initState(): void;
     done(): void;
   }
@@ -20,8 +20,8 @@ declare module 'random-seed' {
     create(seed?: seedType): RandomGenerator;
   }
   type GenFunction = RandomGenerator & RandomGeneratorConstructor;
-  //class GenClass implements RandomGenerator, RandomGeneratorConstructor {}
-  //type GenType = GenFunction | GenClass;
+  // class GenClass implements RandomGenerator, RandomGeneratorConstructor {}
+  // type GenType = GenFunction | GenClass;
 
   // TODO: gen : GenFunction;
 

@@ -13,6 +13,8 @@ export interface Player {
   state: PlayerState;
 }
 
+// TODO: implement a `createPlayer` function
+
 export function isAnon(p: Player): boolean {
   return p.state === 'Anon';
 }

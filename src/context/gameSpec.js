@@ -1,14 +1,23 @@
 //import { it, before } from 'arrow-mocha/es5';
 import { expect } from 'chai';
-import _ from 'lodash';
+import { _ } from 'lodash';
 
 import Game from './game';
 import Map from '../game/map/map';
 import { TEST_MAP_DATA } from '../game/map/parseGrid';
-import Player from '../game/player';
+import { Player, PlayerState } from '../game/player';
 
 const createGame = () => {
   return new Game({ rng: _.constant(4) });
+};
+
+const createPlayer = (id, name, state) => {
+  return {
+    id,
+    name,
+    state: 'Anon',
+    character: null
+  };
 };
 
 describe('Game', () => {
@@ -33,7 +42,7 @@ describe('Game', () => {
     const g = createGame();
     const fields = {
       rng: () => 42,
-      players: [new Player({ id: 1 }), new Player({ id: 2 }), new Player({ id: 3 })]
+      players: [createPlayer(1), createPlayer(2), createPlayer(3)]
     };
     const changed = g.changeFields(fields);
 
