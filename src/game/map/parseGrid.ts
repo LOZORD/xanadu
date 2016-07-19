@@ -61,3 +61,5 @@ export function testParse() {
   const rows = gridRowsFromFile(testMapPath);
   return parseGrid(rows.gridRows, rows.startingPosition);
 }
+
+export const TEST_PARSE_RESULT = testParse();

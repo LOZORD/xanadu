@@ -1,17 +1,17 @@
-//import { it, before } from 'arrow-mocha/es5';
+// import { it, before } from 'arrow-mocha/es5';
 import { expect } from 'chai';
-import { _ } from 'lodash';
+import * as _ from 'lodash';
 
 import Game from './game';
-import Map from '../game/map/map';
-import { TEST_MAP_DATA } from '../game/map/parseGrid';
+import * as Map from '../game/map/map';
+import { TEST_PARSE_RESULT } from '../game/map/parseGrid';
 import { Player, PlayerState } from '../game/player';
 
 const createGame = () => {
-  return new Game({ rng: _.constant(4) });
+  return new Game(8, []);
 };
 
-const createPlayer = (id, name, state) => {
+const createPlayer = (id: string, name: string, state: PlayerState) => {
   return {
     id,
     name,
@@ -22,16 +22,16 @@ const createPlayer = (id, name, state) => {
 
 describe('Game', () => {
   describe('constructor', () => {
-    it('should not construct without an rng', () => {
-      expect(() => (new Game({}))).to.throw(Error);
+    it.skip('should not construct without an rng', () => {
+      // expect(() => (new Game())).to.throw(Error);
     });
 
     it('should set default arguments', () => {
       const g = createGame();
-      //const m = createMap();
+      // const m = createMap();
       expect(g.players).to.eql([]);
-      //expect(g.map).to.eql(m);
-      expect(g.map.toJSON()).to.eql(TEST_MAP_DATA.characterGrid);
+      // expect(g.map).to.eql(m);
+      expect(g.map.grid).to.eql(TEST_PARSE_RESULT.grid);
       expect(g.maxPlayers).to.equal(8);
       expect(g.turnNumber).to.equal(0);
       expect(g.hasEnded).to.equal(false);
@@ -42,9 +42,15 @@ describe('Game', () => {
     const g = createGame();
     const fields = {
       rng: () => 42,
-      players: [createPlayer(1), createPlayer(2), createPlayer(3)]
+      players: [
+        createPlayer('123', 'Foo', 'Preparing'),
+        createPlayer('456', 'Bar', 'Preparing'),
+        createPlayer('789', 'Baz', 'Preparing')
+      ]
     };
-    const changed = g.changeFields(fields);
+    // const changed = g.changeFields(fields);
+    // FIXME: implement or rewrite test
+    const changed = null;
 
     it('should change only the given fields', () => {
       Object.keys(fields).forEach((f) => {
@@ -63,7 +69,7 @@ describe('Game', () => {
     });
 
     it('should respect constructor defaults', () => {
-      const g = changed.changeFields({
+      const someGame = changed.changeFields({
         players: null,
         mapOpts: null,
         map: null,
@@ -72,14 +78,14 @@ describe('Game', () => {
         hasStarted: null,
         hasEnded: null
       });
-      //const m = createMap();
-      expect(g.players).to.eql([]);
-      //expect(g.map).to.eql(m);
-      expect(g.map.toJSON()).to.eql(TEST_MAP_DATA.characterGrid);
-      expect(g.maxPlayers).to.equal(8);
-      expect(g.turnNumber).to.equal(0);
-      expect(g.hasStarted).to.equal(false);
-      expect(g.hasEnded).to.equal(false);
+      // const m = createMap();
+      expect(someGame.players).to.eql([]);
+      // expect(g.map).to.eql(m);
+      expect(someGame.map.grid).to.eql(TEST_PARSE_RESULT.grid);
+      expect(someGame.maxPlayers).to.equal(8);
+      expect(someGame.turnNumber).to.equal(0);
+      expect(someGame.hasStarted).to.equal(false);
+      expect(someGame.hasEnded).to.equal(false);
     });
   });
 
@@ -102,14 +108,17 @@ describe('Game', () => {
     });
   });
 
+  // FIXME: implement `changeFields`
   describe.skip('isRunning', () => {
     it('should be true if the game has started and not ended', () => {
-      const g = createGame().changeFields({ hasStarted: true });
+      // const g = createGame().changeFields({ hasStarted: true });
+      const g = null;
       expect(g.isRunning()).to.equal(true);
     });
 
     it('should be false if the game has started and ended', () => {
-      const g = createGame().changeFields({ hasStarted: true, hasEnded: true });
+      // const g = createGame().changeFields({ hasStarted: true, hasEnded: true });
+      const g = null;
       expect(g.isRunning()).to.equal(false);
     });
   });

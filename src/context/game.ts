@@ -7,7 +7,7 @@ import { Map } from '../game/map/map';
 import * as Messaging from '../game/messaging';
 
 import { Context, Command } from './context';
-import { testParse } from '../game/map/parseGrid';
+import { TEST_PARSE_RESULT } from '../game/map/parseGrid';
 import { Message, gameMessage } from "../game/messaging";
 
 // TODO: one of the game parameters should be the number of modifiers randomly assigned
@@ -19,7 +19,7 @@ export default class Game extends Context {
 
     constructor(maxPlayers: number, players: Player[], map?: Map) {
         super(maxPlayers, players);
-        this.map = map || testParse();
+        this.map = map || TEST_PARSE_RESULT;
 
         this.players.forEach((player) => {
             // set all the players' states to playing

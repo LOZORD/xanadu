@@ -5,9 +5,12 @@
     "member-access": false,
     "object-literal-sort-keys": false,
     "no-console": false,
-    "no-trailing-whitespace": false,
+    "no-trailing-whitespace": true,
     "no-unused-variable": false,
     "quotemark": false,
-    "trailing-comma": false
+    "trailing-comma": false,
+    "comment-format": {
+      "check-space": false
+    }
   }
 }
