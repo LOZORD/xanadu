@@ -2,49 +2,68 @@
 import { expect } from 'chai';
 import * as Actions from './actions';
 import { Player } from './player';
+import { forEach as _forEach } from 'lodash';
 
 describe('Action Parser', () => {
   beforeEach(function() {
     this.player = {
       id: '007',
       name: 'James_Bond',
-      state: 'Preparing'
+      state: 'Preparing',
+      character: {
+        row: 1,
+        col: 1
+      }
     };
     this.args = [this.player.character, null, null];
   });
   describe('isParsableAction', () => {
     context('when given a valid action command', () => {
-      it.skip('should return true', () => {
-        //expect(actionParser.isParsableAction('go south')).to.be.true;
+      it('should return true', () => {
+        expect(Actions.isParsableAction('go south')).to.be.true;
       });
     });
     context('when given an invalid action command', () => {
-      it.skip('should return false', () => {
+      it('should return false', () => {
         // sadly false
-        //expect(actionParser.isParsableAction('listen to 2112')).to.be.false;
+        expect(Actions.isParsableAction('listen to 2112')).to.be.false;
       });
     });
   });
-  describe('Move Actions', () => {
-    it.skip('should return a MoveAction creator', function() {
-      ['north', 'south', 'west', 'east'].forEach((dir) => {
-        // FIXME: implement actions
-        //const ret = actionParser.parseAction(`go ${ dir }`);
+  describe('MoveAction', () => {
+    it('parsing should return a MoveAction', function() {
+      // all locations are based off of starting position (1,1)
+      const locations = {
+        'north': {
+          r: 0, c: 1
+        },
+        'south': {
+          r: 2, c: 1
+        },
+        'west': {
+          r: 1, c: 0
+        },
+        'east': {
+          r: 1, c: 2
+        }
+      };
 
-        //expect(ret).to.be.a('function');
+      _forEach(locations, ({ r, c }, dir) => {
+        const action = <Actions.MoveAction> Actions.parseAction(`go ${ dir }`, this.player.character, Date.now());
 
-        //const action = ret.apply(null, test.args);
+        expect(action).to.be.ok;
 
-        const action = null;
+        const newR = this.player.character.row + action.offsetRow;
+        const newC = this.player.character.col + action.offsetCol;
 
-        expect(action.direction).to.equal(dir);
+        expect(newR).to.equal(r, `when moving ${ dir }`);
+        expect(newC).to.equal(c, `when moving ${ dir }`);
       });
     });
   });
   describe('Unknown Inputs', () => {
-    it('should return null', () => {
-      //const ret = actionParser.parseAction('foobarbaz123');
-      const ret = false;
+    it('should return null', function() {
+      const ret = Actions.parseAction('foobarbaz123', this.player.character, Date.now());
       expect(ret).to.be.null;
     });
   });

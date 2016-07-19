@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-import { makeDirection, makeMoveAction, Move } from '../game/actions';
+import * as Actions from '../game/actions';
 import { moveEntity } from '../game/entity';
 import { Player } from '../game/player';
 import { Map } from '../game/map/map';
@@ -33,19 +33,20 @@ export default class Game extends Context {
 
     handleCommand(messageObj: Command, player: Player): Message[] {
         let responses: Message[] = [ Messaging.createEchoMessage(player, messageObj.contents) ];
-        if (Move.key.test(messageObj.contents)) {
-            const move = makeMoveAction(
-                player.character,
-                messageObj.ts,
-                makeDirection(messageObj.contents.split(' ')[1])
-            );
-            if (Move.validate(move)) {
-                player.character.nextAction = move;
-                responses.push(gameMessage(`Next action: move to ${[move.row, move.col]}`)([player]));
-            } else {
-                responses.push(gameMessage('You cannot move in that direction')([player]));
-            }
+
+        const component = Actions.getComponent(messageObj.contents);
+
+        const action = component.parse(messageObj.contents, player.character, messageObj.ts);
+
+        const { isValid, error } = component.validate(action, this);
+
+        if (isValid) {
+            player.character.nextAction = action;
+            responses.push(Messaging.createGameMessage(`Next action: ${ messageObj.contents }`, [player]));
+        } else {
+            responses.push(Messaging.createGameMessage(`Invalid action: ${ error }`, [player]));
         }
+
         // TODO: Other action types
         return responses;
     }
