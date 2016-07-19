@@ -2,17 +2,17 @@ import * as _ from 'lodash';
 
 import { Command, Context } from './context';
 import { Player, isReady } from '../game/player';
-import { Dispatch, echoMessage, gameMessage, talkMessage } from '../game/messaging';
+import { Message, createEchoMessage, gameMessage, talkMessage } from '../game/messaging';
 
 export default class Lobby extends Context {
     isReadyForNextContext() {
         return _.every(this.players, isReady);
     }
 
-    handleCommand(messageObj: Command, player: Player): Dispatch[] {
+    handleCommand(messageObj: Command, player: Player): Message[] {
         // XXX: this will need to be updated if we want flip-flopping between
         // games and lobbies
-        let responses: Dispatch[] = [ echoMessage(player.id, messageObj.contents) ];
+        let responses: Message[] = [ createEchoMessage(player, messageObj.contents) ];
         switch (player.state) {
             case 'Anon': {
                 const name = messageObj.contents;
@@ -20,7 +20,7 @@ export default class Lobby extends Context {
                 if (validationResult === 'Valid') {
                     this.updatePlayer(player.id, { name, state: 'Preparing' });
                     responses.push(this.broadcast(`Welcome to Xanadu ${ name }! Enter \`ready\` to start.`));
-                    responses.push(gameMessage('Enter `ready` to start.')([player.id]));
+                    responses.push(gameMessage('Enter `ready` to start.')([player]));
                 } else {
                     let errorMsg = '';
                     if (validationResult === 'Taken') {
@@ -28,7 +28,7 @@ export default class Lobby extends Context {
                     } else {
                         errorMsg = `The name '${ name }' contains invalid characters. `
                             + "Use only alphanumeric, underscore, and hyphen characters.";
-                        responses.push(gameMessage(errorMsg)([player.id]));
+                        responses.push(gameMessage(errorMsg)([player]));
                     }
                 }
                 break;
@@ -47,12 +47,12 @@ export default class Lobby extends Context {
 
                     // the caller will have to check for `isReadyForNextContext`
                 } else {
-                    responses.push(talkMessage(player.id, messageObj.contents)(this.players.map(p => p.id)));
+                    responses.push(talkMessage(player, messageObj.contents)(this.players));
                 }
                 break;
             }
             case 'Ready': {
-                responses.push(talkMessage(player.id, messageObj.contents)(this.players.map(p => p.id)));
+                responses.push(talkMessage(player, messageObj.contents)(this.players));
                 break;
             }
             default: {

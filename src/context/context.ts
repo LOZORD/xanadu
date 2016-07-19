@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 
 // TODO: move player into its own directory
-import { Dispatch, gameBroadcastMessage } from '../game/messaging';
+import { Message, createGameMessage } from '../game/messaging';
 import { Player, PlayerState } from '../game/player';
 
 export const validName: RegExp = /^\w+$/;
@@ -52,8 +52,10 @@ export abstract class Context {
         });
     }
 
-    removePlayer(id: string): void {
+    removePlayer(id: string): Player {
+        const removedPlayer = this.getPlayer(id);
         this.players = _.filter(this.players, p => p.id === id);
+        return removedPlayer;
     }
 
     updatePlayer(id: string, update: { state?: PlayerState, name?: string }): void {
@@ -82,16 +84,15 @@ export abstract class Context {
         }
     }
 
-    broadcast(message: string): Dispatch {
-        //return gameMessage(message)(this.players.map(p => p.id));
-        return gameBroadcastMessage(message)(null);
+    broadcast(message: string): Message {
+        return createGameMessage(message, this.players);
     }
 
     // Signal to the server whether it is time to create a new context for the players
     // (Example: everyone in a Lobby is ready, so start a game)
     abstract isReadyForNextContext(): boolean;
 
-    abstract handleCommand(m: Command, p: Player): Dispatch[];
+    abstract handleCommand(m: Command, p: Player): Message[];
 }
 
 export default Context;

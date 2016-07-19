@@ -8,7 +8,7 @@ import * as Messaging from '../game/messaging';
 
 import { Context, Command } from './context';
 import { testParse } from '../game/map/parseGrid';
-import { Dispatch, gameMessage } from "../game/messaging";
+import { Message, gameMessage } from "../game/messaging";
 
 // TODO: one of the game parameters should be the number of modifiers randomly assigned
 export default class Game extends Context {
@@ -31,8 +31,8 @@ export default class Game extends Context {
         this.hasEnded = false;
     }
 
-    handleCommand(messageObj: Command, player: Player): Dispatch[] {
-        let responses: Messaging.Dispatch[] = [ Messaging.echoMessage(player.id, messageObj.contents) ];
+    handleCommand(messageObj: Command, player: Player): Message[] {
+        let responses: Message[] = [ Messaging.createEchoMessage(player, messageObj.contents) ];
         if (Move.key.test(messageObj.contents)) {
             const move = makeMoveAction(
                 player.character,
@@ -41,9 +41,9 @@ export default class Game extends Context {
             );
             if (Move.validate(move)) {
                 player.character.nextAction = move;
-                responses.push(gameMessage(`Next action: move to ${[move.row, move.col]}`)([player.id]));
+                responses.push(gameMessage(`Next action: move to ${[move.row, move.col]}`)([player]));
             } else {
-                responses.push(gameMessage('You cannot move in that direction')([player.id]));
+                responses.push(gameMessage('You cannot move in that direction')([player]));
             }
         }
         // TODO: Other action types

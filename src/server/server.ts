@@ -9,10 +9,8 @@ import * as SocketIO from 'socket.io';
 import Context from '../context/context';
 import Game from '../context/game';
 import Lobby from '../context/lobby';
-import * as Responses from '../game/messaging';
-
-const MUTATE = true;
-const DO_NOT_MUTATE = false;
+import { Message, show as showMessage, createGameMessage } from '../game/messaging';
+import { Player } from '../game/player';
 
 export default class Server {
   expressApp: Express.Express;
@@ -102,12 +100,10 @@ export default class Server {
       });
       */
       // message players that the game has begun
-      this.sendMessage(Responses.gameBroadcastMessage('THE GAME HAS BEGUN!')(null));
-      /*
-      this.sendMessage(new Responses.GameBroadcastResponse(
-            'THE GAME HAS BEGUN!'
-      ));
-      */
+      this.sendMessage(
+        createGameMessage('THE GAME HAS BEGUN!', this.currentContext.players)
+      );
+
       // send details to players
       this.sendDetails();
       // TODO: start the round interval update
@@ -119,7 +115,7 @@ export default class Server {
     console.log(`Server accepted socket ${ socket.id }`);
     this.sockets.push(socket);
 
-    this.addPlayer(socket.id, MUTATE);
+    this.addPlayer(socket.id);
 
     // when people send _anything_ from the client
     // the game handles the message, and then passes the server a response
@@ -143,10 +139,10 @@ export default class Server {
     // when people disconnect
     socket.on('disconnect', () => {
       if (this.currentContext.hasPlayer(socket.id)) {
-        const { player } = this.removePlayer(socket.id, MUTATE);
-        console.log(`\tPlayer ${ player.id + '--' + player.name } disconnected`);
+        const removedPlayer = this.removePlayer(socket.id);
+        console.log(`\tPlayer ${ removedPlayer.id + '--' + removedPlayer.name } disconnected`);
         // FIXME: socket/player communication needs to be redone
-        socket.broadcast.emit(`${ player.name } has left the game.`);
+        socket.broadcast.emit(`${ removedPlayer.name } has left the game.`);
       } else {
         console.log(`Unrecognized socket ${ socket.id } disconnected`);
       }
@@ -165,24 +161,12 @@ export default class Server {
     return _.find(server.sockets, (s) => s.id === socketId);
   }
 
-  addPlayer(socketId: string, shouldMutate = DO_NOT_MUTATE) {
-    const result = this.currentContext.addPlayer(socketId);
-
-    if (shouldMutate) {
-      this.currentContext = result.context;
-    }
-
-    return result;
+  addPlayer(socketId: string): void {
+    this.currentContext.addPlayer(socketId);
   }
 
-  removePlayer(socketId: string, shouldMutate = DO_NOT_MUTATE) {
-    const result = this.currentContext.removePlayer(socketId);
-
-    if (shouldMutate) {
-      this.currentContext = result.context;
-    }
-
-    return result;
+  removePlayer(socketId: string): Player {
+    return this.currentContext.removePlayer(socketId);
   }
 
   removeSocket(socketId: string) {
@@ -208,44 +192,19 @@ export default class Server {
     return new Lobby(this.maxPlayers, this.currentContext.players);
   }
 
-  sendMessage(response: Responses.Dispatch) {
-    if (response.message.type === 'PlayerBroadcast') {
-      const broadcastingSocket = this.getSocket(response.from.id);
+  sendMessage(message: Message) {
+    const messageJSON = showMessage(message);
+    const recipients = message.to;
 
-      broadcastingSocket.emit('message', Responses.show(response));
-    } else if (response.message.type === 'GameBroadcast') {
-      this.gameNS.emit('message', Responses.show(response));
-    } else if (response.message.type === 'Multiple') {
-      // TODO
-    } else if (response.message.type === 'Singular') {
-      // TODO
-    }
+    recipients.forEach(recipientPlayer => {
+      const recipientSocket = this.getSocket(recipientPlayer.id);
 
-    /*
-    if (response instanceof Responses.BroadcastResponse) {
-      if (response instanceof Responses.GameBroadcastResponse) {
-        // send to ALL sockets
-        this.gameNS.emit('message', response.toJSON());
-      } else {
-        let broadcastingSocket = this.getSocket(response.from.id);
-        broadcastingSocket.broadcast.emit('message', response.toJSON());
-      }
-    } else if (response instanceof Responses.MultiplePlayerResponse) {
-      response.to.forEach((recipient) => {
-        const recipientSocket =  this.getSocket(recipient.id);
-
-        recipientSocket.emit('message', response.toJSON(recipient.id));
-      });
-    } else {
-      const toSocket = this.getSocket(response.to.id);
-
-      if (!toSocket) {
-        throw new Error(`Could not find socket with id ${ response.to.id }; to: ${ JSON.stringify(response.to) }`);
+      if (!recipientSocket) {
+        throw new Error(`Could not find socket with id: ${ recipientPlayer.id }`);
       }
 
-      toSocket.emit('message', response.toJSON());
-    }
-    */
+      recipientSocket.emit('message', messageJSON);
+    });
   }
   sendDetails() {
     const idsToDetails = this.currentContext.getPlayerDetails();
