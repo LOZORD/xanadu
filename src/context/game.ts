@@ -32,7 +32,7 @@ export default class Game extends Context {
     }
 
     handleCommand(messageObj: Command, player: Player): Message[] {
-        let responses: Message[] = [ Messaging.createEchoMessage(player, messageObj.contents) ];
+        let responses: Message[] = [ Messaging.createEchoMessage(messageObj.contents, player) ];
 
         const component = Actions.getComponent(messageObj.contents);
 

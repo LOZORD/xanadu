@@ -12,7 +12,7 @@ export default class Lobby extends Context {
     handleCommand(messageObj: Command, player: Player): Message[] {
         // XXX: this will need to be updated if we want flip-flopping between
         // games and lobbies
-        let responses: Message[] = [ createEchoMessage(player, messageObj.contents) ];
+        let responses: Message[] = [ createEchoMessage(messageObj.contents, player) ];
         switch (player.state) {
             case 'Anon': {
                 const name = messageObj.contents;
