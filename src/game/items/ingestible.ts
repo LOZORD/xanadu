@@ -7,7 +7,7 @@ export interface Ingestible extends Item {
     isPoisoned: boolean;
     isAddictive: boolean;
     givesImmortality: boolean;
-    stats: PartialStats
+    stats: PartialStats;
 }
 
 export function poison(ingestible: Ingestible): Ingestible {
@@ -20,8 +20,6 @@ export function poison(ingestible: Ingestible): Ingestible {
         stats: ingestible.stats
     };
 }
-
-import { Ingestible } from './ingestible';
 
 enum FoodType {
     Honeydew = 1,

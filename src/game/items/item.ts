@@ -10,12 +10,17 @@ export interface ItemStack<I extends Item> {
     maxStackAmount: number;
 }
 
-export function createItemStack<I extends Item>(item: I, size: number): ItemStack<I> {
+export function createItemStack<I extends Item>
+(item: I, stackAmount: number, maxStackAmount = stackAmount): ItemStack<I> {
     return {
-        item: item,
-        stackAmount: 0,
-        maxStackAmount: size
+        item,
+        maxStackAmount,
+        stackAmount: _.clamp(stackAmount, 0, maxStackAmount)
     };
+}
+
+export function createEmptyItemStack<I extends Item>(item: I, size: number): ItemStack<I> {
+    return createItemStack(item, 0, size);
 }
 
 export function stackIsEmpty(stack: ItemStack<Item>): boolean {
@@ -26,7 +31,7 @@ export function stackIsFull(stack: ItemStack<Item>): boolean {
     return stack.stackAmount === stack.maxStackAmount;
 }
 
-export function changeStackAmount(stack: ItemStack<Item>, n: number) {
+export function changeStackAmount(stack: ItemStack<Item>, n: number): void {
     stack.stackAmount = _.clamp(stack.stackAmount + n, 0, stack.maxStackAmount);
 }
 
