@@ -1,8 +1,21 @@
 /* global io */
+
+import * as io from 'socket.io-client';
+import * as $ from 'jquery';
+import * as ServerMessaging from '../game/messaging';
+import { PlayerDetailsJSON } from '../game/player';
+
 let socket = io('/game', {
   // don't attempt to reconnect if the server dies
   reconnection: false
 });
+
+type StyleClass = ServerMessaging.MessageType | 'Error' | 'Unknown';
+
+type ViewMessage = {
+  styleClasses: StyleClass[];
+  content: string;
+}
 
 $(document).ready(() => {
   let messageOutput   = $('#messages');
@@ -22,82 +35,60 @@ $(document).ready(() => {
     }
   });
 
-  let sendMessage = (msg) => {
+  let sendMessage = (msg: string) => {
     socket.emit('message', {
       message: msg,
-      ts: Date.now()
+      timestamp: Date.now()
     });
   };
 
-  let processData = (data) => {
+  let processData = (data: ServerMessaging.MessageJSON): ViewMessage => {
     switch (data.type) {
-      case 'broadcast': {
-        let broadcastIntro;
-
-        if (data.from) {
-          broadcastIntro = `${ data.from.name }: `;
-        } else {
-          broadcastIntro = '';
-        }
-
-        let broadcastMessage = broadcastIntro + data.message;
+      case 'Game': {
         return {
-          messageText: broadcastMessage,
-          styleClasses: ['broadcast']
+          content: data.message,
+          styleClasses: ['Game']
         };
       }
-      case 'game-broadcast': {
+      case 'Echo': {
         return {
-          messageText: data.message,
-          styleClasses: ['game-broadcast']
+          content: data.message,
+          styleClasses: ['Echo']
         };
       }
-      case 'chat': {
+      case 'Whisper': {
         return {
-          messageText: `${ data.from.name }: ${ data.message }`,
-          styleClasses: ['chat']
+          content: `${ data.from.name } whispered: ${ data.message }`,
+          styleClasses: ['Whisper']
         };
       }
-      case 'echo': {
+      case 'Talk': {
         return {
-          messageText: data.message,
-          styleClasses: ['echo']
+          content: `${ data.from.name } said: ${ data.message }`,
+          styleClasses: ['Talk']
         };
       }
-      case 'game': {
+      case 'Shout': {
         return {
-          messageText: data.message,
-          styleClasses: ['game']
-        };
-      }
-      case 'shout': {
-        return {
-          messageText: `${ data.from.name } shouted: ${ data.message }`,
-          styleClasses: ['shout']
-        };
-      }
-      case 'whisper': {
-        return {
-          messageText: `${ data.from.name } whispered: ${ data.message }`,
-          styleClasses: ['whisper']
+          content: `${ data.from.name } shouted: ${ data.message }`,
+          styleClasses: ['Shout']
         };
       }
       default: {
-        console.log('unknown message type:', data);
         return {
-          messageText: data.message,
-          styleClasses: ['unknown']
+          content: `Unknown type for message: ${ data.message } (${ data.type })`,
+          styleClasses: ['Unknown']
         };
       }
     }
   };
 
-  let addMessage = (messageText, styleClasses = []) => {
+  let addMessage = (viewMessage: ViewMessage) => {
     // use `.text` so whatever we put in the element will only be treated as
     // text and _not_ HTML (or worse, JS)
     // XXX: maybe do we want a <pre> _inside_ the <li>?
-    let newElem = $('<li>').text(messageText);
-    newElem.addClass(styleClasses.join(' '));
+    let newElem = $('<li>').text(viewMessage.content);
+    newElem.addClass(viewMessage.styleClasses.join(' '));
     messageOutput.append(newElem);
     messageOutput.parent().scrollTop(messageOutput.parent().height());
     input.focus();
@@ -105,64 +96,58 @@ $(document).ready(() => {
 
   // Basic welcome message
   // TODO: add word art and/or better/helpful message)
-  addMessage('Please enter your name below...', ['game']);
-
-  /*** MESSAGE HANDLER ***/
-
-  socket.on('message', (data) => {
-    console.log('Received message:', data);
-    let { messageText, styleClasses } = processData(data);
-    addMessage(messageText, styleClasses);
+  addMessage({
+    content: 'Please enter your name below...',
+    styleClasses: ['Game']
   });
 
-  /*** DISCONNECT ***/
+  /* * * MESSAGE HANDLER * * */
+
+  socket.on('message', (data: ServerMessaging.MessageJSON) => {
+    console.log('Received message:', data);
+    const viewMessage = processData(data);
+    addMessage(viewMessage);
+  });
+
+  /* * * DISCONNECT * * */
+
   socket.on('disconnect', (data) => {
-    addMessage('The server has encountered a fatal error!', ['error']);
+    addMessage({
+    content: 'The server has encountered a fatal error!',
+    styleClasses: ['Error']
+    });
     console.log('Error data', data);
   });
 
-  /*** ERROR HANDLER ***/
-
-  // TODO: find a way to gracefully handle and report server crashes to client
-  // this might help:
-  // http://socket.io/docs/server-api/#namespace#use(fn:function):namespace
-  /*
-  socket.on('error', (error) => {
-    addMessage('The server has encountered a fatal error!', ['error']);
-    console.log('Received error data: ', error);
-    socket.disconnect();
-  });
-  */
-
-  /*** REJECTED FROM ROOM ***/
+  /* * * REJECTED FROM ROOM * * */
 
   socket.on('rejected-from-room', () => {
     addMessage({
-      messageText: 'The game is at capacity',
-      styleClasses: ['game']
+      content: 'The game is at capacity',
+      styleClasses: ['Game']
     });
     socket.disconnect();
   });
 
-  /*** DETAILS (RHS PANE) ***/
+  /* * * DETAILS (RHS PANE) * * */
 
   // TODO: add player name and character class somewhere too
-  let updateDetails = (data) => {
+  let updateDetails = (data: PlayerDetailsJSON) => {
     // quasi-debug
     detailOutput.text(JSON.stringify(data));
 
     // stats
-    $('#health-current' ).text(data.stats.health.cur);
-    $('#health-max'     ).text(data.stats.health.max);
+    $('#health-current' ).text(data.stats.current.health);
+    $('#health-max'     ).text(data.stats.maximum.health);
 
-    $('#agility-current').text(data.stats.agility.cur);
-    $('#agility-max'    ).text(data.stats.agility.max);
+    $('#agility-current').text(data.stats.current.agility);
+    $('#agility-max'    ).text(data.stats.maximum.agility);
 
-    $('#intelligence-current' ).text(data.stats.intelligence.cur);
-    $('#intelligence-max'     ).text(data.stats.intelligence.max);
+    $('#intelligence-current' ).text(data.stats.current.intelligence);
+    $('#intelligence-max'     ).text(data.stats.maximum.intelligence);
 
-    $('#strength-current' ).text(data.stats.strength.cur);
-    $('#strength-max'     ).text(data.stats.strength.max);
+    $('#strength-current' ).text(data.stats.current.strength);
+    $('#strength-max'     ).text(data.stats.maximum.strength);
 
     // TODO: modifiers
     /*
@@ -204,7 +189,8 @@ $(document).ready(() => {
 
     // map
     if (data.map) {
-      $('#player-map').text(data.map);
+      // TODO: implement something like `Map.show`
+      $('#player-map').text(data.map.grid.toString());
       $('#map-wrapper').show();
     } else {
       $('#map-wrapper').hide();
@@ -218,7 +204,9 @@ $(document).ready(() => {
     $('#items-wrapper').empty();
     if (data.items.length > 0) {
       data.items.forEach((item) => {
-        let itemData = item.stack || item.condition || -1;
+        //let itemData = item.stack || item.condition || -1;
+        // TODO: implement item conditions
+        let itemData = item.stack;
         let appendedElem = $(
           `
           <div class='item-box row'>
@@ -230,7 +218,8 @@ $(document).ready(() => {
 
         if (item.stack) {
           appendedElem.find('.item-data').addClass('item-stack');
-        } else if (item.condition) {
+        } else if (item.hasOwnProperty('condition')) {
+          // TODO: this is a little hack -- item condition needs to be implemented
           appendedElem.find('.item-data').addClass(() => {
             let ret = 'item-condition';
 
@@ -252,15 +241,43 @@ $(document).ready(() => {
 
   };
 
-  socket.on('details', (data) => {
+  socket.on('details', (data: PlayerDetailsJSON) => {
     console.log('details', data);
     updateDetails(data);
   });
 
-  /*** FINAL VIEW SETUP ***/
+  /* * * FINAL VIEW SETUP * * */
   input.focus();
 
-  /*** XXX ONLY FOR TESTING XXX ***/
+  /* * * XXX ONLY FOR TESTING XXX * * */
+  updateDetails({
+    stats: {
+      maximum: {
+        health: 10,
+        agility: 10,
+        intelligence: 10,
+        strength: 10
+      },
+      current: {
+        health: 5,
+        agility: 4,
+        intelligence: 3,
+        strength: 2
+      }
+    },
+    gold: 50,
+    items: [
+      {
+        name: 'Pistol',
+        stack: 1
+      },
+      {
+        name: 'Water',
+        stack: 4
+      }
+    ]
+  });
+  /*
   updateDetails({
     stats: {
       health:   { cur: 5, max: 10 },
@@ -278,4 +295,5 @@ $(document).ready(() => {
       { name: 'Quux', stack: 1 }
     ]
   });
+  */
 });

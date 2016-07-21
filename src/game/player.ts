@@ -2,6 +2,7 @@ import { canTranslateModern, Character } from './character';
 import { Stats } from './stats';
 import { Item } from './items/item';
 import { toJSON as inventoryToJSON, InventoryJSON } from './inventory';
+import { Map } from './map/map';
 
 export type PlayerState = 'Anon' | 'Preparing' | 'Ready' | 'Playing' | 'Dead' | 'Spectating' | 'Absent';
 
@@ -72,7 +73,8 @@ export type PlayerDetailsJSON = {
   }
   // TODO: modifiers
   // TODO: effects
-  // TODO: (character's representation of the) map
+  // TODO: this is the character's representation of the game's map (the type/interface will likely be different)
+  map?: Map;
   gold: number;
   items: InventoryJSON;
 };
