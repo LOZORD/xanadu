@@ -8,10 +8,10 @@ export const validName: RegExp = /^\w+$/;
 
 export type NameValidation = 'Valid' | 'Taken' | 'Invalid characters';
 
-export interface Command {
+export interface ClientMessage {
   player: Player;
-  contents: string;
-  ts: number;
+  content: string;
+  timestamp: number;
 }
 
 // A Context is a mutable container of Players. Other classes, like Game,
@@ -41,15 +41,11 @@ export abstract class Context {
     return this.getPlayerByName(name) !== undefined;
   }
 
-  addPlayer(id: string): void {
+  addPlayer(id: string, name = '[ANON#PLAYER]', state: PlayerState = 'Anon'): void {
     if (this.hasPlayer(id)) {
       throw new Error(`Player with id ${id} already exists!`);
     } else if (this.isAcceptingPlayers()) {
-      this.players.push({
-        id,
-        name: '', // This is odd
-        state: 'Anon'
-      });
+      this.players.push({ id, name, state });
     } else {
       throw new Error('Attempted to add a player when not accepting!');
     }
@@ -100,7 +96,7 @@ export abstract class Context {
   // (Example: everyone in a Lobby is ready, so start a game)
   abstract isReadyForNextContext(): boolean;
 
-  abstract handleCommand(m: Command, p: Player): Message[];
+  abstract handleMessage(m: ClientMessage): Message[];
 }
 
 export default Context;

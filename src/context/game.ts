@@ -6,7 +6,7 @@ import { Player } from '../game/player';
 import { Map } from '../game/map/map';
 import * as Messaging from '../game/messaging';
 
-import { Context, Command } from './context';
+import { Context, ClientMessage } from './context';
 import { TEST_PARSE_RESULT } from '../game/map/parseGrid';
 import { Message, gameMessage } from "../game/messaging";
 
@@ -31,18 +31,18 @@ export default class Game extends Context {
         this.hasEnded = false;
     }
 
-    handleCommand(messageObj: Command, player: Player): Message[] {
-        let responses: Message[] = [ Messaging.createEchoMessage(messageObj.contents, player) ];
+    handleMessage({ content, player, timestamp}: ClientMessage): Message[] {
+        let responses: Message[] = [ Messaging.createEchoMessage(content, player) ];
 
-        const component = Actions.getComponent(messageObj.contents);
+        const component = Actions.getComponent(content);
 
-        const action = component.parse(messageObj.contents, player.character, messageObj.ts);
+        const action = component.parse(content, player.character, timestamp);
 
         const { isValid, error } = component.validate(action, this);
 
         if (isValid) {
             player.character.nextAction = action;
-            responses.push(Messaging.createGameMessage(`Next action: ${ messageObj.contents }`, [player]));
+            responses.push(Messaging.createGameMessage(`Next action: ${ content }`, [player]));
         } else {
             responses.push(Messaging.createGameMessage(`Invalid action: ${ error }`, [player]));
         }

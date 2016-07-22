@@ -176,7 +176,9 @@ export default class Server {
 
   handleMessage(messageObj, socket: SocketIO.Socket) {
 
-    this.currentContext.handleCommand(messageObj, this.currentContext.getPlayer(socket.id))
+    messageObj.player = this.currentContext.getPlayer(socket.id);
+
+    this.currentContext.handleMessage(messageObj)
       .forEach(message => this.sendMessage(message));
 
     return {
