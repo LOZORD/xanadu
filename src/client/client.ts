@@ -1,7 +1,7 @@
 /* global io */
 
-import * as io from 'socket.io-client';
-import * as $ from 'jquery';
+//import * as io from 'socket.io-client';
+//import * as $ from 'jquery';
 import * as ServerMessaging from '../game/messaging';
 import { PlayerDetailsJSON } from '../game/player';
 
@@ -23,6 +23,8 @@ $(document).ready(() => {
 
   let form = $('#main-form');
   let input = $('#main-input');
+
+  $('#parent-container').click(() => input.focus());
 
   form.submit((event) => {
     event.preventDefault();

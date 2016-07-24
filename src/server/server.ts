@@ -24,6 +24,7 @@ export default class Server {
   seed: Gen.seedType;
   maxPlayers: number;
   constructor(maxPlayers = 8, debug = true, port = 3000, seed = Date.now().toString()) {
+    this.maxPlayers = 8;
     this.expressApp = Express();
     this.httpServer = Http.createServer(this.expressApp);
     this.io         = SocketIO(this.httpServer);
@@ -40,7 +41,7 @@ export default class Server {
     this.seed       = seed;
     this.sockets = [];
     // server starts out as having a lobby context
-    this.currentContext = this.createLobby();
+    this.currentContext = this.createEmptyLobby();
 
     this.createServer();
   }
@@ -48,13 +49,15 @@ export default class Server {
   createServer () {
     const NODE_MODULES = Path.join(__dirname, '..', '..', 'node_modules');
     const PATHS = {
-      CLIENT: Path.join(__dirname, '..', 'client'),
+      CLIENT_ASSETS: Path.join(__dirname, '..', '..', 'assets'),
+      CLIENT_SCRIPTS: Path.join(__dirname, '..', 'client'),
       NODE_MODULES: NODE_MODULES,
       JQUERY: Path.join(NODE_MODULES, 'jquery', 'dist'),
       BOOTSTRAP: Path.join(NODE_MODULES, 'bootstrap', 'dist')
     };
 
-    this.expressApp.use(Express.static(PATHS.CLIENT));
+    this.expressApp.use(Express.static(PATHS.CLIENT_ASSETS));
+    this.expressApp.use('/scripts', Express.static(PATHS.CLIENT_SCRIPTS));
     this.expressApp.use('/jquery', Express.static(PATHS.JQUERY));
     this.expressApp.use('/bootstrap', Express.static(PATHS.BOOTSTRAP));
 
@@ -107,7 +110,7 @@ export default class Server {
       this.sendDetails();
       // TODO: start the round interval update
     } else {
-      this.currentContext = this.createLobby();
+      this.currentContext = this.createLobby(this.currentContext.players);
     }
   }
   acceptSocket(socket: SocketIO.Socket) {
@@ -154,7 +157,7 @@ export default class Server {
   }
 
   rejectSocket(socket: SocketIO.Socket) {
-    console.log(`socket ${ socket.id } rejected -- game full`);
+    console.log(`socket ${ socket.id } rejected -- game full (${ this.maxPlayers } max)`);
     socket.emit('rejected-from-room');
   }
 
@@ -189,12 +192,16 @@ export default class Server {
   }
 
   // Reason for `createGame`: we may want one server but many games!
-  createGame() {
+  createGame(): Game {
     return new Game(this.maxPlayers, this.currentContext.players);
   }
 
-  createLobby() {
-    return new Lobby(this.maxPlayers, this.currentContext.players);
+  createLobby(players: Player[]): Lobby {
+    return new Lobby(this.maxPlayers, players);
+  }
+
+  createEmptyLobby(): Lobby {
+    return this.createLobby([]);
   }
 
   sendMessage(message: Message) {
