@@ -37,9 +37,9 @@ $(document).ready(() => {
     }
   });
 
-  let sendMessage = (msg: string) => {
+  let sendMessage = (content: string) => {
     socket.emit('message', {
-      message: msg,
+      content,
       timestamp: Date.now()
     });
   };

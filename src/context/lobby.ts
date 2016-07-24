@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 
 import { ClientMessage, Context } from './context';
 import { Player, isReady } from '../game/player';
-import { Message, createEchoMessage, gameMessage, talkMessage } from '../game/messaging';
+import { Message, createEchoMessage, createGameMessage, createTalkMessage } from '../game/messaging';
 
 export default class Lobby extends Context {
   isReadyForNextContext() {
@@ -19,8 +19,12 @@ export default class Lobby extends Context {
         const validationResult = this.validateName(name);
         if (validationResult === 'Valid') {
           this.updatePlayer(fromClient.player.id, { name, state: 'Preparing' });
-          responses.push(this.broadcast(`Welcome to Xanadu ${name}! Enter \`ready\` to start.`));
-          responses.push(gameMessage('Enter `ready` to start.')([ fromClient.player ]));
+          responses.push(
+            createGameMessage(`Welcome to Xanadu ${name}! Enter \`ready \` to start.`, [ fromClient.player ])
+          );
+          responses.push(
+            this.broadcastFromPlayer(`${name} has joined the game!`, fromClient.player)
+          );
         } else {
           let errorMsg = '';
           if (validationResult === 'Taken') {
@@ -30,7 +34,7 @@ export default class Lobby extends Context {
               + "Use only alphanumeric, underscore, and hyphen characters.";
           }
 
-          responses.push(gameMessage(errorMsg)([ fromClient.player ]));
+          responses.push(createGameMessage(errorMsg, [ fromClient.player ]));
         }
         break;
       }
@@ -38,22 +42,27 @@ export default class Lobby extends Context {
         const message = fromClient.content;
         const words = message.split(' ');
 
-        if (words[ 0 ] === 'ready') {
+        if (words[ 0 ].toLowerCase() === 'ready') {
           // TODO: maybe do something with the 'rest' of the words for this command
           // for example, maybe allow the player to prefer a certain character class
           // or for them to start with a certain number of modifiers
 
           this.updatePlayer(fromClient.player.id, { state: 'Ready' });
-          responses.push(this.broadcast(`${fromClient.player.name} is ready`));
+          responses.push(this.broadcastFromPlayer(`${fromClient.player.name} is ready`, fromClient.player));
 
           // the caller will have to check for `isReadyForNextContext`
         } else {
-          responses.push(talkMessage(fromClient.player, fromClient.content)(this.players));
+          responses.push(
+            createTalkMessage(fromClient.player, fromClient.content, this.playersWithout([fromClient.player]))
+          );
         }
+
         break;
       }
       case 'Ready': {
-        responses.push(talkMessage(fromClient.player, fromClient.content)(this.players));
+        responses.push(
+          createTalkMessage(fromClient.player, fromClient.content, this.playersWithout([fromClient.player]))
+        );
         break;
       }
       default: {

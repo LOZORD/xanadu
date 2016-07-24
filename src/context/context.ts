@@ -88,8 +88,17 @@ export abstract class Context {
     }
   }
 
-  broadcast(message: string): Message {
-    return createGameMessage(message, this.players);
+  playersWithout(playersToLeaveOut = []): Player[] {
+    return _.difference(this.players, playersToLeaveOut);
+  }
+
+  broadcast(message: string, filterOut = []): Message {
+    return createGameMessage(message, this.playersWithout(filterOut));
+  }
+
+  broadcastFromPlayer(message: string, player: Player): Message {
+    // broadcast to all other players except this one
+    return this.broadcast(message, [player]);
   }
 
   // Signal to the server whether it is time to create a new context for the players
