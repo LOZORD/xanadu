@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "chai": "registry:npm/chai#3.5.0+20160415060238",
+    "es6-promise": "registry:npm/es6-promise#3.0.0+20160723033700",
     "lodash": "registry:npm/lodash#4.0.0+20160701205107"
   }
 }

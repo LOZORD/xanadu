@@ -1,43 +1,44 @@
 import Server from './server/server';
+import { Promise } from 'es6-promise';
 
-type CommandLineArgs = {
+export type CommandLineArgs = {
   maxPlayers?: number,
   debug?: boolean,
   port?: number,
   seed?: number
 };
 
-function parseArgs(argv: string[]): CommandLineArgs {
+export function parseArgs(givenArgs: string[]): CommandLineArgs {
   let args = {
     maxPlayers: undefined,
     debug: undefined,
     port: undefined,
     seed: undefined
   };
-  let i = 2;
-  while (i < argv.length) {
-    if (argv[i] === '--no-debug') {
+  let i = 0;
+  while (i < givenArgs.length) {
+    if (givenArgs[i] === '--no-debug') {
       args.debug = false;
       i++;
-    } else if (argv[i] === '--debug') {
+    } else if (givenArgs[i] === '--debug') {
       args.debug = true;
       i++;
-    } else if (argv[i] === '--port') {
-      let port = parseInt(argv[i + 1], 10);
+    } else if (givenArgs[i] === '--port') {
+      let port = parseInt(givenArgs[i + 1], 10);
       if (port < 1 || port > 65535) {
         port = NaN;
       }
       args.port = port;
       i += 2;
-    } else if (argv[i] === '--maxPlayers') {
-      let maxPlayers = parseInt(argv[i + 1], 10);
+    } else if (givenArgs[i] === '--maxPlayers') {
+      let maxPlayers = parseInt(givenArgs[i + 1], 10);
       if (maxPlayers < 2) {
         maxPlayers = NaN;
       }
       args.maxPlayers = maxPlayers;
       i += 2;
-    } else if (argv[i] === '--seed') {
-      args.seed = parseInt(argv[i + 1], 10);
+    } else if (givenArgs[i] === '--seed') {
+      args.seed = parseInt(givenArgs[i + 1], 10);
       i += 2;
     }
   }
@@ -49,8 +50,8 @@ function parseArgs(argv: string[]): CommandLineArgs {
   };
 }
 
-function startServer() {
-  const { maxPlayers, debug, port, seed } = parseArgs(process.argv);
+export function startServer(args: CommandLineArgs): Promise<Server> {
+  const { maxPlayers, debug, port, seed } = args;
   if (isNaN(maxPlayers) || isNaN(port) || isNaN(seed)) {
     console.error('Invalid arguments:');
     if (isNaN(maxPlayers)) {
@@ -64,7 +65,16 @@ function startServer() {
     }
   } else {
     const server = new Server(maxPlayers, debug, port, seed.toString());
+
+    return server.start();
   }
 }
 
-startServer();
+function isBeingRun(): boolean {
+  return !module.parent;
+}
+
+if (isBeingRun()) {
+  const args = parseArgs(process.argv.slice(2));
+  startServer(args);
+}
