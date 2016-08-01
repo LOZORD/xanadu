@@ -11,6 +11,7 @@ import Game from '../context/game';
 import Lobby from '../context/lobby';
 import { Message, show as showMessage, createGameMessage } from '../game/messaging';
 import { Player, debugDetails as playerDebugDetails, playerDetails } from '../game/player';
+import { Promise } from 'es6-promise';
 
 export default class Server {
   expressApp: Express.Express;
@@ -23,8 +24,9 @@ export default class Server {
   debugNS: SocketIO.Namespace;
   seed: Gen.seedType;
   maxPlayers: number;
+  debugNs: SocketIO.Namespace;
   constructor(maxPlayers = 8, debug = true, port = 3000, seed = Date.now().toString()) {
-    this.maxPlayers = 8;
+    this.maxPlayers = maxPlayers;
     this.expressApp = Express();
     this.httpServer = Http.createServer(this.expressApp);
     this.io         = SocketIO(this.httpServer);
@@ -35,7 +37,9 @@ export default class Server {
     // TODO: Don't serve debug page if debugging is off
     if (debug) {
       this.debugNS = this.io.of('/debug');
-      this.createDebugServer();
+      //this.createDebugServer();
+    } else {
+      this.debugNS = null;
     }
 
     this.seed       = seed;
@@ -43,7 +47,29 @@ export default class Server {
     // server starts out as having a lobby context
     this.currentContext = this.createEmptyLobby();
 
-    this.createServer();
+    //this.createServer();
+  }
+
+  start(): Promise<Server> {
+    return new Promise<Server>((resolve, reject) => {
+      if (this.debugNS) {
+        this.createDebugServer();
+      }
+
+      this.createServer();
+
+      resolve(this);
+    });
+  }
+
+  stop(closeCallback = _.noop): Promise<Server> {
+    return new Promise<Server>((resolve, reject) => {
+      this.debugNS.removeAllListeners('server-stopped');
+      this.gameNS.removeAllListeners('server-stopped');
+      this.httpServer.close(closeCallback);
+
+      resolve(this);
+    });
   }
 
   createServer () {
