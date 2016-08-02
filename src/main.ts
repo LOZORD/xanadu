@@ -3,18 +3,19 @@ import { Promise } from 'es6-promise';
 
 export type CommandLineArgs = {
   maxPlayers?: number,
-  debug?: boolean,
+  debug: boolean,
   port?: number,
   seed?: number
 };
 
 export function parseArgs(givenArgs: string[]): CommandLineArgs {
   let args = {
-    maxPlayers: undefined,
-    debug: undefined,
-    port: undefined,
-    seed: undefined
+    maxPlayers: NaN,
+    debug: false,
+    port: NaN,
+    seed: NaN
   };
+
   let i = 0;
   while (i < givenArgs.length) {
     if (givenArgs[i] === '--no-debug') {
@@ -40,29 +41,39 @@ export function parseArgs(givenArgs: string[]): CommandLineArgs {
     } else if (givenArgs[i] === '--seed') {
       args.seed = parseInt(givenArgs[i + 1], 10);
       i += 2;
+    } else {
+      // continue through...
+      i++;
     }
   }
-  return {
-    maxPlayers: args.maxPlayers || 8,
-    debug: args.debug || false,
-    port: args.port || 3000,
-    seed: args.seed || 1234
-  };
+
+  if (givenArgs.indexOf('--with-defaults') > -1) {
+    return {
+      maxPlayers: args.maxPlayers || 8,
+      debug: args.debug || false,
+      port: args.port || 3000,
+      seed: args.seed || 1234
+    };
+  } else {
+    return args;
+  }
 }
 
 export function startServer(args: CommandLineArgs): Promise<Server> {
   const { maxPlayers, debug, port, seed } = args;
   if (isNaN(maxPlayers) || isNaN(port) || isNaN(seed)) {
-    console.error('Invalid arguments:');
+    let errMsg = 'Invalid arguments (`--with-defaults` flag is suggested):\n';
     if (isNaN(maxPlayers)) {
-      console.error('- maxPlayers should be a number greater than 1');
+      errMsg += '\t- maxPlayers should be a number greater than 1\n';
     }
     if (isNaN(port)) {
-      console.error('- port should be a number between 1 and 65535');
+      errMsg += '\t- port should be a number between 1 and 65535\n';
     }
     if (isNaN(seed)) {
-      console.error('- seed should be a number');
+      errMsg += '\t- seed should be a number\n';
     }
+
+    return Promise.reject(new Error(errMsg));
   } else {
     const server = new Server(maxPlayers, debug, port, seed.toString());
 
@@ -76,5 +87,10 @@ function isBeingRun(): boolean {
 
 if (isBeingRun()) {
   const args = parseArgs(process.argv.slice(2));
-  startServer(args);
+  startServer(args).then((server: Server) => {
+    console.log(`XANADU SERVER LISTENING ON PORT: ${ server.port }`);
+  }, (error: Error) => {
+    console.error(error.message);
+    process.exit(1);
+  });
 }

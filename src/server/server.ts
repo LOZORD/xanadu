@@ -87,9 +87,8 @@ export default class Server {
     this.expressApp.use('/jquery', Express.static(PATHS.JQUERY));
     this.expressApp.use('/bootstrap', Express.static(PATHS.BOOTSTRAP));
 
-    this.httpServer.listen(this.port, () => {
-      console.log(`XANADU SERVER listening on port ${ this.port }`);
-    });
+    // TODO: add logger
+    this.httpServer.listen(this.port, _.noop);
 
     this.gameNS.on('connection', (socket) => {
       this.handleConnection(socket);
