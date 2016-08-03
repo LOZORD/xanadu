@@ -1,4 +1,3 @@
-//import { it, before, beforeEach } from 'arrow-mocha/es5';
 import { expect } from 'chai';
 import * as _ from 'lodash';
 import * as Messaging from './messaging';

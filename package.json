@@ -52,9 +52,9 @@
     "socket.io": "^1.4.5"
   },
   "devDependencies": {
-    "arrow-mocha": "^1.0.1",
     "chai": "^3.5.0",
     "istanbul": "^0.4.4",
+    "jsdom": "^9.4.1",
     "mocha": "^2.5.3",
     "tslint": "^3.13.0",
     "typescript": "^1.8.10",

@@ -3,6 +3,7 @@
     "express": "registry:dt/express#4.0.0+20160317120654",
     "express-serve-static-core": "registry:dt/express-serve-static-core#0.0.0+20160701212727",
     "jquery": "registry:dt/jquery#1.10.0+20160704162008",
+    "jsdom": "registry:dt/jsdom#2.0.0+20160316155526",
     "mime": "registry:dt/mime#0.0.0+20160316155526",
     "mocha": "registry:dt/mocha#2.2.5+20160619032855",
     "node": "registry:dt/node#6.0.0+20160709114037",

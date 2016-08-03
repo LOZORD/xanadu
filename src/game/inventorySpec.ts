@@ -1,4 +1,3 @@
-//import { it, beforeEach } from 'arrow-mocha/es5';
 import { expect } from 'chai';
 import * as Inventory from './inventory';
 import { createItemStack } from './items/item';
