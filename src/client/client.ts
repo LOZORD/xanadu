@@ -30,6 +30,7 @@ export type JQueryDetailSelectors = {
   $playerMap: JQuery;
   $goldAmount: JQuery;
   $itemsWrapper: JQuery;
+  _JQUERY_: JQueryCreator;
 };
 
 type ViewMessage = {
@@ -204,7 +205,8 @@ export function createSelectors($: JQueryCreator): JQueryDetailSelectors {
       $mapWrapper: $('#map-wrapper'),
       $playerMap: $('#player-map'),
       $goldAmount: $('#gold-amount'),
-      $itemsWrapper: $('#items-wrapper')
+      $itemsWrapper: $('#items-wrapper'),
+      _JQUERY_: $
     };
 }
 
@@ -249,14 +251,14 @@ export function processServerMessage(data: ServerMessaging.MessageJSON): ViewMes
     }
     default: {
       return {
-        content: `Unknown type for message: ${data.message} (${data.type})`,
+        content: `Unknown type for message: \`${data.message}\` (${data.type})`,
         styleClasses: [ 'Unknown' ]
       };
     }
   }
 }
 
-export function updateDetails($selectors: JQueryDetailSelectors, data: PlayerDetailsJSON) {
+export function updateDetails($selectors: JQueryDetailSelectors, data: PlayerDetailsJSON): JQueryDetailSelectors {
 
   // stats
   $selectors.current.$health.text(data.stats.current.health);
@@ -360,4 +362,6 @@ export function updateDetails($selectors: JQueryDetailSelectors, data: PlayerDet
   } else {
     $selectors.$itemsWrapper.append('<div>Your inventory is empty.</div>');
   }
+
+  return $selectors;
 }
