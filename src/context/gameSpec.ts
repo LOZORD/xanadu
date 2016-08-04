@@ -6,16 +6,26 @@ import * as Map from '../game/map/map';
 import { TEST_PARSE_RESULT } from '../game/map/parseGrid';
 import { Player, PlayerState } from '../game/player';
 
-const createGame = () => {
-  return new Game(8, []);
+const createGame = (players = []): Game => {
+  return new Game(8, players);
 };
 
-const createPlayer = (id: string, name: string, state: PlayerState) => {
+const createPlayer = (id: string, name: string, state: PlayerState): Player => {
   return {
     id,
     name,
-    state: 'Anon',
-    character: null
+    state,
+    character: {
+      nextAction: null,
+      characterClass: null,
+      allegiance: null,
+      goldAmount: 0,
+      inventory: null,
+      stats: null,
+      row: 0,
+      col: 0,
+      modifiers: null
+    }
   };
 };
 
@@ -131,6 +141,28 @@ describe('Game', () => {
   });
 
   describe('isReadyForUpdate', () => {
-    it('should be tested!');
+    it('should be true iff all players have an action', () => {
+      const p1 = createPlayer('007', 'James_Bond', 'Playing');
+      const p2 = createPlayer('008', 'Bill', 'Playing');
+      const game = createGame([p1, p2]);
+
+      p1.character.nextAction = {
+        timestamp: Date.now(),
+        actor: p1.character,
+        key: 'Pass'
+      };
+
+      p2.character.nextAction = null;
+
+      expect(game.isReadyForUpdate()).to.be.false;
+
+      p2.character.nextAction = {
+        timestamp: Date.now(),
+        actor: p2.character,
+        key: 'Pass'
+      };
+
+      expect(game.isReadyForUpdate()).to.be.true;
+    });
   });
 });

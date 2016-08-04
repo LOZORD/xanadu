@@ -105,6 +105,10 @@ export abstract class Context {
   // (Example: everyone in a Lobby is ready, so start a game)
   abstract isReadyForNextContext(): boolean;
 
+  abstract isReadyForUpdate(): boolean;
+
+  abstract update(): Message[];
+
   abstract handleMessage(m: ClientMessage): Message[];
 }
 

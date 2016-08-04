@@ -1,12 +1,13 @@
 import { Animal } from './animal';
 import { Map, isWithinMap } from './map/map';
 import Game from '../context/game';
+import { moveEntity } from './entity';
 import * as _ from 'lodash';
 
 export interface Action {
   actor: Animal;
   timestamp: number;
-  text: string; // what is this used for?
+  key: ComponentKey;
 }
 
 // TODO: Option type
@@ -15,10 +16,14 @@ export interface ValidationResult {
   error?: string;
 }
 
+export type ComponentKey = 'Move' | 'Pass';
+
 export interface ActionParserComponent<A extends Action> {
   pattern: RegExp;
   parse: (text: string, actor: Animal, timestamp: number) => A;
   validate: (action: A, gameContext: Game) => ValidationResult;
+  perform: (action: A, game: Game, log: string[]) => string[];
+  componentKey: ComponentKey;
 }
 
 export interface MoveAction extends Action {
@@ -35,14 +40,14 @@ export const MoveComponent: ActionParserComponent<MoveAction> = {
     if (!matches) {
       return null;
     } else {
-      const dir = matches[1].toLowerCase();
+      const dir = matches[ 1 ].toLowerCase();
 
       const ret: MoveAction = {
         actor,
         timestamp,
-        text: 'move',
         offsetRow: 0,
-        offsetCol: 0
+        offsetCol: 0,
+        key: 'Move'
       };
 
       if (dir === 'north') {
@@ -69,7 +74,7 @@ export const MoveComponent: ActionParserComponent<MoveAction> = {
         isValid: false,
         error: 'Out of bounds movement!'
       };
-    } else if (!game.map.grid[newR][newC].room) {
+    } else if (!game.map.grid[ newR ][ newC ].room) {
       return {
         isValid: false,
         error: 'Desired location is not a room!'
@@ -77,15 +82,51 @@ export const MoveComponent: ActionParserComponent<MoveAction> = {
     } else {
       return { isValid: true };
     }
-  }
+  },
+  perform(move: MoveAction, game: Game, log: string[]): string[] {
+    const newPos = {
+      row: move.actor.row + move.offsetRow,
+      col: move.actor.col + move.offsetCol
+    };
+
+    moveEntity(move.actor, newPos);
+
+    // TODO: get movement and room description
+
+    return log;
+  },
+  componentKey: 'Move'
 };
 
-export const Parsers: ActionParserComponent<Action>[] = [
-  MoveComponent
-];
+export const PassComponent: ActionParserComponent<Action> = {
+  pattern: /^pass$/i,
+  parse(text: string, actor: Animal, timestamp: number) {
+    return {
+      actor,
+      timestamp,
+      key: 'Pass'
+    };
+  },
+  validate() {
+    return { isValid: true };
+  },
+  perform(passAction: Action, game: Game, log: string[]): string[] {
+    // pass (do nothing!)
+    return log;
+  },
+  componentKey: 'Pass'
+};
+
+export interface ActionParserComponentMap<A extends Action> {
+  [ componentKey: string ]: ActionParserComponent<A>;
+};
+
+export const Parsers: ActionParserComponentMap<Action> = {
+  'Move': MoveComponent
+};
 
 export function parseAction(text: string, actor: Animal, timestamp: number): Action {
-  const myComponent = getComponent(text);
+  const myComponent = getComponentByText(text);
 
   if (!myComponent) {
     return null;
@@ -94,10 +135,14 @@ export function parseAction(text: string, actor: Animal, timestamp: number): Act
   return myComponent.parse(text, actor, timestamp);
 }
 
-export function getComponent<A extends Action>(text: string): ActionParserComponent<Action> {
+export function getComponentByText<A extends Action>(text: string): ActionParserComponent<Action> {
   return _.find(Parsers, comp => comp.pattern.test(text));
 }
 
+export function getComponentByKey<A extends Action>(key: ComponentKey): ActionParserComponent<Action> {
+  return Parsers[ key ];
+}
+
 export function isParsableAction(text: string): boolean {
-  return Boolean(getComponent(text));
+  return Boolean(getComponentByText(text));
 }

@@ -9,6 +9,14 @@ export default class Lobby extends Context {
     return _.every(this.players, isReady);
   }
 
+  isReadyForUpdate() {
+    return false;
+  }
+
+  update() {
+    return [];
+  }
+
   handleMessage(fromClient: ClientMessage): Message[] {
     // XXX: this will need to be updated if we want flip-flopping between
     // games and lobbies
