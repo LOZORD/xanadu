@@ -1,11 +1,9 @@
 import * as _ from 'lodash';
-
 import * as Actions from '../game/actions';
 import { moveEntity } from '../game/entity';
 import { Player } from '../game/player';
 import { Map } from '../game/map/map';
 import * as Messaging from '../game/messaging';
-
 import { Context, ClientMessage } from './context';
 import { TEST_PARSE_RESULT } from '../game/map/parseGrid';
 import { Message, gameMessage } from "../game/messaging";
@@ -44,9 +42,9 @@ export default class Game extends Context {
 
       if (isValid) {
         player.character.nextAction = action;
-        responses.push(Messaging.createGameMessage(`Next action: ${ content }`, [player]));
+        responses.push(Messaging.createGameMessage(`Next action: ${content}`, [ player ]));
       } else {
-        responses.push(Messaging.createGameMessage(`Invalid action: ${ error }`, [player]));
+        responses.push(Messaging.createGameMessage(`Invalid action: ${error}`, [ player ]));
       }
     } else {
       // TODO: check if it's a communication message or just a malformed action command

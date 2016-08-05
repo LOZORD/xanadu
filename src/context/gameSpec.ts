@@ -1,10 +1,10 @@
 import { expect } from 'chai';
 import * as _ from 'lodash';
-
 import Game from './game';
 import * as Map from '../game/map/map';
 import { TEST_PARSE_RESULT } from '../game/map/parseGrid';
 import { Player, PlayerState } from '../game/player';
+import * as Messaging from '../game/messaging';
 
 const createGame = (players = []): Game => {
   return new Game(8, players);
@@ -117,18 +117,16 @@ describe('Game', () => {
     });
   });
 
-  // FIXME: implement `changeFields`
-  describe.skip('isRunning', () => {
-    it('should be true if the game has started and not ended', () => {
-      // const g = createGame().changeFields({ hasStarted: true });
-      const g = null;
-      expect(g.isRunning()).to.equal(true);
+  describe('isRunning', () => {
+    // `hasEnded = false` upon game creation
+    it('should be true if the game has not ended', () => {
+      expect(createGame().isRunning()).to.be.true;
     });
 
     it('should be false if the game has started and ended', () => {
-      // const g = createGame().changeFields({ hasStarted: true, hasEnded: true });
-      const g = null;
-      expect(g.isRunning()).to.equal(false);
+      const game = createGame();
+      game.hasEnded = true;
+      expect(game.isRunning()).to.equal(false);
     });
   });
 
@@ -136,8 +134,45 @@ describe('Game', () => {
     it('should return true when the game has ended');
   });
 
+  // TODO: test if the sorting works
   describe('update', () => {
-    it('should be tested!');
+    beforeEach(function() {
+      this.p1 = createPlayer('007', 'James_Bond', 'Playing');
+      this.p2 = createPlayer('008', 'Bill', 'Playing');
+      this.game = createGame([this.p1, this.p2]);
+    });
+
+    it('should work with move actions', function() {
+      // a valid movement
+      const r1: Messaging.Message[] = this.game.handleMessage({
+        player: this.p1,
+        content: 'go south',
+        timestamp: Date.now()
+      });
+
+      // don't really care about the result of p2's command
+      this.game.handleMessage({
+        player: this.p2,
+        content: 'pass',
+        timestamp: Date.now()
+      });
+
+      const hasNextActionMessage = _
+        .chain(<Messaging.Message[]> r1)
+        .map('content')
+        .some(content => _.includes(content, 'Next action'))
+        .value();
+
+      expect(hasNextActionMessage).to.be.true;
+
+      expect(this.p1.character.nextAction.key).to.equal('Move');
+      expect(this.p2.character.nextAction.key).to.equal('Pass');
+
+      this.game.update();
+
+      expect(this.p1.character.row).to.equal(2);
+      expect(this.p1.character.col).to.equal(1);
+    });
   });
 
   describe('isReadyForUpdate', () => {

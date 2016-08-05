@@ -32,6 +32,9 @@ export interface MoveAction extends Action {
   offsetCol: number;
 }
 
+// nothing special about a pass action...
+export type PassAction = Action;
+
 export const MoveComponent: ActionParserComponent<MoveAction> = {
   pattern: /^go (north|south|east|west)$/i,
   parse(text: string, actor: Animal, timestamp: number): MoveAction {
@@ -98,7 +101,7 @@ export const MoveComponent: ActionParserComponent<MoveAction> = {
   componentKey: 'Move'
 };
 
-export const PassComponent: ActionParserComponent<Action> = {
+export const PassComponent: ActionParserComponent<PassAction> = {
   pattern: /^pass$/i,
   parse(text: string, actor: Animal, timestamp: number) {
     return {
@@ -107,8 +110,8 @@ export const PassComponent: ActionParserComponent<Action> = {
       key: 'Pass'
     };
   },
-  validate() {
-    return { isValid: true };
+  validate(passAction: PassAction, game: Game) {
+    return { isValid: Boolean(passAction) };
   },
   perform(passAction: Action, game: Game, log: string[]): string[] {
     // pass (do nothing!)
@@ -122,7 +125,8 @@ export interface ActionParserComponentMap<A extends Action> {
 };
 
 export const Parsers: ActionParserComponentMap<Action> = {
-  'Move': MoveComponent
+  'Move': MoveComponent,
+  'Pass': PassComponent
 };
 
 export function parseAction(text: string, actor: Animal, timestamp: number): Action {
