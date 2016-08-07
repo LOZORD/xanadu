@@ -11,6 +11,7 @@ type StyleClass = ServerMessaging.MessageType | 'Error' | 'Unknown';
 
 type JQueryCreator = (selector: string) => JQuery;
 
+// this is ok to export as it will be removed during compilation via tsc
 export type JQueryDetailSelectors = {
   current: {
     $health: JQuery;
@@ -49,12 +50,17 @@ if (isRunningOnClient) {
   });
 
   $(document).ready(onDocumentReady($, socket));
+
+  // since we're in the client, exporting is not allowed
+  // so here's a little hack that fixes the `undefined export` problem
+  const w: any = <any> window;
+  w.exports = {};
 }
 
 /* FUNCTIONS */
 
 export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket): () => void {
-  return function() {
+  return function () {
     let messageOutput = $('#messages');
     let detailOutput = $('#details');
 
@@ -188,26 +194,26 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket)
 
 export function createSelectors($: JQueryCreator): JQueryDetailSelectors {
   return {
-      current: {
-        $health: $('#health-current'),
-        $agility: $('#agility-current'),
-        $intelligence: $('#intelligence-current'),
-        $strength: $('#strength-current')
-      },
-      maximum: {
-        $health: $('#health-max'),
-        $agility: $('#agility-max'),
-        $intelligence: $('#intelligence-max'),
-        $strength: $('#strength-max')
-      },
-      $modifiers: $('#modifier-stats-list'),
-      $effects: $('#effect-stats-list'),
-      $mapWrapper: $('#map-wrapper'),
-      $playerMap: $('#player-map'),
-      $goldAmount: $('#gold-amount'),
-      $itemsWrapper: $('#items-wrapper'),
-      _JQUERY_: $
-    };
+    current: {
+      $health: $('#health-current'),
+      $agility: $('#agility-current'),
+      $intelligence: $('#intelligence-current'),
+      $strength: $('#strength-current')
+    },
+    maximum: {
+      $health: $('#health-max'),
+      $agility: $('#agility-max'),
+      $intelligence: $('#intelligence-max'),
+      $strength: $('#strength-max')
+    },
+    $modifiers: $('#modifier-stats-list'),
+    $effects: $('#effect-stats-list'),
+    $mapWrapper: $('#map-wrapper'),
+    $playerMap: $('#player-map'),
+    $goldAmount: $('#gold-amount'),
+    $itemsWrapper: $('#items-wrapper'),
+    _JQUERY_: $
+  };
 }
 
 export function sendMessage(content: string, sender: SocketIOClient.Socket) {

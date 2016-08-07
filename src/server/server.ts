@@ -10,8 +10,9 @@ import Context from '../context/context';
 import Game from '../context/game';
 import Lobby from '../context/lobby';
 import { Message, show as showMessage, createGameMessage } from '../game/messaging';
-import { Player, debugDetails as playerDebugDetails, playerDetails } from '../game/player';
+import { Player, debugDetails as playerDebugDetails, playerDetails, isAnon } from '../game/player';
 import { Promise } from 'es6-promise';
+import { mapToString } from '../game/map/map';
 
 export default class Server {
   expressApp: Express.Express;
@@ -24,13 +25,12 @@ export default class Server {
   debugNS: SocketIO.Namespace;
   seed: Gen.seedType;
   maxPlayers: number;
-  debugNs: SocketIO.Namespace;
   constructor(maxPlayers = 8, debug = true, port = 3000, seed = Date.now().toString()) {
     this.maxPlayers = maxPlayers;
     this.expressApp = Express();
     this.httpServer = Http.createServer(this.expressApp);
-    this.io         = SocketIO(this.httpServer);
-    this.port       = port;
+    this.io = SocketIO(this.httpServer);
+    this.port = port;
 
     this.gameNS = this.io.of('/game');
 
@@ -42,7 +42,7 @@ export default class Server {
       this.debugNS = null;
     }
 
-    this.seed       = seed;
+    this.seed = seed;
     this.sockets = [];
     // server starts out as having a lobby context
     this.currentContext = this.createEmptyLobby();
@@ -64,6 +64,7 @@ export default class Server {
 
   stop(closeCallback = _.noop): Promise<Server> {
     return new Promise<Server>((resolve, reject) => {
+      // TODO: handle this event on the client
       this.debugNS.removeAllListeners('server-stopped');
       this.gameNS.removeAllListeners('server-stopped');
       this.httpServer.close(closeCallback);
@@ -72,10 +73,10 @@ export default class Server {
     });
   }
 
-  createServer () {
+  createServer() {
     const NODE_MODULES = Path.join(__dirname, '..', '..', 'node_modules');
     const PATHS = {
-      CLIENT_ASSETS: Path.join(__dirname, '..', '..', 'assets'),
+      CLIENT_ASSETS: Path.join(__dirname, '..', '..', 'assets', 'client'),
       CLIENT_SCRIPTS: Path.join(__dirname, '..', 'client'),
       NODE_MODULES: NODE_MODULES,
       JQUERY: Path.join(NODE_MODULES, 'jquery', 'dist'),
@@ -99,10 +100,23 @@ export default class Server {
     console.log('Launching the debug server...');
     this.debugNS.on('connection', (socket) => {
       socket.on('get', () => {
+        let dataToSend: any = {};
+        dataToSend.playerData =
+          this.currentContext.players.map((player) => playerDebugDetails(player));
+
+        if (this.currentContext instanceof Game) {
+          dataToSend.gameMap = mapToString((this.currentContext as Game).map);
+          dataToSend.turnNumber = (this.currentContext as Game).turnNumber;
+        }
+
+        /*
         socket.emit('debug-update', this.currentContext.players
           // pretty print the json
           .map(player => JSON.stringify(playerDebugDetails(player), null, 2))
           .join('\n'));
+          */
+
+        socket.emit('debug-update', JSON.stringify(dataToSend, null, 2));
       });
     });
   }
@@ -139,7 +153,7 @@ export default class Server {
     }
   }
   acceptSocket(socket: SocketIO.Socket) {
-    console.log(`Server accepted socket ${ socket.id }`);
+    console.log(`Server accepted socket ${socket.id}`);
     this.sockets.push(socket);
 
     this.addPlayer(socket.id);
@@ -148,15 +162,14 @@ export default class Server {
     // the game handles the message, and then passes the server a response
     // then, the server sends the response to the client
     socket.on('message', (messageObj) => {
-      console.log(`Socket ${ socket.id }: ${ JSON.stringify(messageObj) }`);
+      console.log(`Socket ${socket.id}: ${JSON.stringify(messageObj)}`);
 
       let { isReadyForUpdate, isReadyForNextContext } = this.handleMessage(messageObj, socket);
 
       if (isReadyForUpdate) {
-        /* FIXME: context is missing an `update` function
-        const updatedContext = this.currentContext.update();
-        this.currentContext = updatedContext;
-        */
+        const { messages, log } = this.currentContext.update();
+
+        messages.forEach(message => this.sendMessage(message));
       }
 
       // TODO: do something with the context's player lists
@@ -169,20 +182,23 @@ export default class Server {
     socket.on('disconnect', () => {
       if (this.currentContext.hasPlayer(socket.id)) {
         const removedPlayer = this.removePlayer(socket.id);
-        console.log(`\tPlayer ${ removedPlayer.id + '--' + removedPlayer.name } disconnected`);
-        // FIXME: socket/player communication needs to be redone
-        socket.broadcast.emit(`${ removedPlayer.name } has left the game.`);
+
+        console.log(`\tPlayer ${removedPlayer.id + '--' + removedPlayer.name} disconnected`);
+
+        if (!isAnon(removedPlayer)) {
+          const disconnectMessage =
+            this.currentContext.broadcastFromPlayer(`${removedPlayer.name} has left the game.`, removedPlayer);
+
+          this.sendMessage(disconnectMessage);
+        }
       } else {
-        console.log(`Unrecognized socket ${ socket.id } disconnected`);
+        console.log(`Unrecognized socket ${socket.id} disconnected`);
       }
     });
-
-    // XXX: check if this is even being used
-    socket.emit('request-name');
   }
 
   rejectSocket(socket: SocketIO.Socket) {
-    console.log(`socket ${ socket.id } rejected -- game full (${ this.maxPlayers } max)`);
+    console.log(`socket ${socket.id} rejected -- game full (${this.maxPlayers} max)`);
     socket.emit('rejected-from-room');
   }
 
@@ -211,8 +227,7 @@ export default class Server {
 
     return {
       isReadyForNextContext: this.currentContext.isReadyForNextContext(),
-      // FIXME: context is missing a `isReadyForUpdate` function
-      isReadyForUpdate: false /*this.currentContext.isReadyForUpdate()*/
+      isReadyForUpdate: this.currentContext.isReadyForUpdate()
     };
   }
 
@@ -237,7 +252,7 @@ export default class Server {
       const recipientSocket = this.getSocket(recipientPlayer.id);
 
       if (!recipientSocket) {
-        throw new Error(`Could not find socket with id: ${ recipientPlayer.id }`);
+        throw new Error(`Could not find socket with id: ${recipientPlayer.id}`);
       }
 
       recipientSocket.emit('message', messageJSON);

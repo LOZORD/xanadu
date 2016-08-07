@@ -3,6 +3,7 @@ import * as _ from 'lodash';
 // TODO: move player into its own directory
 import { Message, createGameMessage } from '../game/messaging';
 import { Player, PlayerState } from '../game/player';
+import { PerformResult } from '../game/actions';
 
 export const validName: RegExp = /^\w+$/;
 
@@ -107,7 +108,7 @@ export abstract class Context {
 
   abstract isReadyForUpdate(): boolean;
 
-  abstract update(): Message[];
+  abstract update(): PerformResult;
 
   abstract handleMessage(m: ClientMessage): Message[];
 }

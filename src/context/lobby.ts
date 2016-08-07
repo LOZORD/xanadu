@@ -14,7 +14,10 @@ export default class Lobby extends Context {
   }
 
   update() {
-    return [];
+    return {
+      messages: [],
+      log: []
+    };
   }
 
   handleMessage(fromClient: ClientMessage): Message[] {

@@ -7,6 +7,7 @@ import * as Messaging from '../game/messaging';
 import { Context, ClientMessage } from './context';
 import { TEST_PARSE_RESULT } from '../game/map/parseGrid';
 import { Message, gameMessage } from "../game/messaging";
+import * as Character from '../game/character';
 
 // TODO: one of the game parameters should be the number of modifiers randomly assigned
 export default class Game extends Context {
@@ -22,6 +23,23 @@ export default class Game extends Context {
     this.players.forEach((player) => {
       // set all the players' states to playing
       player.state = 'Playing';
+
+      // FIXME: this should probably be changed later...
+      if (!player.character) {
+        player.character = {
+          player: player,
+          characterClass: Character.NoClass,
+          row: 0,
+          col: 0,
+          allegiance: 'None',
+          modifiers: null,
+          goldAmount: Character.NoClass.startingGold,
+          nextAction: null,
+          stats: Character.NoClass.startingStats,
+          inventory: Character.NoClass.startingInventory
+        };
+      }
+
       moveEntity(player.character, this.map.startingPosition);
     });
 
@@ -61,25 +79,42 @@ export default class Game extends Context {
     return !this.hasEnded;
   }
 
-  isReadyForNextContext() {
+  isReadyForNextContext(): boolean {
     // XXX: might be more 'correct' to check that no players have their state
     // as `PLAYING` or whatever...
     return this.hasEnded;
   }
 
-  isReadyForUpdate() {
-    return _.every(this.players, 'character.nextAction');
+  isReadyForUpdate(): boolean {
+    return _.every(this.players,
+      player => Boolean(player.character.nextAction));
   }
 
-  update(): Message[] {
+  update(): Actions.PerformResult {
     const sortedActions = <Actions.Action[]> _
       .chain(this.players)
-      .map('character.nextAction')
-      .sortBy('actor.stats.agility')
-      .sortBy('timestamp')
+      .map(player => player.character.nextAction)
+      .sortBy(action => action.actor.stats.agility)
+      .sortBy(action => action.timestamp)
       .value();
 
-    return _.reduce(sortedActions,
-      (messages, action) => Actions.getComponentByKey(action.key).perform(action, this, messages), []);
+    const { messages: completeMessages, log: completeLog }: Actions.PerformResult = _.reduce(sortedActions,
+      ({ messages, log }: Actions.PerformResult, action) => {
+        const component = Actions.getComponentByKey(action.key);
+
+        const { messages: newMessages, log: newLog } = component.perform(action, this, log);
+
+        return {
+          log,
+          messages: messages.concat(newMessages)
+        };
+      }, { messages: [], log: [] });
+
+    this.turnNumber++;
+
+    // clear all the `nextActions`
+    this.players.forEach(player => player.character.nextAction = null);
+
+    return { messages: completeMessages, log: completeLog };
   }
 }

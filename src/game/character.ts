@@ -3,23 +3,29 @@ import { ModernTranslationBook } from './items/books';
 import * as Ingestible from './items/ingestible';
 import { createInventory, hasItem, Inventory } from './inventory';
 import { meetsRequirements, Stats } from './stats';
+import { Player } from './player';
 
 export interface Character extends Animal {
     characterClass: CharacterClass;
     allegiance: Allegiance;
     modifiers: Modifiers;
     goldAmount: number;
+    player: Player;
+}
+
+export function isPlayerCharacter(actor: Animal | Character): actor is Character {
+    return Boolean((actor as Character).player);
 }
 
 interface CharacterClass {
-    name: string;
+    className: string;
     startingStats: Stats;
     startingGold: number;
     startingInventory: Inventory;
 }
 
 export const NoClass: CharacterClass = {
-    name: 'None',
+    className: 'None',
     startingStats: {
         health: 0,
         strength: 0,
@@ -31,7 +37,7 @@ export const NoClass: CharacterClass = {
 };
 
 export const Benefactor: CharacterClass = {
-    name: 'Benefactor',
+    className: 'Benefactor',
     startingStats: {
         health: 0,
         strength: 0,
@@ -43,7 +49,7 @@ export const Benefactor: CharacterClass = {
 };
 
 export const Gunslinger: CharacterClass = {
-    name: 'Gunslinger',
+    className: 'Gunslinger',
     startingStats: {
         health: 0,
         strength: 0,
@@ -55,7 +61,7 @@ export const Gunslinger: CharacterClass = {
 };
 
 export const Excavator: CharacterClass = {
-    name: 'Excavator',
+    className: 'Excavator',
     startingStats: {
         health: 0,
         strength: 0,
@@ -67,7 +73,7 @@ export const Excavator: CharacterClass = {
 };
 
 export const Doctor: CharacterClass = {
-    name: 'Doctor',
+    className: 'Doctor',
     startingStats: {
         health: 30,
         strength: 10,
@@ -96,7 +102,7 @@ export const Doctor: CharacterClass = {
 };
 
 export const Chef: CharacterClass = {
-    name: 'Chef',
+    className: 'Chef',
     startingStats: {
         health: 0,
         strength: 0,
@@ -108,7 +114,7 @@ export const Chef: CharacterClass = {
 };
 
 export const Shaman: CharacterClass = {
-    name: 'Shaman',
+    className: 'Shaman',
     startingStats: {
         health: 0,
         strength: 0,
@@ -120,7 +126,7 @@ export const Shaman: CharacterClass = {
 };
 
 export const Caveman: CharacterClass = {
-    name: 'Caveman',
+    className: 'Caveman',
     startingStats: {
         health: 0,
         strength: 0,
@@ -132,7 +138,7 @@ export const Caveman: CharacterClass = {
 };
 
 export const Cartographer: CharacterClass = {
-    name: 'Cartographer',
+    className: 'Cartographer',
     startingStats: {
         health: 0,
         strength: 0,
@@ -144,7 +150,7 @@ export const Cartographer: CharacterClass = {
 };
 
 export const Professor: CharacterClass = {
-    name: 'Professor',
+    className: 'Professor',
     startingStats: {
         health: 0,
         strength: 0,
@@ -156,7 +162,7 @@ export const Professor: CharacterClass = {
 };
 
 export const Smith: CharacterClass = {
-    name: 'Smith',
+    className: 'Smith',
     startingStats: {
         health: 0,
         strength: 0,

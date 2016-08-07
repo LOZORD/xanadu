@@ -5,28 +5,35 @@ import * as Map from '../game/map/map';
 import { TEST_PARSE_RESULT } from '../game/map/parseGrid';
 import { Player, PlayerState } from '../game/player';
 import * as Messaging from '../game/messaging';
+import * as Character from '../game/character';
 
 const createGame = (players = []): Game => {
   return new Game(8, players);
 };
 
 const createPlayer = (id: string, name: string, state: PlayerState): Player => {
-  return {
+  const player = <any> {
     id,
     name,
     state,
     character: {
       nextAction: null,
-      characterClass: null,
-      allegiance: null,
-      goldAmount: 0,
-      inventory: null,
-      stats: null,
+      characterClass: Character.NoClass,
+      allegiance: 'None',
+      goldAmount: Character.NoClass.startingGold,
+      inventory: Character.NoClass.startingInventory,
+      stats: Character.NoClass.startingStats,
       row: 0,
       col: 0,
       modifiers: null
     }
   };
+
+  //player.character.player = player;
+
+  player.character.player = player;
+
+  return <Player> player;
 };
 
 describe('Game', () => {
@@ -63,13 +70,13 @@ describe('Game', () => {
 
     it('should change only the given fields', () => {
       Object.keys(fields).forEach((f) => {
-        expect(changed[f]).to.equal(fields[f]);
+        expect(changed[ f ]).to.equal(fields[ f ]);
       });
     });
 
     it('should include all of the unchanged fields', () => {
       Object.keys(_.omit(g, Object.keys(fields))).forEach((f) => {
-        expect(changed[f]).to.equal(g[f]);
+        expect(changed[ f ]).to.equal(g[ f ]);
       });
     });
 
@@ -136,13 +143,13 @@ describe('Game', () => {
 
   // TODO: test if the sorting works
   describe('update', () => {
-    beforeEach(function() {
+    beforeEach(function () {
       this.p1 = createPlayer('007', 'James_Bond', 'Playing');
       this.p2 = createPlayer('008', 'Bill', 'Playing');
-      this.game = createGame([this.p1, this.p2]);
+      this.game = createGame([ this.p1, this.p2 ]);
     });
 
-    it('should work with move actions', function() {
+    it('should work with move actions', function () {
       // a valid movement
       const r1: Messaging.Message[] = this.game.handleMessage({
         player: this.p1,
@@ -179,7 +186,7 @@ describe('Game', () => {
     it('should be true iff all players have an action', () => {
       const p1 = createPlayer('007', 'James_Bond', 'Playing');
       const p2 = createPlayer('008', 'Bill', 'Playing');
-      const game = createGame([p1, p2]);
+      const game = createGame([ p1, p2 ]);
 
       p1.character.nextAction = {
         timestamp: Date.now(),

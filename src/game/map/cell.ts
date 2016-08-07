@@ -10,12 +10,12 @@ import { Item, ItemStack } from '../items/item';
  */
 
 export interface Position {
-    row: number,
-    col: number
+    row: number;
+    col: number;
 }
 
 export interface Cell extends Position {
-    type: CellType
+    type: CellType;
 }
 
 export interface CellType {
@@ -39,8 +39,8 @@ export const TreasureRoom: CellType = {
 };
 
 export interface Room extends CellType {
-    animals: Animal[],
-    items: ItemStack<Item>[]
+    animals: Animal[];
+    items: ItemStack<Item>[];
 }
 
 export const EmptyRoom: Room = {

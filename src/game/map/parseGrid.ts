@@ -1,9 +1,8 @@
 import * as _ from 'lodash';
 import { readFileSync } from 'fs';
 import * as path from 'path';
-
-import { Map } from './map';
-import { areSameCellType, CellType, fromRepr, Position, TreasureRoom } from './cell';
+import { Map, isWithinMap } from './map';
+import { areSameCellType, CellType, fromRepr, Position, TreasureRoom, PassageRoom } from './cell';
 
 export function gridRowsFromFile(fileName: string): { startingPosition: Position, gridRows: string[] } {
   const rawContents = readFileSync(fileName, 'utf8');
@@ -12,8 +11,8 @@ export function gridRowsFromFile(fileName: string): { startingPosition: Position
   const gridRows = _.tail(lines);
 
   const startingPosSplit = firstLine.split(' ');
-  const row = parseInt(startingPosSplit[0], 10) - 1;
-  const col = parseInt(startingPosSplit[1], 10) - 1;
+  const row = parseInt(startingPosSplit[ 0 ], 10) - 1;
+  const col = parseInt(startingPosSplit[ 1 ], 10) - 1;
 
   return {
     gridRows,
@@ -27,11 +26,25 @@ export function validateGrid(grid: CellType[][], startingPosition: Position): Va
   if (!_.some(_.flatten(grid), cell => areSameCellType(cell, TreasureRoom))) {
     return 'There is no treasure room';
   }
-  const startCell = grid[startingPosition.row][startingPosition.col];
-  if (!startCell.room) {
-    return 'The starting position is not a room';
-  } else if (areSameCellType(startCell, TreasureRoom)) {
-    return 'The starting position is the treasure room';
+
+  if (!_.isFinite(startingPosition.row) || !_.isFinite(startingPosition.col)) {
+    return 'The starting position is malformed';
+  }
+
+  const srow = startingPosition.row;
+  const scol = startingPosition.col;
+
+  const withinGrid = 0 <= srow && srow < grid.length &&
+    0 <= scol && scol < grid[ 0 ].length;
+
+  if (!withinGrid) {
+    return 'The starting position is invalid';
+  }
+
+  const startCell = grid[ startingPosition.row ][ startingPosition.col ];
+
+  if (!areSameCellType(startCell, PassageRoom)) {
+    return 'The starting position must be a passage room';
   }
 
   return true;
@@ -40,24 +53,29 @@ export function validateGrid(grid: CellType[][], startingPosition: Position): Va
 export function parseGrid(gridRows: string[], startingPosition: Position): Map {
   const grid = _.map(gridRows,
     (row, rowInd) => _.map(row,
-      (col, colInd) => fromRepr(gridRows[rowInd][colInd])
+      (col, colInd) => fromRepr(gridRows[ rowInd ][ colInd ])
     )
   );
 
   const validation = validateGrid(grid, startingPosition);
-  if (validation !== true) throw new Error(validation as string);
+  if (validation !== true) {
+    throw new Error(validation as string);
+  }
 
   return {
-    width: gridRows.length,
-    height: gridRows[0].length,
+    // the length of a row
+    width: gridRows[ 0 ].length,
+    // the number of rows
+    height: gridRows.length,
     startingPosition,
     grid
   };
 }
 
+export const TEST_MAP_PATH = path.resolve(__dirname, '..', '..', '..', 'assets', 'server', 'testMap.txt');
+
 export function testParse() {
-  const testMapPath =
-    path.resolve(__dirname, '..', '..', '..', 'assets', 'testMap.txt');
+  const testMapPath = TEST_MAP_PATH;
   const rows = gridRowsFromFile(testMapPath);
   return parseGrid(rows.gridRows, rows.startingPosition);
 }

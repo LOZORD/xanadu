@@ -85,7 +85,7 @@ describe('Client', () => {
 
     before(function () {
       const htmlPath = Path.resolve(__dirname,
-        '..', '..', 'assets', 'index.html');
+        '..', '..', 'assets', 'client', 'index.html');
       const jqueryPath = Path.resolve(__dirname,
         '..', '..', 'node_modules', 'jquery', 'dist', 'jquery.min.js');
       const bootstrapPath = Path.resolve(__dirname,

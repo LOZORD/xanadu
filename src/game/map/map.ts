@@ -13,3 +13,11 @@ export function isWithinMap(map: Map, row: number, col: number) {
             0 <= col &&
             col < map.width;
 }
+
+export function mapToReprs(map: Map): string[][] {
+    return map.grid.map(row => row.map(cell => cell.repr));
+}
+
+export function mapToString(map: Map): string {
+    return mapToReprs(map).map(row => row.join('')).join('\n');
+}

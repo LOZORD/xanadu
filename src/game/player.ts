@@ -3,6 +3,7 @@ import { Stats } from './stats';
 import { Item } from './items/item';
 import { toJSON as inventoryToJSON, InventoryJSON } from './inventory';
 import { Map } from './map/map';
+import { omit } from 'lodash';
 
 export type PlayerState = 'Anon' | 'Preparing' | 'Ready' | 'Playing' | 'Dead' | 'Spectating' | 'Absent';
 
@@ -100,9 +101,18 @@ export function debugDetails(player: Player): {} {
   if (player.character) {
     retObj.character = {
       row: player.character.row,
-      col: player.character.col,
-      nextAction: player.character.nextAction
+      col: player.character.col
     };
+    if (player.character.nextAction) {
+      const ts = new Date(player.character.nextAction.timestamp);
+      // this could be faulty later with richer/more complex action types
+      const otherData = omit(player.character.nextAction, ['key', 'timestamp', 'actor']);
+      retObj.character.nextAction = {
+        key: player.character.nextAction.key,
+        timestamp: ts.toLocaleTimeString(),
+        otherData: otherData
+      };
+    }
   }
 
   return retObj;

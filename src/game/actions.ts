@@ -1,8 +1,10 @@
 import { Animal } from './animal';
+import { Character, isPlayerCharacter } from './character';
 import { Map, isWithinMap } from './map/map';
 import Game from '../context/game';
 import { moveEntity } from './entity';
 import * as _ from 'lodash';
+import * as Messaging from './messaging';
 
 export interface Action {
   actor: Animal;
@@ -18,11 +20,16 @@ export interface ValidationResult {
 
 export type ComponentKey = 'Move' | 'Pass';
 
+export type PerformResult = {
+  log: string[];
+  messages: Messaging.Message[];
+};
+
 export interface ActionParserComponent<A extends Action> {
   pattern: RegExp;
   parse: (text: string, actor: Animal, timestamp: number) => A;
   validate: (action: A, gameContext: Game) => ValidationResult;
-  perform: (action: A, game: Game, log: string[]) => string[];
+  perform: (action: A, game: Game, log: string[]) => PerformResult;
   componentKey: ComponentKey;
 }
 
@@ -86,7 +93,7 @@ export const MoveComponent: ActionParserComponent<MoveAction> = {
       return { isValid: true };
     }
   },
-  perform(move: MoveAction, game: Game, log: string[]): string[] {
+  perform(move: MoveAction, game: Game, log: string[]): PerformResult {
     const newPos = {
       row: move.actor.row + move.offsetRow,
       col: move.actor.col + move.offsetCol
@@ -96,7 +103,20 @@ export const MoveComponent: ActionParserComponent<MoveAction> = {
 
     // TODO: get movement and room description
 
-    return log;
+    const messages = [];
+
+    if (isPlayerCharacter(move.actor)) {
+      const player = (move.actor as Character).player;
+
+      log.push(`${player.name} moved to ${JSON.stringify(newPos)}`);
+
+      messages.push(Messaging.createGameMessage('You moved!', [ player ]));
+    }
+
+    return {
+      log,
+      messages
+    };
   },
   componentKey: 'Move'
 };
@@ -113,9 +133,21 @@ export const PassComponent: ActionParserComponent<PassAction> = {
   validate(passAction: PassAction, game: Game) {
     return { isValid: Boolean(passAction) };
   },
-  perform(passAction: Action, game: Game, log: string[]): string[] {
+  perform(passAction: Action, game: Game, log: string[]): PerformResult {
     // pass (do nothing!)
-    return log;
+
+    const messages = [];
+
+    if (isPlayerCharacter(passAction.actor)) {
+      const player = (passAction.actor as Character).player;
+
+      messages.push(Messaging.createGameMessage('You performed no action.', [player]));
+    }
+
+    return {
+      log,
+      messages
+    };
   },
   componentKey: 'Pass'
 };

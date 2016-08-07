@@ -1,0 +1,86 @@
+import * as GridParser from './parseGrid';
+import * as Map from './map';
+import { Barrier, EmptyRoom, PassageRoom, TreasureRoom } from './cell';
+import { expect } from 'chai';
+import { readFile } from 'fs';
+
+describe('Grid Parsing', function () {
+  describe('TEST_PARSE_RESULT', function () {
+    it('should have the correct dimensions', function () {
+      expect(GridParser.TEST_PARSE_RESULT.height).to.equal(3);
+      expect(GridParser.TEST_PARSE_RESULT.width).to.equal(4);
+    });
+    it('should have a correctly parsed grid', function(done) {
+      readFile(GridParser.TEST_MAP_PATH, 'utf8', (error, data) => {
+        const gridPart = data.split('\n').slice(1).join('\n').trim();
+        expect(Map.mapToString(GridParser.TEST_PARSE_RESULT)).to.equal(gridPart);
+        done();
+      });
+    });
+    it('should have the correct starting position', function () {
+      expect(GridParser.TEST_PARSE_RESULT.startingPosition).to.eql({ row: 1, col: 1 });
+    });
+  });
+  describe('validateGrid', function () {
+    context('when there is no treasure room', () => {
+      it('should return the proper message', () => {
+        const grid = [
+          [ Barrier, Barrier, Barrier, Barrier ],
+          [ Barrier, EmptyRoom, PassageRoom, Barrier ],
+          [ Barrier, Barrier, Barrier, Barrier ]
+        ];
+
+        const startingPosition = { row: 1, col: 2 };
+
+        expect(GridParser.validateGrid(grid, startingPosition)).to.include('no treasure room');
+      });
+    });
+    context('when there is no starting position', () => {
+      it('should provide the proper error message', () => {
+        const grid = GridParser.TEST_PARSE_RESULT.grid;
+
+        const sp1 = {
+          row: NaN, col: NaN
+        };
+
+        expect(GridParser.validateGrid(grid, sp1)).to.include('starting position is malformed');
+      });
+    });
+    context('when the starting position is off the grid', () => {
+      it('it should provide the proper error message', () => {
+        const grid = GridParser.TEST_PARSE_RESULT.grid;
+
+        const sp2 = {
+          row: 404, col: 0
+        };
+
+        expect(GridParser.validateGrid(grid, sp2)).to.include('starting position is invalid');
+      });
+    });
+    context('when the provided starting position is not a passage room', () => {
+      it('should provide the proper error message', () => {
+        const grid = GridParser.TEST_PARSE_RESULT.grid;
+
+        const startingPosition = {
+          row: 2, col: 3
+        };
+
+        expect(GridParser.validateGrid(grid, startingPosition))
+          .to.include('starting position must be a passage room');
+      });
+    });
+  });
+  describe('parseGrid', () => {
+    it('should throw an error on invalid data', () => {
+      const charGrid = [
+        '#X#',
+        '#^#',
+        '###'
+      ];
+
+      const invalidSP = { row: 404, col: 9999 };
+
+      expect(() => GridParser.parseGrid(charGrid, invalidSP)).to.throw(Error);
+    });
+  });
+});
