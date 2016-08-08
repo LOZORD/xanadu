@@ -10,49 +10,29 @@ Please see the [Wiki](https://github.com/LOZORD/xanadu/wiki) for more informatio
 
 Contributions welcome!
 
-__This project uses ES6 + Babel. Please follow that convention.__
+## To run
 
-## To run:
+### ... in development mode
+Make sure you have
+- [Node](https://nodejs.org)
+- [npm](https://npmjs.com)
+- [Typings](https://github.com/typings/typings)
+
+Then, run the following commands in the terminal:
+
 ```bash
 $ npm install
-# ...
-$ npm run now # lints, builds, tests, covers, and launches
+$ typings install
+$ npm run now
 ```
-
-## To lint:
-```bash
-$ npm run lint
-```
-
-## To build:
-```bash
-$ npm run build
-```
-
-The `dist/` directory now contains all ES5- and Node-runnable code.
-
-## To test:
-
-```bash
-# Assuming you've already built the project (i.e. `dist/` exists)
-$ npm run test:only
-```
-
-## To test and get coverage
-
-```bash
-# Assuming you've already built the project (i.e. `dist/` exists)
-$ npm run test
-```
-
-## To launch:
-```bash
-$ npm run launch
-```
-
-This command runs a file which parses args and creates a new Server.
 
 ## Debug page
+
+First, make sure the `--debug` flag is passed when starting the server:
+
+```bash
+$ npm run launch -- --debug
+```
 
 To access the `debug` page (in the browser), visit
 `localhost:<port>/debug.html`.
