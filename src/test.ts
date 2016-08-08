@@ -10,22 +10,22 @@ const distDir = './dist';
 const testPattern = 'Spec.js';
 
 // assuming this will be called as `node dist/test.js <reporter>`
-const possibleReporter = process.argv[2];
+const possibleReporter = process.argv[ 2 ];
 
-const mochaOptions = {
+const myMochaOptions = {
   reporter: possibleReporter || 'dot'
 };
 
-const getTestFiles = (dir : string) : string[] => {
+const getTestFiles = (dir: string): string[] => {
   const contents = fs.readdirSync(dir);
 
-  const testFiles : string[] = _
+  const testFiles: string[] = _
     .chain(contents)
     .filter((fileName) => _.endsWith(fileName, testPattern))
     .map((fileName) => path.join(dir, fileName))
     .value();
 
-  const newDirs : string[] = _
+  const newDirs: string[] = _
     .chain(contents)
     .map((fileName) => path.join(dir, fileName))
     .filter((fileName) => fs.statSync(fileName).isDirectory())
@@ -33,14 +33,14 @@ const getTestFiles = (dir : string) : string[] => {
 
   const newResults = _
     .chain(newDirs)
-    .map((newDir : string) : string[] => getTestFiles(newDir))
+    .map((newDir: string): string[] => getTestFiles(newDir))
     .flatten<string>()
     .value();
 
   return testFiles.concat(newResults);
 };
 
-const runMocha = (baseDir : string, mochaOptions, proc) => {
+const runMocha = (baseDir: string, mochaOptions, proc: NodeJS.Process) => {
   const mocha = new Mocha(mochaOptions);
 
   const testFiles = getTestFiles(distDir);
@@ -55,4 +55,4 @@ const runMocha = (baseDir : string, mochaOptions, proc) => {
   return testFiles;
 };
 
-runMocha(distDir, mochaOptions, process);
+runMocha(distDir, myMochaOptions, process);
