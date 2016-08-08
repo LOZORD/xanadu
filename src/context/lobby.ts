@@ -42,7 +42,7 @@ export default class Lobby extends Context {
             errorMsg = `The name '${name}' has already been taken.`;
           } else {
             errorMsg = `The name '${name}' contains invalid characters. `
-              + "Use only alphanumeric, underscore, and hyphen characters.";
+              + 'Use only alphanumeric, underscore, and hyphen characters.';
           }
 
           responses.push(createGameMessage(errorMsg, [ fromClient.player ]));

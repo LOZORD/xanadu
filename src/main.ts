@@ -1,5 +1,7 @@
+import * as Winston from 'winston';
 import Server from './server/server';
 import { Promise } from 'es6-promise';
+import { Logger } from './logger';
 
 export type CommandLineArgs = {
   maxPlayers?: number,
@@ -59,7 +61,7 @@ export function parseArgs(givenArgs: string[]): CommandLineArgs {
   }
 }
 
-export function startServer(args: CommandLineArgs): Promise<Server> {
+export function startServer(args: CommandLineArgs, logger: Logger): Promise<Server> {
   const { maxPlayers, debug, port, seed } = args;
   if (isNaN(maxPlayers) || isNaN(port) || isNaN(seed)) {
     let errMsg = 'Invalid arguments (`--with-defaults` flag is suggested):\n';
@@ -75,7 +77,7 @@ export function startServer(args: CommandLineArgs): Promise<Server> {
 
     return Promise.reject(new Error(errMsg));
   } else {
-    const server = new Server(maxPlayers, debug, port, seed.toString());
+    const server = new Server(maxPlayers, port, seed.toString(), debug, logger);
 
     return server.start();
   }
@@ -87,10 +89,20 @@ function isBeingRun(): boolean {
 
 if (isBeingRun()) {
   const args = parseArgs(process.argv.slice(2));
-  startServer(args).then((server: Server) => {
-    console.log(`XANADU SERVER LISTENING ON PORT: ${ server.port }`);
+
+  // use the default Winston logger
+  const winston = Winston;
+
+  if (args.debug) {
+    winston.level = 'debug';
+  } else {
+    winston.level = 'info';
+  }
+
+  startServer(args, winston).then((server: Server) => {
+    server.logger.log('info', `XANADU SERVER LISTENING ON PORT: ${ server.port }`);
   }, (error: Error) => {
-    console.error(error.message);
+    winston.error(error.message);
     process.exit(1);
   });
 }

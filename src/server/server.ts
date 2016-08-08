@@ -13,6 +13,7 @@ import { Message, show as showMessage, createGameMessage } from '../game/messagi
 import { Player, debugDetails as playerDebugDetails, playerDetails, isAnon } from '../game/player';
 import { Promise } from 'es6-promise';
 import { mapToString } from '../game/map/map';
+import { Logger } from '../logger';
 
 export default class Server {
   expressApp: Express.Express;
@@ -25,19 +26,22 @@ export default class Server {
   debugNS: SocketIO.Namespace;
   seed: Gen.seedType;
   maxPlayers: number;
-  constructor(maxPlayers = 8, debug = true, port = 3000, seed = Date.now().toString()) {
+  logger: Logger;
+  constructor(maxPlayers: number, port: number, seed: string, debug: boolean, logger: Logger) {
     this.maxPlayers = maxPlayers;
     this.expressApp = Express();
     this.httpServer = Http.createServer(this.expressApp);
     this.io = SocketIO(this.httpServer);
     this.port = port;
+    this.logger = logger;
 
     this.gameNS = this.io.of('/game');
 
     // TODO: Don't serve debug page if debugging is off
     if (debug) {
       this.debugNS = this.io.of('/debug');
-      //this.createDebugServer();
+      // XXX: the server's user should probably define the logging level...
+      // this.logger.level = 'debug';
     } else {
       this.debugNS = null;
     }
@@ -65,7 +69,9 @@ export default class Server {
   stop(closeCallback = _.noop): Promise<Server> {
     return new Promise<Server>((resolve, reject) => {
       // TODO: handle this event on the client
-      this.debugNS.removeAllListeners('server-stopped');
+      if (this.debugNS) {
+        this.debugNS.removeAllListeners('server-stopped');
+      }
       this.gameNS.removeAllListeners('server-stopped');
       this.httpServer.close(closeCallback);
 
@@ -97,7 +103,7 @@ export default class Server {
   }
 
   createDebugServer() {
-    console.log('Launching the debug server...');
+    this.logger.log('debug', 'Launching the debug server...');
     this.debugNS.on('connection', (socket) => {
       socket.on('get', () => {
         let dataToSend: any = {};
@@ -153,7 +159,7 @@ export default class Server {
     }
   }
   acceptSocket(socket: SocketIO.Socket) {
-    console.log(`Server accepted socket ${socket.id}`);
+    this.logger.log('info', `Server accepted socket ${socket.id}`);
     this.sockets.push(socket);
 
     this.addPlayer(socket.id);
@@ -162,7 +168,7 @@ export default class Server {
     // the game handles the message, and then passes the server a response
     // then, the server sends the response to the client
     socket.on('message', (messageObj) => {
-      console.log(`Socket ${socket.id}: ${JSON.stringify(messageObj)}`);
+      this.logger.log('debug', `Socket ${socket.id}: ${JSON.stringify(messageObj)}`);
 
       let { isReadyForUpdate, isReadyForNextContext } = this.handleMessage(messageObj, socket);
 
@@ -183,7 +189,7 @@ export default class Server {
       if (this.currentContext.hasPlayer(socket.id)) {
         const removedPlayer = this.removePlayer(socket.id);
 
-        console.log(`\tPlayer ${removedPlayer.id + '--' + removedPlayer.name} disconnected`);
+        this.logger.log('debug', `\tPlayer ${removedPlayer.id + '--' + removedPlayer.name} disconnected`);
 
         if (!isAnon(removedPlayer)) {
           const disconnectMessage =
@@ -192,13 +198,13 @@ export default class Server {
           this.sendMessage(disconnectMessage);
         }
       } else {
-        console.log(`Unrecognized socket ${socket.id} disconnected`);
+        this.logger.log('debug', `Unrecognized socket ${socket.id} disconnected`);
       }
     });
   }
 
   rejectSocket(socket: SocketIO.Socket) {
-    console.log(`socket ${socket.id} rejected -- game full (${this.maxPlayers} max)`);
+    this.logger.log('debug', `socket ${socket.id} rejected -- game full (${this.maxPlayers} max)`);
     socket.emit('rejected-from-room');
   }
 

@@ -1,6 +1,8 @@
 import { parseArgs, startServer } from './main';
 import { expect } from 'chai';
 import * as _ from 'lodash';
+// use the default Winston logger for testing
+import * as Winston from 'winston';
 
 describe('Main (Game Runner)', () => {
   describe('parseArgs', () => {
@@ -57,13 +59,6 @@ describe('Main (Game Runner)', () => {
     });
   });
   describe('startServer', () => {
-    before(function () {
-      this.log = console.log;
-      console.log = _.noop;
-    });
-    after(function () {
-      console.log = this.log;
-    });
 
     context('when the given args are invalid', () => {
       it('should report an insufficient number of players', (done) => {
@@ -74,7 +69,7 @@ describe('Main (Game Runner)', () => {
           '--no-debug'
         ]);
 
-        startServer(parsedArgs).catch((error: Error) => {
+        startServer(parsedArgs, Winston).catch((error: Error) => {
           expect(error.message).to.include('maxPlayers should be a number greater than 1');
           done();
         });
@@ -87,7 +82,7 @@ describe('Main (Game Runner)', () => {
           '--no-debug'
         ]);
 
-        startServer(parsedArgs).catch((error: Error) => {
+        startServer(parsedArgs, Winston).catch((error: Error) => {
           expect(error.message).to.include('port should be a number between 1 and 65535');
           done();
         });
@@ -100,7 +95,7 @@ describe('Main (Game Runner)', () => {
           '--debug'
         ]);
 
-        startServer(parsedArgs).catch((error: Error) => {
+        startServer(parsedArgs, Winston).catch((error: Error) => {
           expect(error.message).to.include('seed should be a number');
           done();
         });

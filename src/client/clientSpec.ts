@@ -92,10 +92,10 @@ describe('Client', () => {
         '..', '..', 'node_modules', 'bootstrap', 'dist', 'js', 'bootstrap.min.js');
 
       this.windowPromise = new Promise<Window>((resolve, reject) => {
+        // XXX: should virtualConsole be set?
         jsdom.env({
           file: htmlPath,
           scripts: [ jqueryPath, bootstrapPath ],
-          virtualConsole: null,
           done: (error, window) => {
             if (error) {
               reject(error);

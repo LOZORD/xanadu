@@ -1,46 +1,20 @@
 import * as _ from 'lodash';
 import { expect } from 'chai';
-
 import Server from './server';
+import * as Winston from 'winston';
 
 describe('Server', () => {
-  // turn off console.log for this test suite
-  // FIXME: this should not be done, as mocha uses console.log + console.error
-  before(function() {
-    this.log = console.log;
-    console.log = _.noop;
-  });
-
-  after(function() {
-    console.log = this.log;
-  });
-
-  describe('constructor', () => {
-    it('should have respect default arguments', () => {
-      const s = new Server();
-
-      expect(s.port).to.equal(3000);
-      expect(s.maxPlayers).to.equal(8);
-      // should set up the debug server by default
-      expect(s.debugNS).to.be.ok;
-    });
-  });
+  const createServer = () => {
+    return new Server(8, 3000, Date.now().toString(), false, Winston);
+  };
 
   describe('start', () => {
     before(function() {
-      this.server = new Server();
+      this.server = createServer();
     });
     after(function() {
       return this.server.stop();
     });
-    // it('should run correctly', function(done) {
-    //   const startServer = () => {
-    //     this.server.start().then(() => {
-    //       done();
-    //     });
-    //   };
-    //   expect(startServer).not.to.throw(Error);
-    // });
     it('should run correctly', function() {
       return this.server.start().then((startedServer) => {
         expect(startedServer).to.be.ok;
@@ -54,7 +28,7 @@ describe('Server', () => {
     });
     context('when the socket is NOT present', () => {
       it('should return undefined', () => {
-        const s = new Server();
+        const s = createServer();
 
         expect(s.getSocket('007')).to.be.undefined;
       });
@@ -63,7 +37,7 @@ describe('Server', () => {
 
   describe('addPlayer', () => {
     it('should add the player', () => {
-      const s = new Server();
+      const s = createServer();
 
       s.addPlayer('007');
 
@@ -73,7 +47,7 @@ describe('Server', () => {
 
   describe('removePlayer', () => {
     it('should remove the player', () => {
-      const s = new Server();
+      const s = createServer();
 
       s.addPlayer('007');
 

@@ -6,7 +6,7 @@ import { Map } from '../game/map/map';
 import * as Messaging from '../game/messaging';
 import { Context, ClientMessage } from './context';
 import { TEST_PARSE_RESULT } from '../game/map/parseGrid';
-import { Message, gameMessage } from "../game/messaging";
+import { Message, gameMessage } from '../game/messaging';
 import * as Character from '../game/character';
 
 // TODO: one of the game parameters should be the number of modifiers randomly assigned
@@ -98,6 +98,7 @@ export default class Game extends Context {
       .sortBy(action => action.timestamp)
       .value();
 
+    // TODO: do something with completeLog (using Logger/Winston)
     const { messages: completeMessages, log: completeLog }: Actions.PerformResult = _.reduce(sortedActions,
       ({ messages, log }: Actions.PerformResult, action) => {
         const component = Actions.getComponentByKey(action.key);

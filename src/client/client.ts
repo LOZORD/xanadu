@@ -4,6 +4,7 @@
 //import * as $ from 'jquery';
 import * as ServerMessaging from '../game/messaging';
 import { PlayerDetailsJSON } from '../game/player';
+import { Logger } from '../logger';
 
 /* TYPES */
 
@@ -49,7 +50,7 @@ if (isRunningOnClient) {
     reconnection: false
   });
 
-  $(document).ready(onDocumentReady($, socket));
+  $(document).ready(onDocumentReady($, socket, console));
 
   // since we're in the client, exporting is not allowed
   // so here's a little hack that fixes the `undefined export` problem
@@ -59,7 +60,7 @@ if (isRunningOnClient) {
 
 /* FUNCTIONS */
 
-export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket): () => void {
+export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket, logger: Logger): () => void {
   return function () {
     let messageOutput = $('#messages');
     let detailOutput = $('#details');
@@ -73,9 +74,10 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket)
       event.preventDefault();
       let msg = input.val().trim();
       input.val('');
+
       // don't send a blank message!
       if (msg.length) {
-        console.log('Sending message: ', msg);
+        logger.log('info', 'Sending message: ', msg);
         sendMessage(msg, socket);
       }
     });
@@ -101,7 +103,7 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket)
     /* * * MESSAGE HANDLER * * */
 
     socket.on('message', (data: ServerMessaging.MessageJSON) => {
-      console.log('Received message:', data);
+      logger.log('debug', 'Received message: ', data);
       const viewMessage = processServerMessage(data);
       addMessage(viewMessage);
     });
@@ -113,7 +115,7 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket)
         content: 'The server has encountered a fatal error!',
         styleClasses: [ 'Error' ]
       });
-      console.log('Error data', data);
+      logger.log('debug', 'Error data', data);
     });
 
     /* * * REJECTED FROM ROOM * * */
@@ -133,7 +135,7 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket)
     const $detailSelectors = createSelectors($);
 
     socket.on('details', (data: PlayerDetailsJSON) => {
-      console.log('details', data);
+      logger.log('debug', 'Got details: ', data);
       // quasi-debug
       detailOutput.text(JSON.stringify(data));
       updateDetails($detailSelectors, data);
@@ -362,7 +364,7 @@ export function updateDetails($selectors: JQueryDetailSelectors, data: PlayerDet
           }
         });
       } else {
-        console.error('unknown item data type');
+        throw Error('Unknown item type!');
       }
     });
   } else {
