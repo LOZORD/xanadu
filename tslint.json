@@ -9,6 +9,7 @@
     "no-unused-variable": false,
     "quotemark": [true, "single", "avoid-escape"],
     "trailing-comma": false,
-    "comment-format": []
+    "comment-format": [],
+    "no-angle-bracket-type-assertion": true
   }
 }

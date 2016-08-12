@@ -51,7 +51,7 @@ describe('Lobby', () => {
         });
         it('should broadcast their name', function() {
           const nameBroadcasted = _
-            .some(<Messaging.Message[]> this.messages,
+            .some(this.messages as Messaging.Message[],
               message => message.type === 'Game' && _.includes(message.content, 'James_Bond')
             );
 

@@ -54,7 +54,7 @@ if (isRunningOnClient) {
 
   // since we're in the client, exporting is not allowed
   // so here's a little hack that fixes the `undefined export` problem
-  const w: any = <any> window;
+  const w: any = window;
   w.exports = {};
 }
 

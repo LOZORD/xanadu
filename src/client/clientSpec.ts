@@ -150,6 +150,11 @@ describe('Client', () => {
 
       this.testDetailsUpdatePromise = this.createPostUpdatePromise(this.TEST_DETAILS);
     });
+
+    after(function () {
+      this.windowPromise.then(window => window.close());
+    });
+
     describe('Stats', function () {
       it('should have updated the stats', function () {
         return this.testDetailsUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {

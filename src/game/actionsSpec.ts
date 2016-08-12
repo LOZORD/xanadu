@@ -52,7 +52,7 @@ describe('Actions', () => {
         };
 
         _.forEach(locations, ({ r, c }, dir) => {
-          const action = <Actions.MoveAction> Actions.parseAction(`go ${dir}`, this.player.character, Date.now());
+          const action = Actions.parseAction(`go ${dir}`, this.player.character, Date.now()) as Actions.MoveAction;
 
           expect(action).to.be.ok;
 
@@ -126,13 +126,13 @@ describe('Actions', () => {
 
     describe('parse', () => {
       it('parsing should return a PassAction', function () {
-        const passAction = <Actions.PassAction> Actions.parseAction('pass', this.player.character, Date.now());
+        const passAction = Actions.parseAction('pass', this.player.character, Date.now()) as Actions.PassAction;
         expect(passAction).to.be.ok;
       });
     });
     describe('validate', () => {
       it('should return true', function() {
-        const passAction = <Actions.PassAction> Actions.parseAction('pass', this.player.character, Date.now());
+        const passAction = Actions.parseAction('pass', this.player.character, Date.now()) as Actions.PassAction;
         expect(Actions.PassComponent.validate(passAction, this.game).isValid).to.be.true;
       });
     });

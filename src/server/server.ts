@@ -139,13 +139,7 @@ export default class Server {
     if (this.currentContext instanceof Lobby) {
       // FIXME: what about passing the rng/seed?
       this.currentContext = this.createGame();
-      /*
-      this.currentContext = new Game({
-        players: this.currentContext.players,
-        maxPlayers: this.maxPlayers,
-        rng: Gen(this.seed)
-      });
-      */
+
       // message players that the game has begun
       this.sendMessage(
         createGameMessage('THE GAME HAS BEGUN!', this.currentContext.players)
@@ -153,7 +147,6 @@ export default class Server {
 
       // send details to players
       this.sendDetails();
-      // TODO: start the round interval update
     } else {
       this.currentContext = this.createLobby(this.currentContext.players);
     }
@@ -176,6 +169,9 @@ export default class Server {
         const { messages, log } = this.currentContext.update();
 
         messages.forEach(message => this.sendMessage(message));
+        log.forEach(logItem => this.logger.log('info', logItem));
+
+        this.sendMessage(this.currentContext.broadcast('What is your next action?'));
       }
 
       // TODO: do something with the context's player lists
@@ -189,7 +185,7 @@ export default class Server {
       if (this.currentContext.hasPlayer(socket.id)) {
         const removedPlayer = this.removePlayer(socket.id);
 
-        this.logger.log('debug', `\tPlayer ${removedPlayer.id + '--' + removedPlayer.name} disconnected`);
+        this.logger.log('info', `\tPlayer ${removedPlayer.id + '--' + removedPlayer.name} disconnected`);
 
         if (!isAnon(removedPlayer)) {
           const disconnectMessage =
@@ -198,13 +194,13 @@ export default class Server {
           this.sendMessage(disconnectMessage);
         }
       } else {
-        this.logger.log('debug', `Unrecognized socket ${socket.id} disconnected`);
+        this.logger.log('info', `Unrecognized socket ${socket.id} disconnected`);
       }
     });
   }
 
   rejectSocket(socket: SocketIO.Socket) {
-    this.logger.log('debug', `socket ${socket.id} rejected -- game full (${this.maxPlayers} max)`);
+    this.logger.log('info', `socket ${socket.id} rejected -- game full (${this.maxPlayers} max)`);
     socket.emit('rejected-from-room');
   }
 
