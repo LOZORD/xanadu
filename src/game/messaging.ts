@@ -4,7 +4,8 @@
 //   determine who the recipients of the message are
 // - The server dispatches the messages to the receiving players
 
-import { Player } from './player';
+import { Player, isApproximateName } from './player';
+import * as _ from 'lodash';
 
 export type MessageType = 'Game' | 'Echo' | 'Whisper' | 'Talk' | 'Shout';
 
@@ -95,4 +96,32 @@ export function show(response: Message): MessageJSON {
   shown.message = response.content;
 
   return shown;
+}
+
+export type NameSpan = {
+  names: string[],
+  rest: string
+};
+
+export function spanMessagePlayerNames (content: string, players: Player[], equality = isApproximateName): NameSpan {
+    const allPlayerNames = players.map(player => player.name);
+
+    const splitContent = _.chain(content).split(' ');
+
+    const namesFromMessage = splitContent
+      .tail()
+      .takeWhile(chunk => _.some(allPlayerNames, name => equality(chunk, name)))
+      .map(chunk => _.find(allPlayerNames, name => equality(chunk, name)))
+      .value();
+
+    const restContent = splitContent
+      .tail()
+      .drop(namesFromMessage.length)
+      .join(' ')
+      .value();
+
+    return {
+      names: namesFromMessage,
+      rest: restContent
+    };
 }

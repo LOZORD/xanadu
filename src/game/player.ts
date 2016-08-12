@@ -3,8 +3,9 @@ import { Stats } from './stats';
 import { Item } from './items/item';
 import { toJSON as inventoryToJSON, InventoryJSON } from './inventory';
 import { Map } from './map/map';
-import { omit } from 'lodash';
+import { omit, startsWith } from 'lodash';
 
+// TODO: find a way to remove this (as most if not all can be computed from player properties)
 export type PlayerState = 'Anon' | 'Preparing' | 'Ready' | 'Playing' | 'Dead' | 'Spectating' | 'Absent';
 
 export interface Player {
@@ -116,4 +117,8 @@ export function debugDetails(player: Player): {} {
   }
 
   return retObj;
+}
+
+export function isApproximateName(chunk: string, name: string): boolean {
+  return startsWith(name.toLowerCase(), chunk.toLowerCase());
 }

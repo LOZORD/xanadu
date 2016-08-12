@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import * as _ from 'lodash';
 import * as Messaging from './messaging';
 import { Player } from './player';
+import Game from '../context/game';
 
 describe('Server Messaging ', () => {
   before(function() {
@@ -76,6 +77,42 @@ describe('Server Messaging ', () => {
         message: 'hooray',
         type: 'Shout'
       });
+    });
+  });
+  describe('spanMessagePlayerNames', function() {
+    before(function() {
+      this.player1 = {
+        id: 'sponge',
+        name: 'Spongebob',
+        state: 'Playing',
+        character: null
+      };
+
+      this.player2 = {
+        id: 'starfish',
+        name: 'Patrick',
+        state: 'Playing',
+        character: null
+      };
+
+      this.player3 = {
+        id: 'octopus',
+        name: 'Squidward',
+        state: 'Playing',
+        character: null
+      };
+
+      this.game = new Game(8, [this.player1, this.player2, this.player3]);
+
+      this.content = '/t patrick did you know that squidward plays clarinet?';
+
+      this.result = Messaging.spanMessagePlayerNames(this.content, this.game.players);
+    });
+    it('should correctly pull the name from the content', function() {
+      expect(this.result.names).to.eql(['Patrick']);
+    });
+    it('should get have the rest of the message', function() {
+      expect(this.result.rest).to.equal('did you know that squidward plays clarinet?');
     });
   });
 });

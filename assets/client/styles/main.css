@@ -128,7 +128,7 @@ body {
 }
 
 #messages li.Shout {
-  color: var(--xanadu-shout);
+  color: var(--xanadu-red);
 }
 
 #messages li.Error {

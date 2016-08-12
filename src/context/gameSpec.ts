@@ -12,7 +12,7 @@ const createGame = (players = []): Game => {
 };
 
 const createPlayer = (id: string, name: string, state: PlayerState): Player => {
-  const player = <any> {
+  const player = {
     id,
     name,
     state,
@@ -27,13 +27,13 @@ const createPlayer = (id: string, name: string, state: PlayerState): Player => {
       col: 0,
       modifiers: null
     }
-  };
+  } as any;
 
   //player.character.player = player;
 
   player.character.player = player;
 
-  return <Player> player;
+  return player;
 };
 
 describe('Game', () => {
@@ -105,16 +105,143 @@ describe('Game', () => {
     });
   });
 
-  describe('handleMessage', () => {
-    context('when given a valid action command', () => {
-      it('should update the sender\'s character\'s `nextAction` field');
-      it('should send a response to the player confirming their next action');
+  describe('handleMessage', function () {
+    function setup(self) {
+      self.player1 = createPlayer('vader', 'Darth_Vader', 'Playing');
+      self.player2 = createPlayer('yoda', 'Yoda', 'Playing');
+      self.player3 = createPlayer('r2d2', 'R2D2', 'Playing');
+      self.game = createGame([ self.player1, self.player2, self.player3 ]);
+    }
+    before(function () {
+      setup(this);
     });
-    context('when given an invalid action command', () => {
-      it('should send a response to the player');
+    afterEach(function () {
+      setup(this);
     });
-    context('when given a communication command', () => {
-      it('should be tested!');
+    describe('when given a valid action command', function () {
+      before(function () {
+        expect((this.player1.character as Character.Character).nextAction).to.be.null;
+        this.responses = (this.game as Game).handleMessage({
+          content: 'go south', // a valid movement on the default test map
+          player: this.player1,
+          timestamp: Date.now()
+        });
+      });
+      it('should update the sender\'s character\'s `nextAction` field', function () {
+        expect((this.player1.character as Character.Character).nextAction).to.not.be.null;
+      });
+      it('should send a response to the player confirming their next action', function () {
+        const hasConfirmation =
+          _.some(this.responses as Messaging.Message[],
+            (message) => _.startsWith(message.content, 'Next action:'));
+
+        expect(hasConfirmation).to.be.true;
+      });
+    });
+    describe('when given an invalid action command', function () {
+      before(function () {
+        this.responses = (this.game as Game).handleMessage({
+          content: 'go north', // north of the starting position is a barrier,
+          player: this.player1,
+          timestamp: Date.now()
+        });
+      });
+      it('should not update the `nextAction` field', function () {
+        expect((this.player1.character as Character.Character).nextAction).to.be.null;
+      });
+      it('should send a rejection to the player', function () {
+        const hasRejection =
+          _.some(this.responses as Messaging.Message[],
+            (message) => _.startsWith(message.content, 'Invalid action:'));
+
+        expect(hasRejection).to.be.true;
+      });
+    });
+    describe('when given a communication command', function () {
+      describe('for talking', function () {
+        before(function () {
+          this.responses = (this.game as Game).handleMessage({
+            content: '/t yod May the force be with you',
+            player: this.player1,
+            timestamp: Date.now()
+          });
+        });
+        it('should have sent a talk message to the other player', function () {
+          const result =
+            _.some(this.responses as Messaging.Message[],
+              (message) => message.type === 'Talk' && _.startsWith(message.content, 'May the force'));
+
+          expect(result).to.be.true;
+        });
+      });
+      describe('for shouting', function () {
+        before(function () {
+          this.responses = (this.game as Game).handleMessage({
+            content: '/s HELP!',
+            player: this.player1,
+            timestamp: Date.now()
+          });
+        });
+        it('should have sent a shout message to the other player', function () {
+          const shout = _.find(this.responses as Messaging.Message[],
+            (message) => message.type === 'Shout');
+
+          expect(shout).to.be.ok;
+          expect(shout.content).to.equal('HELP!');
+          expect(shout.to)
+            .to.include(this.player2).and
+            .to.include(this.player3).and
+            .to.not.include(this.player1);
+        });
+      });
+      describe('for whispering', function () {
+        before(function () {
+          this.responses = (this.game as Game).handleMessage({
+            content: '/w r2 darth is a sith', // I know that's not how Yoda speaks...
+            player: this.player2,
+            timestamp: Date.now()
+          });
+        });
+        it('should have sent a whisper message ot the other player', function () {
+          const whisper = _.find(this.responses as Messaging.Message[],
+            message => message.type === 'Whisper');
+
+          expect(whisper).to.be.ok;
+          expect(whisper.to).to.eql([ this.player3 ]);
+          expect(whisper.content).to.eql('darth is a sith');
+        });
+      });
+      describe('for unknown communications', function () {
+        before(function () {
+          this.responses = (this.game as Game).handleMessage({
+            content: '/-blarg-',
+            player: this.player3,
+            timestamp: Date.now()
+          });
+        });
+        it('should have sent a rejection message', function () {
+          const result = _.some(this.responses as Messaging.Message[],
+            (message) => message.type === 'Game' && _.startsWith(message.content, 'Unknown communication:'));
+
+          expect(result).to.be.true;
+        });
+      });
+    });
+    describe('when given an unknown command', function () {
+      before(function () {
+        this.responses = (this.game as Game).handleMessage({
+          content: 'foobarbaz',
+          player: this.player1,
+          timestamp: Date.now()
+        });
+      });
+      it('should have a rejection message', function () {
+        const hasRejection =
+          _.some(this.responses as Messaging.Message[],
+            (message) => _.startsWith(message.content, 'Unknown command or communication'));
+
+        expect(hasRejection).to.be.true;
+      });
     });
   });
 
@@ -165,7 +292,7 @@ describe('Game', () => {
       });
 
       const hasNextActionMessage = _
-        .chain(<Messaging.Message[]> r1)
+        .chain(r1 as Messaging.Message[])
         .map('content')
         .some(content => _.includes(content, 'Next action'))
         .value();
@@ -205,6 +332,19 @@ describe('Game', () => {
       };
 
       expect(game.isReadyForUpdate()).to.be.true;
+    });
+  });
+  describe('getNearbyAnimals', function () {
+    before(function () {
+      this.player1 = createPlayer('luke', 'Luke', 'Playing');
+      this.player2 = createPlayer('leia', 'Leia', 'Playing');
+      this.game = createGame([ this.player1, this.player2 ]);
+    });
+
+    it('should return the other player', function () {
+      const nearby = (this.game as Game).getNearbyAnimals((this.player1.character as Character.Character));
+
+      expect(nearby).to.include(this.player1.character).and.to.include(this.player2.character);
     });
   });
 });

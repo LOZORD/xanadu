@@ -9,6 +9,8 @@ import { Item, ItemStack } from '../items/item';
  - Barrier/Wall (a solid rock that can be excavated into a room)
  */
 
+// TODO: all of this needs to be reworked (needs more natural composition)
+
 export interface Position {
     row: number;
     col: number;
@@ -28,20 +30,24 @@ export const Barrier: CellType = {
     room: false
 };
 
-export const PassageRoom: CellType = {
-    repr: '^',
-    room: true
-};
-
-export const TreasureRoom: CellType = {
-    repr: 'X',
-    room: true
-};
-
 export interface Room extends CellType {
     animals: Animal[];
     items: ItemStack<Item>[];
 }
+
+export const PassageRoom: Room = {
+    repr: '^',
+    room: true,
+    items: [],
+    animals: []
+};
+
+export const TreasureRoom: Room = {
+    repr: 'X',
+    room: true,
+    items: [],
+    animals: []
+};
 
 export const EmptyRoom: Room = {
     repr: '_',
@@ -49,6 +55,10 @@ export const EmptyRoom: Room = {
     animals: [],
     items: []
 };
+
+export function isRoom(cellType: CellType): cellType is Room {
+    return cellType.room;
+}
 
 export function areSameCellType(a: CellType, b: CellType): boolean {
     // TODO: This is primitive
