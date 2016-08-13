@@ -6,6 +6,7 @@ import { TEST_PARSE_RESULT } from '../game/map/parseGrid';
 import { Player, PlayerState } from '../game/player';
 import * as Messaging from '../game/messaging';
 import * as Character from '../game/character';
+import { Action } from '../game/actions';
 
 const createGame = (players = []): Game => {
   return new Game(8, players);
@@ -345,6 +346,55 @@ describe('Game', () => {
       const nearby = (this.game as Game).getNearbyAnimals((this.player1.character as Character.Character));
 
       expect(nearby).to.include(this.player1.character).and.to.include(this.player2.character);
+    });
+  });
+  describe('getSortedActions', function() {
+    before(function() {
+      this.player1 = createPlayer('123', 'Alice', 'Playing');
+
+      this.player2 = createPlayer('456', 'Bob', 'Playing');
+
+      this.player3 = createPlayer('789', 'Carol', 'Playing');
+
+      this.game = createGame([this.player1, this.player2, this.player3]);
+
+      (this.game as Game).getPlayer('123').character.stats = {
+        health: 50,
+        intelligence: 50,
+        strength: 50,
+        agility: 50
+      };
+
+      expect(this.game.getPlayer('123').character.stats.agility)
+        .to.be.greaterThan(this.game.getPlayer('456').character.stats.agility).and
+        .to.be.greaterThan(this.game.getPlayer('789').character.stats.agility);
+
+      (this.game as Game).handleMessage({
+        content: 'go south',
+        player: this.player2,
+        timestamp: 1
+      });
+
+      (this.game as Game).handleMessage({
+        content: 'go south',
+        player: this.player3,
+        timestamp: 0
+      });
+
+      (this.game as Game).handleMessage({
+        content: 'go south',
+        player: this.player1,
+        timestamp: 2
+      });
+
+      this.sortedActions = (this.game as Game).getSortedActions();
+    });
+    it('should sort first by player agility', function() {
+      expect(((this.sortedActions)[0].actor as Character.Character).player.id).to.eql(this.player1.id);
+    });
+    it('should sort second by timestamp', function() {
+      expect(this.sortedActions[1].actor.player.id).to.equal(this.player3.id);
+      expect(this.sortedActions[2].actor.player.id).to.equal(this.player2.id);
     });
   });
 });

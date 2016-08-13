@@ -1,8 +1,7 @@
 import * as _ from 'lodash';
 
-// TODO: move player into its own directory
 import { Message, createGameMessage } from '../game/messaging';
-import { Player, PlayerState } from '../game/player';
+import { Player, PlayerState, isApproximateName } from '../game/player';
 import { PerformResult } from '../game/actions';
 
 export const validName: RegExp = /^\w+$/;
@@ -78,9 +77,11 @@ export abstract class Context {
   }
 
   validateName(name: string): NameValidation {
-    // TODO: validate against "subset" names
-    // e.g. "James_Bond" and "James_Bond_007"
-    if (this.hasPlayerByName(name)) {
+    const similarNameExists = _.some(this.players, player => {
+      return isApproximateName(name, player.name) || isApproximateName(player.name, name);
+    });
+
+    if (similarNameExists) {
       return 'Taken';
     } else if (!validName.test(name)) {
       return 'Invalid characters';

@@ -80,7 +80,6 @@ export interface MessageJSON {
   };
 }
 
-// TODO: support Broadcasts
 // This is the representation of the response that is sent to the client via
 // the `from`s socket.
 export function show(response: Message): MessageJSON {

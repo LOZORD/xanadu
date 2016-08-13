@@ -16,7 +16,9 @@ export interface Player {
   state: PlayerState;
 }
 
-// TODO: implement a `createPlayer` function
+export function createPlayer(id: string, name: string, state: PlayerState, character: Character = null): Player {
+  return { id, name, state, character };
+}
 
 export function isAnon(p: Player): boolean {
   return p.state === 'Anon';

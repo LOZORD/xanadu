@@ -81,7 +81,27 @@ describe('Context (tested via Lobby)', () => {
   });
 
   describe('validateName', () => {
-    it('should be tested!');
+    it('should validate against "subset" names', () => {
+      const player1: Player = {
+        id: '007',
+        name: 'James_Bond',
+        state: 'Preparing'
+      };
+
+      const player2: Player = {
+        id: '2112',
+        name: 'Geddy_Lee',
+        state: 'Preparing'
+      };
+
+      const context = new Lobby(8, [player1, player2]);
+
+      // test name superset of present name
+      expect(context.validateName('James_Bond_Imposter')).to.equal('Taken');
+
+      // test name subset of present name
+      expect(context.validateName('Geddy')).to.equal('Taken');
+    });
   });
 
   describe('updatePlayer', () => {

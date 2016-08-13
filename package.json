@@ -18,6 +18,7 @@
     "test:full": "npm run clean && npm run lint && npm run build && npm run test:cover",
     "test": "npm run test:cover",
     "launch": "node dist/main.js --with-defaults",
+    "launch:debug": "node dist/main.js --with-defaults --debug",
     "now": "npm run test:full && npm run launch"
   },
   "repository": {

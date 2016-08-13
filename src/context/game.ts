@@ -138,15 +138,28 @@ export default class Game extends Context {
       player => Boolean(player.character.nextAction));
   }
 
-  update(): Actions.PerformResult {
-    const sortedActions = _
-      .chain(this.players)
-      .map(player => player.character.nextAction)
-      .sortBy(action => action.actor.stats.agility)
-      .sortBy(action => action.timestamp)
-      .value() as Actions.Action[];
+  getSortedActions(): Actions.Action[] {
+    if (this.isReadyForUpdate()) {
 
-    // TODO: do something with completeLog (using Logger/Winston)
+      function getAgility(action: Actions.Action): number {
+        return action.actor.stats.agility;
+      }
+
+      function getTimestamp(action: Actions.Action): number {
+        return action.timestamp;
+      }
+
+      const playerActions = this.players.map(player => player.character.nextAction);
+
+      return _.orderBy(playerActions, [getAgility, getTimestamp], ['desc', 'asc']);
+    } else {
+      return [];
+    }
+  }
+
+  update(): Actions.PerformResult {
+    const sortedActions = this.getSortedActions();
+
     const { messages: completeMessages, log: completeLog }: Actions.PerformResult = _.reduce(sortedActions,
       ({ messages, log }: Actions.PerformResult, action) => {
         const component = Actions.getComponentByKey(action.key);

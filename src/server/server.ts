@@ -1,8 +1,5 @@
-///<xreference path="./random-seed.d.ts" />
-// ^^ fix this ^^
 import * as _ from 'lodash';
 import * as Path from 'path';
-import * as Gen from 'random-seed';
 import * as Http from 'http';
 import * as Express from 'express';
 import * as SocketIO from 'socket.io';
@@ -24,7 +21,7 @@ export default class Server {
   sockets: SocketIO.Socket[];
   gameNS: SocketIO.Namespace;
   debugNS: SocketIO.Namespace;
-  seed: Gen.seedType;
+  seed: string; // TODO: add RNG!
   maxPlayers: number;
   logger: Logger;
   constructor(maxPlayers: number, port: number, seed: string, debug: boolean, logger: Logger) {
@@ -37,11 +34,8 @@ export default class Server {
 
     this.gameNS = this.io.of('/game');
 
-    // TODO: Don't serve debug page if debugging is off
     if (debug) {
       this.debugNS = this.io.of('/debug');
-      // XXX: the server's user should probably define the logging level...
-      // this.logger.level = 'debug';
     } else {
       this.debugNS = null;
     }
@@ -55,6 +49,7 @@ export default class Server {
   }
 
   start(): Promise<Server> {
+    this.logger.log('debug', 'Starting server at ', (new Date()).toString());
     return new Promise<Server>((resolve, reject) => {
       if (this.debugNS) {
         this.createDebugServer();
@@ -67,14 +62,9 @@ export default class Server {
   }
 
   stop(closeCallback = _.noop): Promise<Server> {
+    this.logger.log('debug', 'Stopping server at ', (new Date()).toString());
     return new Promise<Server>((resolve, reject) => {
-      // TODO: handle this event on the client
-      if (this.debugNS) {
-        this.debugNS.removeAllListeners('server-stopped');
-      }
-      this.gameNS.removeAllListeners('server-stopped');
       this.httpServer.close(closeCallback);
-
       resolve(this);
     });
   }
@@ -94,8 +84,9 @@ export default class Server {
     this.expressApp.use('/jquery', Express.static(PATHS.JQUERY));
     this.expressApp.use('/bootstrap', Express.static(PATHS.BOOTSTRAP));
 
-    // TODO: add logger
-    this.httpServer.listen(this.port, _.noop);
+    this.httpServer.listen(this.port, () => {
+      this.logger.log('debug', `Server is listening on port: ${this.port}`);
+    });
 
     this.gameNS.on('connection', (socket) => {
       this.handleConnection(socket);
@@ -137,8 +128,8 @@ export default class Server {
   }
   changeContext() {
     if (this.currentContext instanceof Lobby) {
-      // FIXME: what about passing the rng/seed?
-      this.currentContext = this.createGame();
+      // TODO: eventually pass RNG
+      this.currentContext = this.createGame(this.currentContext.players);
 
       // message players that the game has begun
       this.sendMessage(
@@ -174,7 +165,6 @@ export default class Server {
         this.sendMessage(this.currentContext.broadcast('What is your next action?'));
       }
 
-      // TODO: do something with the context's player lists
       if (isReadyForNextContext) {
         this.changeContext();
       }
@@ -200,7 +190,9 @@ export default class Server {
   }
 
   rejectSocket(socket: SocketIO.Socket) {
-    this.logger.log('info', `socket ${socket.id} rejected -- game full (${this.maxPlayers} max)`);
+    const contextStr = this.currentContext instanceof Lobby ? 'lobby' : 'game';
+    const numPlayersStr = `(${this.currentContext.players.length}/${this.currentContext.maxPlayers} players)`;
+    this.logger.log('info', `socket ${socket.id} rejected`, contextStr, numPlayersStr);
     socket.emit('rejected-from-room');
   }
 
@@ -234,8 +226,8 @@ export default class Server {
   }
 
   // Reason for `createGame`: we may want one server but many games!
-  createGame(): Game {
-    return new Game(this.maxPlayers, this.currentContext.players);
+  createGame(players: Player[]): Game {
+    return new Game(this.maxPlayers, players);
   }
 
   createLobby(players: Player[]): Lobby {
