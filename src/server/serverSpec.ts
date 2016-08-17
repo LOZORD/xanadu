@@ -9,102 +9,61 @@ type ClientSocket = SocketIOClient.Socket;
 const FIRST_FREE_PORT = 0;
 
 describe('Server', () => {
-  const createServer = (debug = false): Server => {
-    // TODO: create own Winston instance
-    Winston.level = 'error';
-    return new Server(8, Date.now().toString(), debug, Winston);
-  };
+  function createClient(serverPromise: Promise<Server>, nsp: string): Promise<ClientSocket> {
+    return new Promise<ClientSocket>((resolve, reject) => {
+      serverPromise.then(server => {
+        const uri = `http://localhost:${server.address.port}${nsp}`;
+        resolve(ClientSocket.connect(uri, {
+          forceNew: true
+        }));
 
-  const createClient =
-    (port: number, socketNamespace: string, options: SocketIOClient.ConnectOpts = {}):
-    //(port: number, socketNamespace: string, options: SocketIOClient.ConnectOpts = { forceNew: true }):
-    SocketIOClient.Socket => {
-      if (socketNamespace[ 0 ] !== '/') {
-        socketNamespace = '/' + socketNamespace;
-      }
+        return server;
+      });
+    });
+  }
 
-      //(options as any)['force new connection'] = true;
-
-      return ClientSocket.connect(`http://localhost:${port}${socketNamespace}`, options);
-    };
-
-  const shutdownSocket = (socket: ClientSocket): void => {
+  function shutdownSocket(socket: ClientSocket): void {
     socket.disconnect();
     socket.close();
-  };
+  }
 
-  type ServerAndClients = {
-    server: Server,
-    gameClients: ClientSocket[]
-    debugClients: ClientSocket[];
-  };
+  before(function () {
+    Winston.level = 'error';
+    const s = new Server(3, Date.now().toString(), true, Winston);
 
-  // TODO: remove this function (it does TOO much)
-  const createServerAndClients =
-    (numGameClients = 1, numDebugClients = 0, port = FIRST_FREE_PORT): Promise<ServerAndClients> => {
-      const serverPromise = createServer(numDebugClients > 0).start(port);
-      const clientPromises = _.times(numGameClients + numDebugClients, (n) => {
-        return new Promise((resolve, reject) => {
-          serverPromise.then(server => {
-            const clientNamespace = n < numGameClients ? '/game' : '/debug';
-            resolve(createClient(server.address.port, clientNamespace));
-          });
-        });
-      });
+    this.serverPromise = s.start(0);
 
-      const serverAndClientsPromise = new Promise<ServerAndClients>((resolve, reject) => {
-        Promise.all(clientPromises.concat(serverPromise)).then(values => {
-          const server = _.last(values) as Server;
-          const clients = _.initial(values) as ClientSocket[];
-          resolve({
-            server: server,
-            gameClients: _.filter(clients, client => client.nsp === '/game'),
-            debugClients: _.filter(clients, client => client.nsp === '/debug')
-          });
-        });
-      });
+    this.gameClients = [
+      createClient(this.serverPromise, '/game'),
+      createClient(this.serverPromise, '/game'),
+      createClient(this.serverPromise, '/game')
+    ];
 
-      return serverAndClientsPromise;
-    };
+    this.debugClient = createClient(this.serverPromise, '/debug');
+  });
+  after(function () {
+    this.debugClient.then(socket => shutdownSocket(socket));
+    this.gameClients.forEach(socketPromise => socketPromise.then(socket => {
+      shutdownSocket(socket);
+    }));
 
-  const shutdownServerAndClients = (serverAndClients: ServerAndClients) => {
-    _.concat(serverAndClients.gameClients, serverAndClients.debugClients)
-      .forEach(clientSocket => {
-        //console.log(`shut down socket ${ clientSocket.id }`);
-        shutdownSocket(clientSocket);
-      });
-
-    serverAndClients.server.stop();
-  };
-
-  describe('getSocket', () => {
-    before(function () {
-      this.server = createServer();
-
-      this.serverPromise = (this.server as Server).start(FIRST_FREE_PORT);
-
-      this.clientPromise = new Promise<SocketIOClient.Socket>((resolve, reject) => {
-        this.serverPromise.then(server => {
-          const serverPort = server.httpServer.address().port;
-
-          resolve(createClient(serverPort, '/game'));
-        });
-      });
+    (this.serverPromise as Promise<Server>).then(server => {
+      server.stop();
     });
-    after(function () {
-      (this.clientPromise as Promise<ClientSocket>).then(client => {
-        shutdownSocket(client);
-      });
-      (this.serverPromise as Promise<Server>).then(server => {
-        server.stop();
-      });
-    });
+  });
+
+  describe('getSocket', function () {
     context('when the socket is present', function () {
       it('should return the socket', function () {
         return (this.serverPromise as Promise<Server>).then(server => {
-          (this.clientPromise as Promise<ClientSocket>).then(client => {
+          const firstGameClientPromise = this.gameClients[ 0 ];
+
+          (firstGameClientPromise as Promise<ClientSocket>).then(client => {
             expect(server.getSocket(client.id)).to.be.ok;
+            return client;
           });
+
+          return server;
         });
       });
     });
@@ -112,105 +71,56 @@ describe('Server', () => {
       it('should return undefined', function () {
         return (this.serverPromise as Promise<Server>).then(server => {
           expect(server.getSocket('007')).to.be.undefined;
+          return server;
         });
       });
     });
   });
-  describe.skip('rejectSocket2', function () {
-    this.slow(150);
+  describe('rejectSocket', function () {
+    type SocketPromiseAndResult = {
+      socketPromise: Promise<ClientSocket>,
+      result: string
+    };
 
     before(function () {
-      Winston.level = 'error';
-      this.server = new Server(1, Date.now().toString(), false, Winston);
+      this.serverPromise.then(server => {
+        expect(server.maxPlayers).to.equal(this.gameClients.length);
 
-      this.serverPromise = (this.server as Server).start(0);
-
-      this.serverPromise.then((server: Server) => {
-        const port = server.address.port;
-        this.gameClient = createClient(port, '/game');
+        return server;
       });
-    });
-    after(function (done) {
-      shutdownSocket(this.gameClient);
-      this.serverPromise.then((server: Server) => {
-        server.stop();
-        done();
-      });
-    });
-    it('should emit a `rejected-from-room` message to the client', function (done) {
-      (this.serverPromise as Promise<Server>).then(server => {
-        this.newClient = createClient(server.address.port, '/game');
 
-        const donePromise = new Promise((resolve, reject) => {
-          this.newClient.on('rejected-from-room', () => resolve(true));
-        });
+      this.donePromise = new Promise<SocketPromiseAndResult>((resolve) => {
+        const newClient = createClient(this.serverPromise, '/game');
 
-        expect(server.getSocket(this.newClient.id)).to.be.undefined;
+        newClient.then(socket => {
+          socket.on('rejected-from-room', () => {
+            resolve({
+              socketPromise: newClient,
+              result: 'GOT EVENT!'
+            });
+          });
 
-        donePromise.then(sawRejection => {
-          expect(sawRejection).to.be.true;
-          done();
+          return socket;
         });
       });
-    });
-  });
-  describe.skip('rejectSocket1', function () {
-    this.slow(150);
-    before(function () {
-      this.serverAndClientsPromise = createServerAndClients(8, 0, 0);
 
-      this.serverAndClientsPromise.then(({server}) => {
-        expect(server.sockets.length).to.equal(server.maxPlayers);
-      });
+      return this.donePromise;
     });
     after(function () {
-      shutdownSocket(this.newClient);
-      return this.serverAndClientsPromise.then(shutdownServerAndClients);
-    });
-    it('should emit a `rejected-from-room` message to the client', function (done) {
-      (this.serverAndClientsPromise as Promise<ServerAndClients>).then(serverAndClients => {
-        const server = serverAndClients.server;
-
-        this.newClient = createClient(server.address.port, '/game');
-
-        const donePromise = new Promise((resolve, reject) => {
-          this.newClient.on('rejected-from-room', () => resolve(true));
+      return (this.donePromise as Promise<SocketPromiseAndResult>).then(values => {
+        values.socketPromise.then(socket => {
+          shutdownSocket(socket);
+          return socket;
         });
 
-        expect(server.getSocket(this.newClient.id)).to.be.undefined;
-
-        donePromise.then(sawRejection => {
-          expect(sawRejection).to.be.true;
-          done();
-        });
+        return values;
       });
     });
-  });
-  // FIXME
-  describe.skip('Debug Mode', function () {
-    before(function () {
-      this.serverPromise = createServer(true).start(FIRST_FREE_PORT);
-
-      this.serverPromise.then((server: Server) => {
-        const port = server.address.port;
-        this.gameClient = createClient(port, '/game');
-        this.debugClient = createClient(port, '/debug');
+    it('should emit a `rejected-from-room` event', function () {
+      return (this.donePromise as Promise<SocketPromiseAndResult>).then(values => {
+        expect(values.result).to.equal('GOT EVENT!');
+        return values;
       });
     });
-    after(function () {
-      shutdownSocket(this.debugClient);
-      shutdownSocket(this.gameClient);
-
-      return (this.serverPromise as Promise<Server>).then(server => {
-        server.stop();
-      });
-    });
-    it('should have set up a debug namespace', function () {
-      return (this.serverPromise as Promise<Server>).then(server => {
-        expect(server.debugNS).to.be.ok;
-      });
-    });
-    it('should response to `get` events from the client');
-    it('should respond with `debug-update` events');
   });
 });
