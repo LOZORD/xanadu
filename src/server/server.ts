@@ -16,7 +16,6 @@ export default class Server {
   expressApp: Express.Express;
   httpServer: Http.Server;
   io: SocketIO.Server;
-  port: number;
   currentContext: Context;
   sockets: SocketIO.Socket[];
   gameNS: SocketIO.Namespace;
@@ -24,12 +23,11 @@ export default class Server {
   seed: string; // TODO: add RNG!
   maxPlayers: number;
   logger: Logger;
-  constructor(maxPlayers: number, port: number, seed: string, debug: boolean, logger: Logger) {
+  constructor(maxPlayers: number, seed: string, debug: boolean, logger: Logger) {
     this.maxPlayers = maxPlayers;
     this.expressApp = Express();
     this.httpServer = Http.createServer(this.expressApp);
     this.io = SocketIO(this.httpServer);
-    this.port = port;
     this.logger = logger;
 
     this.gameNS = this.io.of('/game');
@@ -44,18 +42,16 @@ export default class Server {
     this.sockets = [];
     // server starts out as having a lobby context
     this.currentContext = this.createEmptyLobby();
-
-    //this.createServer();
   }
 
-  start(): Promise<Server> {
+  start(port: number): Promise<Server> {
     this.logger.log('debug', 'Starting server at ', (new Date()).toString());
     return new Promise<Server>((resolve, reject) => {
       if (this.debugNS) {
         this.createDebugServer();
       }
 
-      this.createServer();
+      this.createServer(port);
 
       resolve(this);
     });
@@ -64,12 +60,18 @@ export default class Server {
   stop(closeCallback = _.noop): Promise<Server> {
     this.logger.log('debug', 'Stopping server at ', (new Date()).toString());
     return new Promise<Server>((resolve, reject) => {
+      //this.gameNS.removeAllListeners();
+      //this.debugNS.removeAllListeners();
       this.httpServer.close(closeCallback);
       resolve(this);
     });
   }
 
-  createServer() {
+  get address() {
+    return this.httpServer.address();
+  }
+
+  createServer(port: number) {
     const NODE_MODULES = Path.join(__dirname, '..', '..', 'node_modules');
     const PATHS = {
       CLIENT_ASSETS: Path.join(__dirname, '..', '..', 'assets', 'client'),
@@ -84,8 +86,8 @@ export default class Server {
     this.expressApp.use('/jquery', Express.static(PATHS.JQUERY));
     this.expressApp.use('/bootstrap', Express.static(PATHS.BOOTSTRAP));
 
-    this.httpServer.listen(this.port, () => {
-      this.logger.log('debug', `Server is listening on port: ${this.port}`);
+    this.httpServer.listen(port, () => {
+      this.logger.log('debug', `Server is listening on port: ${this.address.port}`);
     });
 
     this.gameNS.on('connection', (socket) => {
@@ -206,10 +208,6 @@ export default class Server {
 
   removePlayer(socketId: string): Player {
     return this.currentContext.removePlayer(socketId);
-  }
-
-  removeSocket(socketId: string) {
-    this.sockets = _.filter(this.sockets, (socket) => socket.id !== socketId);
   }
 
   handleMessage(messageObj, socket: SocketIO.Socket) {

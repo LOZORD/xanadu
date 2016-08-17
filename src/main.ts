@@ -10,6 +10,7 @@ export type CommandLineArgs = {
   seed?: number
 };
 
+// TODO: allow `0` as a valid port number -> assigns server to first available port
 export function parseArgs(givenArgs: string[]): CommandLineArgs {
   let args = {
     maxPlayers: NaN,
@@ -77,9 +78,9 @@ export function startServer(args: CommandLineArgs, logger: Logger): Promise<Serv
 
     return Promise.reject(new Error(errMsg));
   } else {
-    const server = new Server(maxPlayers, port, seed.toString(), debug, logger);
+    const server = new Server(maxPlayers, seed.toString(), debug, logger);
 
-    return server.start();
+    return server.start(port);
   }
 }
 
@@ -100,7 +101,7 @@ if (isBeingRun()) {
   }
 
   startServer(args, winston).then((server: Server) => {
-    server.logger.log('info', `XANADU SERVER LISTENING ON PORT: ${ server.port }`);
+    server.logger.log('info', `XANADU SERVER LISTENING ON PORT: ${ server.address.port }`);
   }, (error: Error) => {
     winston.error(error.message);
     process.exit(1);
