@@ -1,8 +1,7 @@
 import { parseArgs, startServer } from './main';
 import { expect } from 'chai';
 import * as _ from 'lodash';
-// use the default Winston logger for testing
-import * as Winston from 'winston';
+import { createDefaultWinstonLogger } from './logger';
 
 describe('Main (Game Runner)', () => {
   describe('parseArgs', () => {
@@ -11,7 +10,7 @@ describe('Main (Game Runner)', () => {
         expect(parseArgs([ '--with-defaults' ])).to.eql({
           maxPlayers: 8,
           debug: false,
-          port: 3000,
+          port: 0,
           seed: 1234
         });
       });
@@ -39,7 +38,7 @@ describe('Main (Game Runner)', () => {
         expect(parseArgs([ '--port', '3456' ]).port).to.equal(3456);
       });
       it('should be the default port if the port number is invalid', () => {
-        [ 1 - 1, 65535 + 1 ].forEach(portNum => {
+        [ 0 - 1, 65535 + 1 ].forEach(portNum => {
           expect(parseArgs([ '--port', portNum.toString() ]).port).to.be.NaN;
         });
       });
@@ -69,7 +68,7 @@ describe('Main (Game Runner)', () => {
           '--no-debug'
         ]);
 
-        startServer(parsedArgs, Winston).catch((error: Error) => {
+        startServer(parsedArgs, createDefaultWinstonLogger()).catch((error: Error) => {
           expect(error.message).to.include('maxPlayers should be a number greater than 1');
           done();
         });
@@ -82,8 +81,8 @@ describe('Main (Game Runner)', () => {
           '--no-debug'
         ]);
 
-        startServer(parsedArgs, Winston).catch((error: Error) => {
-          expect(error.message).to.include('port should be a number between 1 and 65535');
+        startServer(parsedArgs, createDefaultWinstonLogger()).catch((error: Error) => {
+          expect(error.message).to.include('port should be a number between 0 and 65535');
           done();
         });
       });
@@ -95,7 +94,7 @@ describe('Main (Game Runner)', () => {
           '--debug'
         ]);
 
-        startServer(parsedArgs, Winston).catch((error: Error) => {
+        startServer(parsedArgs, createDefaultWinstonLogger()).catch((error: Error) => {
           expect(error.message).to.include('seed should be a number');
           done();
         });

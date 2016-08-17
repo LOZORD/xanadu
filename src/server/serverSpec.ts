@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { expect } from 'chai';
 import Server from './server';
-import * as Winston from 'winston';
+import { createDefaultWinstonLogger } from '../logger';
 import * as ClientSocket from 'socket.io-client';
 import { Promise } from 'es6-promise';
 
@@ -28,8 +28,8 @@ describe('Server', () => {
   }
 
   before(function () {
-    Winston.level = 'error';
-    const s = new Server(3, Date.now().toString(), true, Winston);
+    const winson = createDefaultWinstonLogger('error');
+    const s = new Server(3, Date.now().toString(), true, winson);
 
     this.serverPromise = s.start(0);
 

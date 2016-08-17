@@ -1,7 +1,6 @@
-import * as Winston from 'winston';
 import Server from './server/server';
 import { Promise } from 'es6-promise';
-import { Logger } from './logger';
+import { Logger, createDefaultWinstonLogger } from './logger';
 
 export type CommandLineArgs = {
   maxPlayers?: number,
@@ -10,7 +9,6 @@ export type CommandLineArgs = {
   seed?: number
 };
 
-// TODO: allow `0` as a valid port number -> assigns server to first available port
 export function parseArgs(givenArgs: string[]): CommandLineArgs {
   let args = {
     maxPlayers: NaN,
@@ -29,7 +27,7 @@ export function parseArgs(givenArgs: string[]): CommandLineArgs {
       i++;
     } else if (givenArgs[i] === '--port') {
       let port = parseInt(givenArgs[i + 1], 10);
-      if (port < 1 || port > 65535) {
+      if (port < 0 || port > 65535) {
         port = NaN;
       }
       args.port = port;
@@ -54,7 +52,7 @@ export function parseArgs(givenArgs: string[]): CommandLineArgs {
     return {
       maxPlayers: args.maxPlayers || 8,
       debug: args.debug || false,
-      port: args.port || 3000,
+      port: args.port || 0,
       seed: args.seed || 1234
     };
   } else {
@@ -70,7 +68,7 @@ export function startServer(args: CommandLineArgs, logger: Logger): Promise<Serv
       errMsg += '\t- maxPlayers should be a number greater than 1\n';
     }
     if (isNaN(port)) {
-      errMsg += '\t- port should be a number between 1 and 65535\n';
+      errMsg += '\t- port should be a number between 0 and 65535\n';
     }
     if (isNaN(seed)) {
       errMsg += '\t- seed should be a number\n';
@@ -91,8 +89,7 @@ function isBeingRun(): boolean {
 if (isBeingRun()) {
   const args = parseArgs(process.argv.slice(2));
 
-  // use the default Winston logger
-  const winston = Winston;
+  const winston = createDefaultWinstonLogger();
 
   if (args.debug) {
     winston.level = 'debug';
