@@ -197,6 +197,24 @@ export type Modifiers = {
   missionary: boolean;
 }
 
+export function createEmptyModifiers(): Modifiers {
+  return {
+    killer: false,
+    immortal: false,
+    psycho: false,
+    racist: false,
+    cannibal: false,
+    fatalist: false,
+    pacifist: false,
+    rusky: false,
+    arsonist: false,
+    angelOfDeath: false,
+    collector: false,
+    scalper: false,
+    missionary: false
+  };
+}
+
 export function canTranslateModern(c: Character): boolean {
   return hasItem(c.inventory, ModernTranslationBook) || meetsRequirements(c.stats, {
     intelligence: 50

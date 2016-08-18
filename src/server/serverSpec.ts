@@ -29,7 +29,7 @@ describe('Server', () => {
 
   before(function () {
     const winson = createDefaultWinstonLogger('error');
-    const s = new Server(3, Date.now().toString(), true, winson);
+    const s = new Server(3, Date.now(), true, winson);
 
     this.serverPromise = s.start(0);
 

@@ -11,13 +11,16 @@ import { Message, gameMessage } from '../game/messaging';
 import * as Character from '../game/character';
 import { Animal } from '../game/animal';
 import { Entity } from '../game/entity';
+import { Seed, SeededRNG } from '../rng';
+import { Chance } from 'chance';
 
 export type GameConfig = {
   map?: Map;
-  modifiers?: {
+  numModifiers?: {
     minimum: number;
     maximum: number;
   };
+  seed: Seed
 };
 
 export default class Game extends Context {
@@ -25,14 +28,40 @@ export default class Game extends Context {
   hasEnded: boolean;
   turnNumber: number;
   map: Map;
+  rng: SeededRNG;
 
-  constructor(maxPlayers: number, players: Player[], gameConfig: GameConfig = {}) {
+  constructor(maxPlayers: number, players: Player[], gameConfig: GameConfig = { seed: Date.now() }) {
     super(maxPlayers, players);
     this.map = gameConfig.map ? gameConfig.map : TEST_PARSE_RESULT;
+
+    this.rng = Chance(gameConfig.seed);
+
+    let minNumModifiers: number;
+    let maxNumModifiers: number;
+
+    if (gameConfig.numModifiers) {
+      minNumModifiers = gameConfig.numModifiers.minimum;
+      maxNumModifiers = gameConfig.numModifiers.maximum;
+    } else {
+      minNumModifiers = 0;
+      maxNumModifiers = 0;
+    }
 
     this.players.forEach((player) => {
       // set all the players' states to playing
       player.state = 'Playing';
+      const numActiveModifiers = this.rng.integer({
+        min: minNumModifiers,
+        max: maxNumModifiers
+      });
+
+      const modifiers = Character.createEmptyModifiers();
+
+      const activeModifers = this.rng.pickset(_.keys(modifiers), numActiveModifiers);
+
+      activeModifers.forEach(modifier => {
+        modifiers[modifier] = true;
+      });
 
       // FIXME: this should probably be changed later...
       if (!player.character) {
@@ -42,7 +71,7 @@ export default class Game extends Context {
           row: 0,
           col: 0,
           allegiance: 'None',
-          modifiers: null,
+          modifiers: modifiers,
           goldAmount: Character.NoClass.startingGold,
           nextAction: null,
           stats: Character.NoClass.startingStats,

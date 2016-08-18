@@ -1,5 +1,6 @@
 {
   "globalDependencies": {
+    "chance": "registry:dt/chance#0.7.3+20160317120654",
     "express": "registry:dt/express#4.0.0+20160708185218",
     "express-serve-static-core": "registry:dt/express-serve-static-core#4.0.0+20160715232503",
     "jquery": "registry:dt/jquery#1.10.0+20160704162008",

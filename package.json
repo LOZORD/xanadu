@@ -46,6 +46,7 @@
   "homepage": "https://github.com/LOZORD/xanadu#readme",
   "dependencies": {
     "bootstrap": "^3.3.6",
+    "chance": "^1.0.4",
     "es6-promise": "^3.2.1",
     "express": "^4.13.4",
     "jquery": "^2.2.0",

@@ -39,15 +39,9 @@ const createPlayer = (id: string, name: string, state: PlayerState): Player => {
 
 describe('Game', () => {
   describe('constructor', () => {
-    it.skip('should not construct without an rng', () => {
-      // expect(() => (new Game())).to.throw(Error);
-    });
-
     it('should set default arguments', () => {
       const g = createGame();
-      // const m = createMap();
       expect(g.players).to.eql([]);
-      // expect(g.map).to.eql(m);
       expect(g.map.grid).to.eql(TEST_PARSE_RESULT.grid);
       expect(g.maxPlayers).to.equal(8);
       expect(g.turnNumber).to.equal(0);

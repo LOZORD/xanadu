@@ -11,6 +11,7 @@ import { Player, debugDetails as playerDebugDetails, playerDetails, isAnon } fro
 import { Promise } from 'es6-promise';
 import { mapToString } from '../game/map/map';
 import { Logger } from '../logger';
+import { Seed } from '../rng';
 
 export default class Server {
   expressApp: Express.Express;
@@ -20,10 +21,10 @@ export default class Server {
   sockets: SocketIO.Socket[];
   gameNS: SocketIO.Namespace;
   debugNS: SocketIO.Namespace;
-  seed: string; // TODO: add RNG!
+  seed: Seed;
   maxPlayers: number;
   logger: Logger;
-  constructor(maxPlayers: number, seed: string, debug: boolean, logger: Logger) {
+  constructor(maxPlayers: number, seed: Seed, debug: boolean, logger: Logger) {
     this.maxPlayers = maxPlayers;
     this.expressApp = Express();
     this.httpServer = Http.createServer(this.expressApp);
@@ -130,7 +131,6 @@ export default class Server {
   }
   changeContext() {
     if (this.currentContext instanceof Lobby) {
-      // TODO: eventually pass RNG
       this.currentContext = this.createGame(this.currentContext.players);
 
       // message players that the game has begun
@@ -224,8 +224,8 @@ export default class Server {
   }
 
   // Reason for `createGame`: we may want one server but many games!
-  createGame(players: Player[]): Game {
-    return new Game(this.maxPlayers, players);
+  createGame(players: Player[], seed: Seed = this.seed): Game {
+    return new Game(this.maxPlayers, players, { seed });
   }
 
   createLobby(players: Player[]): Lobby {

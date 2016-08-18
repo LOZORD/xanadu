@@ -76,7 +76,7 @@ export function startServer(args: CommandLineArgs, logger: Logger): Promise<Serv
 
     return Promise.reject(new Error(errMsg));
   } else {
-    const server = new Server(maxPlayers, seed.toString(), debug, logger);
+    const server = new Server(maxPlayers, seed, debug, logger);
 
     return server.start(port);
   }
