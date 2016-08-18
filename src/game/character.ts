@@ -177,20 +177,24 @@ export const Smith: CharacterClass = {
 
 export type Allegiance = 'None' | 'Eastern' | 'Western';
 
-export interface Modifiers {
-  killer?: boolean;
-  immortal?: boolean;
-  psycho?: boolean;
-  racist?: boolean;
-  cannibal?: boolean;
-  fatalist?: boolean;
-  pacifist?: boolean;
-  rusky?: boolean;
-  arsonist?: boolean;
-  angelOfDeath?: boolean;
-  collector?: boolean;
-  scalper?: boolean;
-  missionary?: boolean;
+// Think of these as achievement that can be unlocked.
+// If a property is true, that means we include it when calculating final gold winnings.
+// Some "activity log" should be added to characters to keep track of the data that would be used
+// to find if these modifier "achievements" have been completed.
+export type Modifiers = {
+  killer: boolean;
+  immortal: boolean;
+  psycho: boolean;
+  racist: boolean;
+  cannibal: boolean;
+  fatalist: boolean;
+  pacifist: boolean;
+  rusky: boolean;
+  arsonist: boolean;
+  angelOfDeath: boolean;
+  collector: boolean;
+  scalper: boolean;
+  missionary: boolean;
 }
 
 export function canTranslateModern(c: Character): boolean {

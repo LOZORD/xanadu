@@ -12,16 +12,23 @@ import * as Character from '../game/character';
 import { Animal } from '../game/animal';
 import { Entity } from '../game/entity';
 
-// TODO: one of the game parameters should be the number of modifiers randomly assigned
+export type GameConfig = {
+  map?: Map;
+  modifiers?: {
+    minimum: number;
+    maximum: number;
+  };
+};
+
 export default class Game extends Context {
 
   hasEnded: boolean;
   turnNumber: number;
   map: Map;
 
-  constructor(maxPlayers: number, players: Player[], map?: Map) {
+  constructor(maxPlayers: number, players: Player[], gameConfig: GameConfig = {}) {
     super(maxPlayers, players);
-    this.map = map || TEST_PARSE_RESULT;
+    this.map = gameConfig.map ? gameConfig.map : TEST_PARSE_RESULT;
 
     this.players.forEach((player) => {
       // set all the players' states to playing

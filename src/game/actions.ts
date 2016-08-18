@@ -10,13 +10,12 @@ export interface Action {
   actor: Animal;
   timestamp: number;
   key: ComponentKey;
-}
+};
 
-// TODO: Option type
-export interface ValidationResult {
-  isValid: boolean;
-  error?: string;
-}
+export type ValidationResult =  {
+  isValid: boolean,
+  error?: string
+};
 
 export type ComponentKey = 'Move' | 'Pass';
 

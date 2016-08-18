@@ -55,57 +55,6 @@ describe('Game', () => {
     });
   });
 
-  describe.skip('changeFields', () => {
-    const g = createGame();
-    const fields = {
-      rng: () => 42,
-      players: [
-        createPlayer('123', 'Foo', 'Preparing'),
-        createPlayer('456', 'Bar', 'Preparing'),
-        createPlayer('789', 'Baz', 'Preparing')
-      ]
-    };
-    // const changed = g.changeFields(fields);
-    // FIXME: implement or rewrite test
-    const changed = null;
-
-    it('should change only the given fields', () => {
-      Object.keys(fields).forEach((f) => {
-        expect(changed[ f ]).to.equal(fields[ f ]);
-      });
-    });
-
-    it('should include all of the unchanged fields', () => {
-      Object.keys(_.omit(g, Object.keys(fields))).forEach((f) => {
-        expect(changed[ f ]).to.equal(g[ f ]);
-      });
-    });
-
-    it('should return an instance of Game', () => {
-      expect(changed instanceof Game).to.equal(true);
-    });
-
-    it('should respect constructor defaults', () => {
-      const someGame = changed.changeFields({
-        players: null,
-        mapOpts: null,
-        map: null,
-        maxPlayers: null,
-        turnNumber: null,
-        hasStarted: null,
-        hasEnded: null
-      });
-      // const m = createMap();
-      expect(someGame.players).to.eql([]);
-      // expect(g.map).to.eql(m);
-      expect(someGame.map.grid).to.eql(TEST_PARSE_RESULT.grid);
-      expect(someGame.maxPlayers).to.equal(8);
-      expect(someGame.turnNumber).to.equal(0);
-      expect(someGame.hasStarted).to.equal(false);
-      expect(someGame.hasEnded).to.equal(false);
-    });
-  });
-
   describe('handleMessage', function () {
     function setup(self) {
       self.player1 = createPlayer('vader', 'Darth_Vader', 'Playing');
@@ -269,7 +218,6 @@ describe('Game', () => {
     it('should return true when the game has ended');
   });
 
-  // TODO: test if the sorting works
   describe('update', () => {
     beforeEach(function () {
       this.p1 = createPlayer('007', 'James_Bond', 'Playing');
