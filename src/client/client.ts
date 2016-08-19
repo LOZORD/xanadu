@@ -60,6 +60,19 @@ if (isRunningOnClient) {
 
 /* FUNCTIONS */
 
+export function newMessageElement(viewMessage: ViewMessage, $: JQueryCreator): JQuery {
+  const listElem = $('<li>');
+  const textElem = $('<pre>');
+
+  // use `.text` so whatever we put in the element will only be treated as
+  // text and _not_ HTML (or worse, JS)
+  textElem.text(viewMessage.content);
+  listElem.addClass(viewMessage.styleClasses.join(' '));
+  listElem.append(textElem);
+
+  return listElem;
+}
+
 export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket, logger: Logger): () => void {
   return function () {
     let messageOutput = $('#messages');
@@ -83,18 +96,12 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket,
     });
 
     let addMessage = (viewMessage: ViewMessage) => {
-      // use `.text` so whatever we put in the element will only be treated as
-      // text and _not_ HTML (or worse, JS)
-      // XXX: maybe do we want a <pre> _inside_ the <li>?
-      let newElem = $('<li>').text(viewMessage.content);
-      newElem.addClass(viewMessage.styleClasses.join(' '));
+      const newElem = newMessageElement(viewMessage, $);
       messageOutput.append(newElem);
       messageOutput.parent().scrollTop(messageOutput.parent().height());
       input.focus();
     };
 
-    // Basic welcome message
-    // TODO: add word art and/or better/helpful message)
     addMessage({
       content: 'Please enter your name below...',
       styleClasses: [ 'Game' ]
@@ -143,54 +150,6 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket,
 
     /* * * FINAL VIEW SETUP * * */
     input.focus();
-
-    /* * * XXX ONLY FOR TESTING XXX * * */
-    updateDetails($detailSelectors, {
-      stats: {
-        maximum: {
-          health: 10,
-          agility: 10,
-          intelligence: 10,
-          strength: 10
-        },
-        current: {
-          health: 5,
-          agility: 4,
-          intelligence: 3,
-          strength: 2
-        }
-      },
-      gold: 50,
-      items: [
-        {
-          name: 'Pistol',
-          stack: 1
-        },
-        {
-          name: 'Water',
-          stack: 4
-        }
-      ]
-    });
-    /*
-    updateDetails({
-      stats: {
-        health:   { cur: 5, max: 10 },
-        agility:  { cur: 5, max: 10 },
-        intelligence: { cur: 5, max: 10 },
-        strength:     { cur: 5, max: 10 }
-      },
-      gold: 50,
-      items: [
-        { name: 'Pistol', condition: 44 },
-        { name: 'Water', stack: 4 },
-        { name: 'Something', condition: 11 },
-        { name: 'FooBar', condition: 88 },
-        { name: 'Baz', condition: 88 },
-        { name: 'Quux', stack: 1 }
-      ]
-    });
-    */
   };
 }
 

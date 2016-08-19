@@ -70,14 +70,6 @@ body {
   height: 100%;
 }
 
-#left-half {
-  /* for design debugging */
-}
-
-#right-half {
-  /* for design debugging */
-}
-
 #form-wrapper {
   position: absolute;
   bottom: 0;
@@ -107,7 +99,46 @@ body {
   overflow-y: scroll;
 }
 
+#messages pre {
+  font-size: 1em;
+}
+
+#messages #logo {
+  color: var(--xanadu-red);
+  white-space: pre;
+}
+
+#messages li pre a {
+  color: var(--xanadu-red);
+  text-decoration: underline;
+}
+
+#messages li pre a:hover {
+  color: var(--xanadu-near-black);
+  background-color: var(--xanadu-red);
+  text-decoration: none;
+}
+
+#messages a:visited {
+  color: var(--xanadu-red);
+}
+
 #messages li {
+  border-radius: 0;
+  border-left: 1px solid var(--xanadu-near-black);
+  border-right: 1px solid var(--xanadu-near-black);
+  margin-bottom: 0.5vh;
+}
+
+#messages li pre {
+  background-color: inherit;
+  color: inherit;
+  border: none;
+  font-family: inherit;
+  margin-bottom: 0;
+  text-align: inherit;
+  border-radius: 0;
+  border: none;
 }
 
 /* MESSAGE TYPE STYLING */
@@ -142,58 +173,12 @@ body {
   border: 1px dashed var(--xanadu-grey);
 }
 
-/* OLD MESSAGE TYPE STYLING
-#messages li.broadcast {
-  color: var(--xanadu-yellow);
-}
-
-#messages li.game-broadcast {
-  color: var(--xanadu-cyan);
-}
-
-#messages li.chat {
-  color: var(--xanadu-green);
-}
-
-#messages li.echo {
-  color: var(--xanadu-white);
-}
-
-#messages li.game {
-  color: var(--xanadu-blue);
-}
-
-#messages li.shout {
-  color: var(--xanadu-red);
-}
-
-#messages li.whisper {
-  color: var(--xanadu-magenta);
-}
-
-#messages li.unknown {
-  border: 1px dashed var(--xanadu-grey);
-}
-
-#messages li.error {
-  border: 1px dashed var(--xanadu-red);
-  background-color: var(--xanadu-magenta);
-  color: var(--xanadu-white);
-  font-weight: bold;
-}
-
-*/
-
 #player-map {
   overflow: scroll;
 }
 
 #details-wrapper {
   height: 33%;
-}
-
-#inventory-wrapper {
-  /* don't constrain the height; this can be as tall as possible */
 }
 
 #gold-amount {

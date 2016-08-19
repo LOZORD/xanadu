@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang='en'>
+
   <head>
     <meta charset='utf-8'>
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
@@ -8,6 +9,7 @@
     <!-- CSS STYLING -->
     <link rel='stylesheet' type='text/css' href='/bootstrap/css/bootstrap.min.css'>
     <link href="https://fonts.googleapis.com/css?family=Nova+Mono" rel="stylesheet">
+    <!--<link href="https://fonts.googleapis.com/css?family=UnifrakturCook:700" rel="stylesheet">-->
     <link rel='stylesheet' type='text/css' href='styles/main.css'>
     <!-- JS IMPORTS -->
     <script src='/jquery/jquery.min.js'></script>
@@ -15,6 +17,7 @@
     <script src='/socket.io/socket.io.js'></script>
     <script type='text/javascript' src='/scripts/client.js'></script>
   </head>
+
   <body>
     <div class='container' id='parent-container'>
       <div class='row'>
@@ -22,6 +25,25 @@
           <div class='' id='messaging-container'>
             <div id='messages-wrapper'>
               <ul id='messages'>
+                <li>
+                  <pre id='logo'>
+             ..                                            ..
+   .H88x.  :~)88:                                        dF
+  x888888X ~:8888                u.    u.               '88bu.         x.    .
+ ~   "8888X  %88"       u      x@88k u@88c.       u     '*88888bu    .@88k  z88u
+      X8888          us888u.  ^"8888""8888"    us888u.    ^"*8888N  ~"8888 ^8888
+   .xxX8888xxxd>  .@88 "8888"   8888  888R  .@88 "8888"  beWE "888L   8888  888R
+  :88888888888"   9888  9888    8888  888R  9888  9888   888E  888E   8888  888R
+  ~   '8888       9888  9888    8888  888R  9888  9888   888E  888E   8888  888R
+ xx.  X8888:    . 9888  9888    8888  888R  9888  9888   888E  888F   8888 ,888B .
+X888  X88888x.x"  9888  9888   "*88*" 8888" 9888  9888  .888N..888   "8888Y 8888"
+X88% : '%8888"    "888*""888"    ""   'Y"   "888*""888"  `"888*""     `Y"   'YP
+ "*=~    `""       ^Y"   ^Y'                 ^Y"   ^Y'      ""
+                </pre>
+                </li>
+                <li>
+                  <pre>By <a href='https://github.com/LOZORD/xanadu/graphs/contributors' target='_blank'>LOZORD et al</a> in 2016. First time playing? Read the <a href='https://github.com/LOZORD/xanadu/wiki' target='_blank'>Guide</a>!</pre>
+                </li>
               </ul>
             </div>
             <div id='form-wrapper'>
@@ -96,4 +118,5 @@
       </div>
     </div>
   </body>
+
 </html>
