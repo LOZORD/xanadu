@@ -1,13 +1,13 @@
-import { CellType } from './cell';
+import { CellType, Position } from './cell';
 
 export interface Map {
     width: number;
     height: number;
-    startingPosition: { row: number, col: number };
+    startingPosition: Position;
     grid: CellType[][];
 }
 
-export function isWithinMap(map: Map, row: number, col: number) {
+export function isWithinMap(map: Map, { row, col }: Position): boolean {
     return 0 <= row &&
             row < map.height &&
             0 <= col &&
@@ -20,4 +20,8 @@ export function mapToReprs(map: Map): string[][] {
 
 export function mapToString(map: Map): string {
     return mapToReprs(map).map(row => row.join('')).join('\n');
+}
+
+export function getCell(map: Map, { row, col }: Position): CellType {
+    return map.grid[row][col];
 }

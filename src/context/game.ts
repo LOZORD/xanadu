@@ -221,7 +221,12 @@ export default class Game extends Context {
 
     for (let i = row - radius; i <= row + radius; i++) {
       for (let j = col - radius; j <= col + radius; j++) {
-        if (isWithinMap(this.map, i, j)) {
+        const newPos = {
+          row: i,
+          col: j
+        };
+
+        if (isWithinMap(this.map, newPos)) {
           const currCell = this.map.grid[ i ][ j ];
 
           if (isRoom(currCell)) {

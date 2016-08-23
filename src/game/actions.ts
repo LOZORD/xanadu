@@ -5,6 +5,7 @@ import Game from '../context/game';
 import { moveEntity } from './entity';
 import * as _ from 'lodash';
 import * as Messaging from './messaging';
+import describeRoom from './map/describeRoom';
 
 export interface Action {
   actor: Animal;
@@ -77,8 +78,12 @@ export const MoveComponent: ActionParserComponent<MoveAction> = {
   validate(move: MoveAction, game: Game) {
     const newR = move.actor.row + move.offsetRow;
     const newC = move.actor.col + move.offsetCol;
+    const newPos = {
+      row: newR,
+      col: newC
+    };
 
-    if (!isWithinMap(game.map, newR, newC)) {
+    if (!isWithinMap(game.map, newPos)) {
       return {
         isValid: false,
         error: 'Out of bounds movement!'
@@ -100,8 +105,6 @@ export const MoveComponent: ActionParserComponent<MoveAction> = {
 
     moveEntity(move.actor, newPos);
 
-    // TODO: get movement and room description
-
     const messages = [];
 
     if (isPlayerCharacter(move.actor)) {
@@ -110,6 +113,8 @@ export const MoveComponent: ActionParserComponent<MoveAction> = {
       log.push(`${player.name} moved to ${JSON.stringify(newPos)}`);
 
       messages.push(Messaging.createGameMessage('You moved!', [ player ]));
+
+      messages.push(Messaging.createGameMessage(describeRoom(newPos, game.map), [ player ]));
     }
 
     return {

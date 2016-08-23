@@ -79,3 +79,19 @@ export function fromRepr(c: string): CellType {
             throw new Error(`Unknown room type: ${c[0]}`); // Not a fan...
     }
 }
+
+export interface CardinalNeighboringPositions {
+    north: Position;
+    east: Position;
+    south: Position;
+    west: Position;
+};
+
+export function getCardinalNeighboringPositions({ row, col }: Position): CardinalNeighboringPositions {
+    return {
+        north: { row: row - 1, col },
+        east: { row, col: col + 1},
+        south: { row: row +  1, col },
+        west: { row, col: col - 1}
+    };
+}
