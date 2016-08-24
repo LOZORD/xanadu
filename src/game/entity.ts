@@ -1,14 +1,12 @@
 import { Position } from './map/cell';
 
-export interface Entity {
-    row: number;
-    col: number;
-}
+// TODO: cruft?
+export interface Entity extends Position {
+};
 
-export interface MoveableEntity {
-    row: number;
-    col: number;
-}
+// TODO: cruft?
+export interface MoveableEntity extends Entity {
+};
 
 export function moveEntity(e: MoveableEntity, pos: Position) {
     e.row = pos.row;

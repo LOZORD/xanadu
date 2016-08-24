@@ -1,6 +1,6 @@
 import * as GridParser from './parseGrid';
 import * as Map from './map';
-import { Barrier, EmptyRoom, PassageRoom, TreasureRoom } from './cell';
+//import { Barrier, Room } from './cell';
 import { expect } from 'chai';
 import { readFile } from 'fs';
 
@@ -24,15 +24,17 @@ describe('Grid Parsing', function () {
   describe('validateGrid', function () {
     context('when there is no treasure room', () => {
       it('should return the proper message', () => {
-        const grid = [
-          [ Barrier, Barrier, Barrier, Barrier ],
-          [ Barrier, EmptyRoom, PassageRoom, Barrier ],
-          [ Barrier, Barrier, Barrier, Barrier ]
+        const grid: string[] = [
+          '####',
+          '#_^#',
+          '####'
         ];
 
         const startingPosition = { row: 1, col: 2 };
 
-        expect(GridParser.validateGrid(grid, startingPosition)).to.include('no treasure room');
+        const doParse = () => GridParser.parseGrid(grid, startingPosition);
+
+        expect(doParse).to.throw('no treasure room');
       });
     });
     context('when there is no starting position', () => {

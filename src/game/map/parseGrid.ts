@@ -2,9 +2,14 @@ import * as _ from 'lodash';
 import { readFileSync } from 'fs';
 import * as path from 'path';
 import { Map, isWithinMap } from './map';
-import { areSameCellType, CellType, fromRepr, Position, TreasureRoom, PassageRoom } from './cell';
+import * as Cell from './cell';
 
-export function gridRowsFromFile(fileName: string): { startingPosition: Position, gridRows: string[] } {
+interface PrimordialMap {
+  startingPosition: Cell.Position;
+  gridRows: string[];
+};
+
+export function gridRowsFromFile(fileName: string): PrimordialMap {
   const rawContents = readFileSync(fileName, 'utf8');
   const lines = rawContents.trim().split('\n');
   const firstLine = _.head(lines);
@@ -22,8 +27,8 @@ export function gridRowsFromFile(fileName: string): { startingPosition: Position
 
 type ValidationResult = boolean | string;
 
-export function validateGrid(grid: CellType[][], startingPosition: Position): ValidationResult {
-  if (!_.some(_.flatten(grid), cell => areSameCellType(cell, TreasureRoom))) {
+export function validateGrid(grid: Cell.Cell[][], startingPosition: Cell.Position): ValidationResult {
+  if (!_.some(_.flatten(grid), cell => Cell.isRoom(cell) && Cell.isTreasureRoom(cell))) {
     return 'There is no treasure room';
   }
 
@@ -43,17 +48,31 @@ export function validateGrid(grid: CellType[][], startingPosition: Position): Va
 
   const startCell = grid[ startingPosition.row ][ startingPosition.col ];
 
-  if (!areSameCellType(startCell, PassageRoom)) {
+  if (!(Cell.isRoom(startCell) && Cell.isPassageRoom(startCell))) {
     return 'The starting position must be a passage room';
   }
 
   return true;
 }
 
-export function parseGrid(gridRows: string[], startingPosition: Position): Map {
-  const grid = _.map(gridRows,
+export function parseGrid(gridRows: string[], startingPosition: Cell.Position): Map {
+  const grid: Cell.Cell[][] = _.map(gridRows,
     (row, rowInd) => _.map(row,
-      (col, colInd) => fromRepr(gridRows[ rowInd ][ colInd ])
+      (col, colInd) => { //Cell.fromRepresentation(gridRows[ rowInd ][ colInd ])
+        const cr = gridRows[ rowInd ][ colInd ];
+
+        if (Cell.isCellRepresentation(cr)) {
+          return Cell.fromRepresentation(cr as Cell.CellRepresentation, {
+            row: rowInd, col: colInd
+          }, {
+              items: [],
+              health: 50
+            }
+          );
+        } else {
+          throw new Error(`Unknown cell representation: "${cr}" at (${rowInd}, ${colInd})`);
+        }
+      }
     )
   );
 

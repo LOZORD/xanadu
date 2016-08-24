@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import * as Actions from '../game/actions';
 import { moveEntity } from '../game/entity';
 import { Player, canCommunicate } from '../game/player';
-import { Map, isWithinMap } from '../game/map/map';
+import * as Map from '../game/map/map';
 import { isRoom } from '../game/map/cell';
 import * as Messaging from '../game/messaging';
 import { Context, ClientMessage } from './context';
@@ -15,7 +15,7 @@ import { Seed, SeededRNG } from '../rng';
 import { Chance } from 'chance';
 
 export type GameConfig = {
-  map?: Map;
+  map?: Map.Map;
   numModifiers?: {
     minimum: number;
     maximum: number;
@@ -27,8 +27,9 @@ export default class Game extends Context {
 
   hasEnded: boolean;
   turnNumber: number;
-  map: Map;
+  map: Map.Map;
   rng: SeededRNG;
+  beasts: Animal[];
 
   constructor(maxPlayers: number, players: Player[], gameConfig: GameConfig = { seed: Date.now() }) {
     super(maxPlayers, players);
@@ -47,6 +48,9 @@ export default class Game extends Context {
       maxNumModifiers = 0;
     }
 
+    // TODO: populate
+    this.beasts = [];
+
     this.players.forEach((player) => {
       // set all the players' states to playing
       player.state = 'Playing';
@@ -60,7 +64,7 @@ export default class Game extends Context {
       const activeModifers = this.rng.pickset(_.keys(modifiers), numActiveModifiers);
 
       activeModifers.forEach(modifier => {
-        modifiers[modifier] = true;
+        modifiers[ modifier ] = true;
       });
 
       // FIXME: this should probably be changed later...
@@ -187,7 +191,7 @@ export default class Game extends Context {
 
       const playerActions = this.players.map(player => player.character.nextAction);
 
-      return _.orderBy(playerActions, [getAgility, getTimestamp], ['desc', 'asc']);
+      return _.orderBy(playerActions, [ getAgility, getTimestamp ], [ 'desc', 'asc' ]);
     } else {
       return [];
     }
@@ -216,33 +220,16 @@ export default class Game extends Context {
     return { messages: completeMessages, log: completeLog };
   }
 
+  getAllAnimals(): Animal[] {
+    return this.beasts.concat(this.players.map(player => player.character));
+  }
+
   getNearbyAnimals({row, col}: Entity, radius = 1): Animal[] {
-    const ret: Animal[] = [];
-
-    for (let i = row - radius; i <= row + radius; i++) {
-      for (let j = col - radius; j <= col + radius; j++) {
-        const newPos = {
-          row: i,
-          col: j
-        };
-
-        if (isWithinMap(this.map, newPos)) {
-          const currCell = this.map.grid[ i ][ j ];
-
-          if (isRoom(currCell)) {
-            ret.push(...currCell.animals);
-            const playerCharactersInCell = _
-              .chain(this.players)
-              .map(player => player.character)
-              .filter(character => character.row === i && character.col === j)
-              .value();
-
-            ret.push(...playerCharactersInCell);
-          }
-        }
-      }
-    }
-
-    return ret;
+    return _.filter(this.getAllAnimals(), (animal) => {
+      return (
+        _.inRange(animal.row, row - radius, row + radius + 1) &&
+        _.inRange(animal.col, col - radius, col + radius + 1)
+      );
+    });
   }
 }

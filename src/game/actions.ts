@@ -1,6 +1,7 @@
 import { Animal } from './animal';
 import { Character, isPlayerCharacter } from './character';
-import { Map, isWithinMap } from './map/map';
+import * as Map from './map/map';
+import * as Cell from './map/cell';
 import Game from '../context/game';
 import { moveEntity } from './entity';
 import * as _ from 'lodash';
@@ -83,12 +84,12 @@ export const MoveComponent: ActionParserComponent<MoveAction> = {
       col: newC
     };
 
-    if (!isWithinMap(game.map, newPos)) {
+    if (!Map.isWithinMap(game.map, newPos)) {
       return {
         isValid: false,
         error: 'Out of bounds movement!'
       };
-    } else if (!game.map.grid[ newR ][ newC ].room) {
+    } else if (!Cell.isRoom(Map.getCell(game.map, newPos))) {
       return {
         isValid: false,
         error: 'Desired location is not a room!'
@@ -114,7 +115,9 @@ export const MoveComponent: ActionParserComponent<MoveAction> = {
 
       messages.push(Messaging.createGameMessage('You moved!', [ player ]));
 
-      messages.push(Messaging.createGameMessage(describeRoom(newPos, game.map), [ player ]));
+      const newRoom = Map.getCell(game.map, newPos) as Cell.Room;
+
+      messages.push(Messaging.createGameMessage(describeRoom(newRoom, game.map), [ player ]));
     }
 
     return {

@@ -2,18 +2,28 @@ import * as _ from 'lodash';
 import * as Map from './map';
 import * as Cell from './cell';
 
-export default function describeRoom
-  (location: Cell.Position, map: Map.Map): string {
-  let description = 'It is a dark room.\n';
+export default function describeRoom(room: Cell.Room, map: Map.Map): string {
+  let description: string;
 
-  const allNeighbors = Cell.getCardinalNeighboringPositions(location);
+  if (Cell.isTreasureRoom(room)) {
+    description = 'Behold! The riches of Xanadu!\nYou have found the treasure room!\n';
+  } else if (Cell.isPassageRoom(room)) {
+    description = 'You have reached a passage room!\n';
+  } else {
+    description = 'It is a dark room.\n';
+  }
+
+  const allNeighbors = Cell.getCardinalNeighboringPositions({
+    row: room.col,
+    col: room.col
+  });
 
   const neighborPairs = _.toPairs(allNeighbors);
 
   const pathNeighbors = _
     .chain(neighborPairs)
     .filter(([ direction, position ]) => Map.isWithinMap(map, position))
-    .filter(([ direction, position ]) => Map.getCell(map, position).room)
+    .filter(([ direction, position ]) => Cell.isRoom(Map.getCell(map, position)))
     .fromPairs()
     .value();
 
