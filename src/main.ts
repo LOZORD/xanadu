@@ -19,28 +19,28 @@ export function parseArgs(givenArgs: string[]): CommandLineArgs {
 
   let i = 0;
   while (i < givenArgs.length) {
-    if (givenArgs[i] === '--no-debug') {
+    if (givenArgs[ i ] === '--no-debug') {
       args.debug = false;
       i++;
-    } else if (givenArgs[i] === '--debug') {
+    } else if (givenArgs[ i ] === '--debug') {
       args.debug = true;
       i++;
-    } else if (givenArgs[i] === '--port') {
-      let port = parseInt(givenArgs[i + 1], 10);
+    } else if (givenArgs[ i ] === '--port') {
+      let port = parseInt(givenArgs[ i + 1 ], 10);
       if (port < 0 || port > 65535) {
         port = NaN;
       }
       args.port = port;
       i += 2;
-    } else if (givenArgs[i] === '--maxPlayers') {
-      let maxPlayers = parseInt(givenArgs[i + 1], 10);
+    } else if (givenArgs[ i ] === '--maxPlayers') {
+      let maxPlayers = parseInt(givenArgs[ i + 1 ], 10);
       if (maxPlayers < 2) {
         maxPlayers = NaN;
       }
       args.maxPlayers = maxPlayers;
       i += 2;
-    } else if (givenArgs[i] === '--seed') {
-      args.seed = parseInt(givenArgs[i + 1], 10);
+    } else if (givenArgs[ i ] === '--seed') {
+      args.seed = parseInt(givenArgs[ i + 1 ], 10);
       i += 2;
     } else {
       // continue through...
@@ -97,10 +97,27 @@ if (isBeingRun()) {
     winston.level = 'info';
   }
 
-  startServer(args, winston).then((server: Server) => {
-    server.logger.log('info', `XANADU SERVER LISTENING ON PORT: ${ server.address.port }`);
+  const serverPromise = startServer(args, winston);
+
+  serverPromise.then((server: Server) => {
+    server.logger.log('info', `XANADU SERVER LISTENING ON PORT: ${server.address.port}`);
   }, (error: Error) => {
     winston.error(error.message);
     process.exit(1);
   });
+
+  const endMain = (): void => {
+    serverPromise.then((server: Server) => {
+      server.logger.log('info', 'STOPPING XANADU SERVER...');
+
+      const port = server.address.port;
+
+      server.stop(() => {
+        server.logger.log('info', `XANADU SERVER STOPPED (PORT ${port})`);
+        process.exit(0);
+      });
+    });
+  };
+
+  process.on('SIGINT', endMain);
 }
