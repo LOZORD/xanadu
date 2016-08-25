@@ -1,4 +1,4 @@
-import { Position, Cell } from './cell';
+import { Position, Cell, isRoom } from './cell';
 
 export interface Map {
     width: number;
@@ -14,14 +14,18 @@ export function isWithinMap(map: Map, { row, col }: Position): boolean {
         col < map.width;
 }
 
-export function mapToReprs(map: Map): string[][] {
+export function mapToRepresentations(map: Map): string[][] {
     return map.grid.map(row => row.map(cell => cell.representation));
 }
 
 export function mapToString(map: Map): string {
-    return mapToReprs(map).map(row => row.join('')).join('\n');
+    return mapToRepresentations(map).map(row => row.join('')).join('\n');
 }
 
 export function getCell(map: Map, { row, col }: Position): Cell {
     return map.grid[ row ][ col ];
+}
+
+export function isValidRoom(map: Map, pos: Position): boolean {
+    return isWithinMap(map, pos) && isRoom(getCell(map, pos));
 }

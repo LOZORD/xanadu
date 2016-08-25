@@ -99,9 +99,14 @@ export const MoveComponent: ActionParserComponent<MoveAction> = {
     }
   },
   perform(move: MoveAction, game: Game, log: string[]): PerformResult {
+    const oldPos = {
+      row: move.actor.row,
+      col: move.actor.col
+    };
+
     const newPos = {
-      row: move.actor.row + move.offsetRow,
-      col: move.actor.col + move.offsetCol
+      row: oldPos.row + move.offsetRow,
+      col: oldPos.col + move.offsetCol
     };
 
     moveEntity(move.actor, newPos);
@@ -111,7 +116,7 @@ export const MoveComponent: ActionParserComponent<MoveAction> = {
     if (isPlayerCharacter(move.actor)) {
       const player = (move.actor as Character).player;
 
-      log.push(`${player.name} moved to ${JSON.stringify(newPos)}`);
+      log.push(`${player.name} from ${JSON.stringify(oldPos)} to ${JSON.stringify(newPos)}`);
 
       messages.push(Messaging.createGameMessage('You moved!', [ player ]));
 

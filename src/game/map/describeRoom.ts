@@ -14,26 +14,18 @@ export default function describeRoom(room: Cell.Room, map: Map.Map): string {
   }
 
   const allNeighbors = Cell.getCardinalNeighboringPositions({
-    row: room.col,
+    row: room.row,
     col: room.col
   });
 
-  const neighborPairs = _.toPairs(allNeighbors);
+  const pathNeighbors = _.pickBy(allNeighbors, (pos) => Map.isValidRoom(map, pos));
 
-  const pathNeighbors = _
-    .chain(neighborPairs)
-    .filter(([ direction, position ]) => Map.isWithinMap(map, position))
-    .filter(([ direction, position ]) => Cell.isRoom(Map.getCell(map, position)))
-    .fromPairs()
-    .value();
+  const pathDirections = _.keys(pathNeighbors);
 
-  const numPaths = _.size(pathNeighbors);
-
-  if (numPaths === 1) {
-    description += `There is one path to the ${_.keys(pathNeighbors)[ 0 ]}.`;
+  if (pathDirections.length === 1) {
+    description += `There is one path to the ${pathDirections[ 0 ]}.`;
   } else {
-    const directions = _.keys(pathNeighbors);
-    const dirStr = `${_.initial(directions).join(', ')} and ${_.last(directions)}`;
+    const dirStr = `${_.initial(pathDirections).join(', ')} and ${_.last(pathDirections)}`;
     description += `There are paths to the ${dirStr}.`;
   }
 
