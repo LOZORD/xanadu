@@ -106,18 +106,20 @@ if (isBeingRun()) {
     process.exit(1);
   });
 
-  const endMain = (): void => {
-    serverPromise.then((server: Server) => {
-      server.logger.log('info', 'STOPPING XANADU SERVER...');
+  // const endMain = (): void => {
+  //   serverPromise.then((server: Server) => {
+  //     server.logger.log('info', 'STOPPING XANADU SERVER...');
 
-      const port = server.address.port;
+  //     const port = server.address.port;
 
-      server.stop(() => {
-        server.logger.log('info', `XANADU SERVER STOPPED (PORT ${port})`);
-        process.exit(0);
-      });
-    });
-  };
+  //     server.stop().then((stoppedServer) => {
+  //       stoppedServer.logger.log('info', `XANADU SERVER STOPPED (PORT ${port})`);
+  //       stoppedServer.logger.log('info', 'Exiting...');
+  //       process.exit(0);
+  //     });
+  //     return server;
+  //   });
+  // };
 
-  process.on('SIGINT', endMain);
+  // FIXME: process.on('SIGINT', endMain);
 }
