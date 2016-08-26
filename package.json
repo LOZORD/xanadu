@@ -14,7 +14,7 @@
     "clean": "rm -rf dist/",
     "test:only": "node dist/test.js",
     "test:quick": "npm run build && npm run test:only",
-    "test:cover": "node node_modules/istanbul/lib/cli.js cover --include-all-sources --root 'dist' -x 'test.js' -x '*Spec.js' 'dist/test.js'",
+    "test:cover": "node node_modules/istanbul/lib/cli.js cover 'dist/test.js' --include-all-sources --root 'dist' -x 'test.js' -x '**/*Spec.js'",
     "test:full": "npm run clean && npm run lint && npm run build && npm run test:cover",
     "test": "npm run test:cover",
     "launch": "node dist/main.js --with-defaults --port 3000",
