@@ -3,7 +3,7 @@
 //import * as io from 'socket.io-client';
 //import * as $ from 'jquery';
 import * as ServerMessaging from '../game/messaging';
-import { PlayerDetailsJSON } from '../game/player';
+import { PlayerDetailsJSON, PlayerRosterJSON } from '../game/player';
 import { Logger } from '../logger';
 
 /* TYPES */
@@ -98,6 +98,7 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket,
     let addMessage = (viewMessage: ViewMessage) => {
       const newElem = newMessageElement(viewMessage, $);
       messageOutput.append(newElem);
+      // TODO: this scrolling needs to be fixed
       messageOutput.parent().scrollTop(messageOutput.parent().height());
       input.focus();
     };
@@ -125,6 +126,18 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket,
       logger.log('debug', 'Error data', data);
     });
 
+    /* * * SERVER STOPPED * * */
+    // TODO: do we want this?
+    // this could be useful for server-side SIGINTs (#30)
+    // socket.on('server-stopped', () => {
+    //   addMessage({
+    //     content: 'The server been stopped!',
+    //     styleClasses: [ 'Error' ]
+    //   });
+    //   socket.disconnect();
+    //   socket.close();
+    // });
+
     /* * * REJECTED FROM ROOM * * */
 
     socket.on('rejected-from-room', () => {
@@ -146,6 +159,11 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket,
       // quasi-debug
       detailOutput.text(JSON.stringify(data));
       updateDetails($detailSelectors, data);
+    });
+
+    /* * * ROSTER (RHS PANE) * * */
+    socket.on('roster', (data: PlayerDetailsJSON[]) => {
+      logger.log('debug', 'Got roster: ', data);
     });
 
     /* * * FINAL VIEW SETUP * * */

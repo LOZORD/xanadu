@@ -1,15 +1,16 @@
 import * as _ from 'lodash';
-
+import * as Player from '../game/player';
 import { Message, createGameMessage } from '../game/messaging';
-import { Player, PlayerState, isApproximateName } from '../game/player';
 import { PerformResult } from '../game/actions';
 
 export const validName: RegExp = /^\w+$/;
 
 export type NameValidation = 'Valid' | 'Taken' | 'Invalid characters';
 
+type Player = Player.Player;
+
 export interface ClientMessage {
-  player: Player;
+  player: Player.Player;
   content: string;
   timestamp: number;
 }
@@ -20,9 +21,9 @@ export abstract class Context {
   players: Player[];
   maxPlayers: number;
 
-  constructor(maxPlayers: number, players?: Player[]) {
+  constructor(maxPlayers: number, players: Player[] = []) {
     this.maxPlayers = maxPlayers;
-    this.players = players || [];
+    this.players = players;
   }
 
   getPlayer(id: string): Player {
@@ -41,7 +42,7 @@ export abstract class Context {
     return this.getPlayerByName(name) !== undefined;
   }
 
-  addPlayer(id: string, name = '[ANON#PLAYER]', state: PlayerState = 'Anon'): void {
+  addPlayer(id: string, name = '[ANON#PLAYER]', state: Player.PlayerState = 'Anon'): void {
     if (this.hasPlayer(id)) {
       throw new Error(`Player with id ${id} already exists!`);
     } else if (this.isAcceptingPlayers()) {
@@ -57,7 +58,7 @@ export abstract class Context {
     return removedPlayer;
   }
 
-  updatePlayer(id: string, update: { state?: PlayerState, name?: string }): void {
+  updatePlayer(id: string, update: { state?: Player.PlayerState, name?: string }): void {
     const player = _.find(this.players, p => p.id === id);
 
     if (!player) {
@@ -78,7 +79,11 @@ export abstract class Context {
 
   validateName(name: string): NameValidation {
     const similarNameExists = _.some(this.players, player => {
-      return isApproximateName(name, player.name) || isApproximateName(player.name, name);
+      // do a bidirectional test (either could be subset of the other)
+      return (
+        Player.isApproximateName(name, player.name) ||
+        Player.isApproximateName(player.name, name)
+      );
     });
 
     if (similarNameExists) {
@@ -101,6 +106,14 @@ export abstract class Context {
   broadcastFromPlayer(message: string, player: Player): Message {
     // broadcast to all other players except this one
     return this.broadcast(message, [player]);
+  }
+
+  getRosterData(): Player.PlayerRosterJSON[] {
+    return _
+    .chain(this.players)
+    .filter(player => !Player.isAnon(player))
+    .map(player => Player.rosterData(player))
+    .value();
   }
 
   // Signal to the server whether it is time to create a new context for the players

@@ -17,12 +17,16 @@ export function isPlayerCharacter(actor: Animal | Character): actor is Character
   return Boolean((actor as Character).player);
 }
 
-interface CharacterClass {
-  className: string;
+export interface CharacterClass {
+  className: CharacterClassName;
   startingStats: Stats;
   startingGold: number;
   startingInventory: Inventory;
 }
+
+export type CharacterClassName = 'None' | 'Benefactor' | 'Gunslinger' |
+'Excavator' | 'Doctor' | 'Chef' | 'Shaman' | 'Caveman' | 'Cartographer' |
+'Professor' | 'Smith';
 
 // XXX: warning - maybe these CharacterClass objects should be frozen/immutable?
 

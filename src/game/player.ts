@@ -1,4 +1,4 @@
-import { canTranslateModern, Character } from './character';
+import { canTranslateModern, Character, CharacterClass, Allegiance, CharacterClassName } from './character';
 import { Stats } from './stats';
 import { Item } from './items/item';
 import { toJSON as inventoryToJSON, InventoryJSON } from './inventory';
@@ -14,6 +14,14 @@ export interface Player {
   name: string;
   character?: Character;
   state: PlayerState;
+}
+
+export interface PlayerRosterJSON {
+  name: string;
+  state: PlayerState;
+  characterClass?: CharacterClassName;
+  goldAmount?: number;
+  allegiance?: Allegiance;
 }
 
 export function createPlayer(id: string, name: string, state: PlayerState, character: Character = null): Player {
@@ -123,4 +131,19 @@ export function debugDetails(player: Player): {} {
 
 export function isApproximateName(chunk: string, name: string): boolean {
   return startsWith(name.toLowerCase(), chunk.toLowerCase());
+}
+
+export function rosterData(player: Player): PlayerRosterJSON {
+  const ret: PlayerRosterJSON = {
+    name: player.name,
+    state: player.state
+  };
+
+  if (player.character) {
+    ret.characterClass = player.character.characterClass.className;
+    ret.goldAmount = player.character.goldAmount;
+    ret.allegiance = player.character.allegiance;
+  }
+
+  return ret;
 }

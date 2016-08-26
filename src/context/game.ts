@@ -3,7 +3,7 @@ import * as Actions from '../game/actions';
 import { moveEntity } from '../game/entity';
 import { Player, canCommunicate } from '../game/player';
 import * as Map from '../game/map/map';
-import { isRoom } from '../game/map/cell';
+import { isRoom, PassageRoom } from '../game/map/cell';
 import * as Messaging from '../game/messaging';
 import { Context, ClientMessage } from './context';
 import { TEST_PARSE_RESULT } from '../game/map/parseGrid';
@@ -231,5 +231,9 @@ export default class Game extends Context {
         _.inRange(animal.col, col - radius, col + radius + 1)
       );
     });
+  }
+
+  get startingRoom(): PassageRoom {
+    return Map.getCell(this.map, this.map.startingPosition) as PassageRoom;
   }
 }
