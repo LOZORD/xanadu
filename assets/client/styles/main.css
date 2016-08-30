@@ -99,6 +99,8 @@ body {
   overflow-y: scroll;
 }
 
+/* TODO: should the font-size be changed globally? */
+/* I think 1.10-1.15em might be good */
 #messages pre {
   font-size: 1em;
 }
@@ -173,10 +175,21 @@ body {
   border: 1px dashed var(--xanadu-grey);
 }
 
+/* RHS PANE STYLING */
 #player-info {
   text-align: center;
   border-bottom: 1px solid var(--xanadu-near-black);
   padding-bottom: 0.5em;
+  margin-bottom: 1em;
+}
+
+#tab-container #tab-navs {
+  border-color: var(--xanadu-near-black);
+}
+
+#tab-container #tab-navs li a {
+  background-color: var(--xanadu-black);
+  border-color: var(--xanadu-near-black);
 }
 
 #player-map {

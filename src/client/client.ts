@@ -167,7 +167,7 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket,
     });
 
     /* * * FINAL VIEW SETUP * * */
-    $('#tab-navs a').click((event) => {
+    $('#tab-navs a').click(function(event) {
       event.preventDefault();
       $(this).tab('show');
     });
@@ -198,6 +198,10 @@ export function createSelectors($: JQueryCreator): JQueryDetailSelectors {
     $itemsWrapper: $('#items-wrapper'),
     _JQUERY_: $
   };
+}
+
+export function disableTab($tab: JQuery): void {
+  // TODO: e.g. game info tab should be disabled before game has started
 }
 
 export function sendMessage(content: string, sender: SocketIOClient.Socket) {

@@ -55,17 +55,44 @@ X88% : '%8888"    "888*""888"    ""   'Y"   "888*""888"  `"888*""     `Y"   'YP
         </div>
         <div class='col-xs-3 container' id='right-half'>
           <div class='col-xs-12' id='player-info'>
-            <h1>player name</h1>
-            <h2>class name</h2>
+            <h1 id='player-info-name'>player name</h1>
+            <h2 id='player-info-class'>class name</h2>
           </div>
-          <div id='tab-container' class='col-xs-12'>
-            <ul id='tab-navs' class='nav nav-tabs' role='tablist'>
+          <div id='tab-container' class='xcol-xs-12'>
+            <ul id='tab-navs' class='nav nav-tabs nav-justified' role='tablist'>
+              <li role='presentation' class='active'>
+                <a href='#roster' aria-controls='roster' role='tab' data-toggle='tab'>
+                  Roster
+                </a>
+              </li>
               <li role='presentation'>
-                <a href='#game-info' aria-controls='game-info' role='tab' data-toggle='tab'>Game Information</a>
+                <a href='#game-info' aria-controls='game-info' role='tab' data-toggle='tab'>
+                  Game Information
+                </a>
               </li>
             </ul>
-            <div class='tab-contents'>
-              <div id='game-info' role='tab-panel' class='tab-pane'>
+            <div class='tab-content'>
+              <div role='tabpanel' class='tab-pane active' id='roster'>
+                <div id='roster-data'>
+                  <div class='row'>
+                    <div class='col-xs-8'>
+                      Some_Player_1
+                    </div>
+                    <div class='col-xs-4'>
+                      SP_1 class
+                    </div>
+                  </div>
+                  <div class='row'>
+                    <div class='col-xs-8'>
+                      Some_Player_2
+                    </div>
+                    <div class='col-xs-4'>
+                      SP_2 class
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div role='tabpanel' class='tab-pane' id='game-info'>
                 <div id='details-wrapper'>
                   <pre id='details'></pre>
                   <div class='row' id='details-stats'>
