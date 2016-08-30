@@ -173,6 +173,12 @@ body {
   border: 1px dashed var(--xanadu-grey);
 }
 
+#player-info {
+  text-align: center;
+  border-bottom: 1px solid var(--xanadu-near-black);
+  padding-bottom: 0.5em;
+}
+
 #player-map {
   overflow: scroll;
 }

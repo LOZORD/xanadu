@@ -54,64 +54,79 @@ X88% : '%8888"    "888*""888"    ""   'Y"   "888*""888"  `"888*""     `Y"   'YP
           </div>
         </div>
         <div class='col-xs-3 container' id='right-half'>
-          <div id='details-wrapper'>
-            <pre id='details'></pre>
-            <div class='row' id='details-stats'>
-              <div class='col-xs-3' id='details-health'>
-                <h3>HLT</h3>
-                <span id='health-current'></span>/<span id='health-max'></span>
-              </div>
-              <div class='col-xs-3' id='details-agility'>
-                <h3>AGL</h3>
-                <span id='agility-current'></span>/<span id='agility-max'></span>
-              </div>
-              <div class='col-xs-3' id='details-intelligence'>
-                <h3>INT</h3>
-                <span id='intelligence-current'></span>/<span id='intelligence-max'></span>
-              </div>
-              <div class='col-xs-3' id='details-strength'>
-                <h3>STR</h3>
-                <span id='strength-current'></span>/<span id='strength-max'></span>
-              </div>
-            </div>
-            <div class='row' id='modifier-and-effect-stats'>
-              <div class='col-xs-6'>
-                <h3>Modifiers</h3>
-                <ul id='modifier-stats-list'>
-                  <li><strong>Some Modifier</strong>: x/y</li>
-                  <li><strong>Some Modifier</strong>: x/y</li>
-                  <li><strong>Some Modifier</strong>: x/y</li>
-                </ul>
-              </div>
-              <div class='col-xs-6'>
-                <h3>Effects</h3>
-                <ul id='effect-stats-list'>
-                  <li>Some effect here</li>
-                  <li>Another effect</li>
-                </ul>
-              </div>
-            </div>
+          <div class='col-xs-12' id='player-info'>
+            <h1>player name</h1>
+            <h2>class name</h2>
           </div>
-          <hr>
-          <div id='inventory-wrapper'>
-            <h3>Inventory</h3>
-            <div class='row' id='gold-row'>
-              <div class='col-xs-3'>
-                <h4>Gold: </h4>
+          <div id='tab-container' class='col-xs-12'>
+            <ul id='tab-navs' class='nav nav-tabs' role='tablist'>
+              <li role='presentation'>
+                <a href='#game-info' aria-controls='game-info' role='tab' data-toggle='tab'>Game Information</a>
+              </li>
+            </ul>
+            <div class='tab-contents'>
+              <div id='game-info' role='tab-panel' class='tab-pane'>
+                <div id='details-wrapper'>
+                  <pre id='details'></pre>
+                  <div class='row' id='details-stats'>
+                    <div class='col-xs-3' id='details-health'>
+                      <h3>HLT</h3>
+                      <span id='health-current'></span>/<span id='health-max'></span>
+                    </div>
+                    <div class='col-xs-3' id='details-agility'>
+                      <h3>AGL</h3>
+                      <span id='agility-current'></span>/<span id='agility-max'></span>
+                    </div>
+                    <div class='col-xs-3' id='details-intelligence'>
+                      <h3>INT</h3>
+                      <span id='intelligence-current'></span>/<span id='intelligence-max'></span>
+                    </div>
+                    <div class='col-xs-3' id='details-strength'>
+                      <h3>STR</h3>
+                      <span id='strength-current'></span>/<span id='strength-max'></span>
+                    </div>
+                  </div>
+                  <div class='row' id='modifier-and-effect-stats'>
+                    <div class='col-xs-6'>
+                      <h3>Modifiers</h3>
+                      <ul id='modifier-stats-list'>
+                        <li><strong>Some Modifier</strong>: x/y</li>
+                        <li><strong>Some Modifier</strong>: x/y</li>
+                        <li><strong>Some Modifier</strong>: x/y</li>
+                      </ul>
+                    </div>
+                    <div class='col-xs-6'>
+                      <h3>Effects</h3>
+                      <ul id='effect-stats-list'>
+                        <li>Some effect here</li>
+                        <li>Another effect</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <hr>
+                <div id='inventory-wrapper'>
+                  <h3>Inventory</h3>
+                  <div class='row' id='gold-row'>
+                    <div class='col-xs-3'>
+                      <h4>Gold: </h4>
+                    </div>
+                    <div class='col-xs-9'>
+                      <h4 id='gold-amount'>gold here</h4>
+                    </div>
+                  </div>
+                  <div class='row'>
+                    <div class='col-xs-12 container' id='items-wrapper'></div>
+                  </div>
+                </div>
+                <hr>
+                <div id='map-wrapper'>
+                  <div class=''>
+                    <h3>Map</h3>
+                    <pre id='player-map'></pre>
+                  </div>
+                </div>
               </div>
-              <div class='col-xs-9'>
-                <h4 id='gold-amount'>gold here</h4>
-              </div>
-            </div>
-            <div class='row'>
-              <div class='col-xs-12 container' id='items-wrapper'></div>
-            </div>
-          </div>
-          <hr>
-          <div id='map-wrapper'>
-            <div class=''>
-              <h3>Map</h3>
-              <pre id='player-map'></pre>
             </div>
           </div>
         </div>

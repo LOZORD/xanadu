@@ -167,6 +167,11 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket,
     });
 
     /* * * FINAL VIEW SETUP * * */
+    $('#tab-navs a').click((event) => {
+      event.preventDefault();
+      $(this).tab('show');
+    });
+
     input.focus();
   };
 }
