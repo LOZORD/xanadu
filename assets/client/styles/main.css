@@ -181,15 +181,44 @@ body {
   border-bottom: 1px solid var(--xanadu-near-black);
   padding-bottom: 0.5em;
   margin-bottom: 1em;
+  height: 15vh;
 }
 
 #tab-container #tab-navs {
   border-color: var(--xanadu-near-black);
+  margin-bottom: 1em;
 }
 
 #tab-container #tab-navs li a {
   background-color: var(--xanadu-black);
   border-color: var(--xanadu-near-black);
+  color: var(--xanadu-red);
+}
+
+#tab-container #tab-navs li a:hover {
+  background-color: var(--xanadu-red);
+  color: var(--xanadu-near-black);
+}
+
+#tab-container #tab-navs li.active {
+  border-color: var(--xanadu-red);
+}
+
+#tab-container #tab-navs li.active a {
+  background-color: var(--xanadu-near-black);
+}
+
+#tab-container #tab-navs li.active a:hover {
+  color: var(--xanadu-red);
+}
+
+#tab-container div.tab-content {
+  max-height: 73vh;
+  overflow-y: scroll;
+  border-color: var(--xanadu-near-black);
+  border-style: solid;
+  border-width: 0 1px 1px 1px;
+  padding-bottom: 1em;
 }
 
 #player-map {
