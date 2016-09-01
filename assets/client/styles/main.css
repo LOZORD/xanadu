@@ -110,12 +110,12 @@ body {
   white-space: pre;
 }
 
-#messages li pre a {
+#messages li pre a, #roster-data div.row a {
   color: var(--xanadu-red);
   text-decoration: underline;
 }
 
-#messages li pre a:hover {
+#messages li pre a:hover, #roster-data div.row a:hover {
   color: var(--xanadu-near-black);
   background-color: var(--xanadu-red);
   text-decoration: none;
@@ -219,6 +219,11 @@ body {
   border-style: solid;
   border-width: 0 1px 1px 1px;
   padding-bottom: 1em;
+}
+
+#roster #roster-data div.row {
+  margin-bottom: 1em;
+  font-size: 1.25em;
 }
 
 #player-map {

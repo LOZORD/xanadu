@@ -3,12 +3,14 @@
 //import * as io from 'socket.io-client';
 //import * as $ from 'jquery';
 import * as ServerMessaging from '../game/messaging';
-import { PlayerDetailsJSON, PlayerRosterJSON } from '../game/player';
+import { PlayerDetailsJSON, PlayerRosterJSON, PlayerInfo } from '../game/player';
 import { Logger } from '../logger';
 
 /* TYPES */
 
 type StyleClass = ServerMessaging.MessageType | 'Error' | 'Unknown';
+
+type ContextMode = 'Game' | 'Lobby';
 
 type JQueryCreator = (selector: string) => JQuery;
 
@@ -50,6 +52,8 @@ if (isRunningOnClient) {
     reconnection: false
   });
 
+  // TODO: wrap console.log so output is similar to Winston's levels
+  // maybe even include winston?
   $(document).ready(onDocumentReady($, socket, console));
 
   // since we're in the client, exporting is not allowed
@@ -148,6 +152,42 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket,
       socket.disconnect();
     });
 
+    /* * * PLAYER INFO * * */
+    socket.on('player-info', ({ playerName, className }: PlayerInfo) => {
+      const showData = playerName || className;
+
+      if (showData) {
+        if (playerName) {
+          $('#player-info-name').text(playerName).show();
+        } else {
+          $('#player-info-name').hide();
+        }
+
+        if (className) {
+          $('#player-info-class').text(className).show();
+        } else {
+          $('#player-info-class').hide();
+        }
+
+        $('#player-info').show();
+
+      } else {
+        $('#player-info').hide();
+      }
+    });
+
+    /* * * CONTEXT CHANGE * * */
+
+    socket.on('context-change', (newContext: ContextMode) => {
+      if (newContext === 'Game') {
+        $('#game-info-tab').show();
+      } else if (newContext === 'Lobby') {
+        $('#game-info-tab').hide();
+      } else {
+        throw new Error(`Unkown context mode: ${newContext}`);
+      }
+    });
+
     /* * * DETAILS (RHS PANE) * * */
 
     // TODO: add player name and character class somewhere too
@@ -162,15 +202,50 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket,
     });
 
     /* * * ROSTER (RHS PANE) * * */
-    socket.on('roster', (data: PlayerDetailsJSON[]) => {
+    socket.on('roster', (data: PlayerRosterJSON[]) => {
+      // TODO: remove when done
       logger.log('debug', 'Got roster: ', data);
+
+      const $rosterDataBox = $('#roster-data');
+      const sortedData = data.sort((rosterEntryA, rosterEntryB) => {
+        return rosterEntryA.name.localeCompare(rosterEntryB.name);
+      });
+
+      $rosterDataBox.hide();
+
+      $rosterDataBox.empty();
+
+      // TODO: add a "table header row" in index.html
+      // TODO: clicking name link adds name to current message
+      sortedData.forEach(rosterEntry => {
+        $(`
+        <div class='row'>
+          <div class='col-xs-4'>
+            <a href='#'>${ rosterEntry.name }</a>
+          </div>
+          <div class='col-xs-4'>
+            ${ rosterEntry.state }
+          </div>
+          <div class='col-xs-4'>
+            ${ rosterEntry.characterClass || '' }
+          </div>
+        </div>
+        `).appendTo($rosterDataBox);
+      });
+
+      $rosterDataBox.show();
     });
 
     /* * * FINAL VIEW SETUP * * */
-    $('#tab-navs a').click(function(event) {
+    $('#tab-navs a').click(function (event) {
       event.preventDefault();
       $(this).tab('show');
     });
+
+    $('#player-info').hide();
+    $('#player-info-name').hide();
+    $('#player-info-class').hide();
+    $('#game-info-tab').hide();
 
     input.focus();
   };
@@ -198,10 +273,6 @@ export function createSelectors($: JQueryCreator): JQueryDetailSelectors {
     $itemsWrapper: $('#items-wrapper'),
     _JQUERY_: $
   };
-}
-
-export function disableTab($tab: JQuery): void {
-  // TODO: e.g. game info tab should be disabled before game has started
 }
 
 export function sendMessage(content: string, sender: SocketIOClient.Socket) {

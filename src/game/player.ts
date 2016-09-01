@@ -147,3 +147,22 @@ export function rosterData(player: Player): PlayerRosterJSON {
 
   return ret;
 }
+
+export interface PlayerInfo {
+  playerName?: string;
+  className?: CharacterClassName;
+}
+
+export function getPlayerInfo(player: Player): PlayerInfo {
+  const ret = {} as PlayerInfo;
+
+  if (!isAnon(player)) {
+    ret.playerName = player.name;
+  }
+
+  if (player.character) {
+    ret.className = player.character.characterClass.className;
+  }
+
+  return ret;
+}

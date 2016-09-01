@@ -60,12 +60,12 @@ X88% : '%8888"    "888*""888"    ""   'Y"   "888*""888"  `"888*""     `Y"   'YP
           </div>
           <div id='tab-container'>
             <ul id='tab-navs' class='nav nav-tabs nav-justified' role='tablist'>
-              <li role='presentation' class='active'>
+              <li role='presentation' class='active' id='roster-tab'>
                 <a href='#roster' aria-controls='roster' role='tab' data-toggle='tab'>
                   Roster
                 </a>
               </li>
-              <li role='presentation'>
+              <li role='presentation' id='game-info-tab'>
                 <a href='#game-info' aria-controls='game-info' role='tab' data-toggle='tab'>
                   Game Information
                 </a>
@@ -73,24 +73,7 @@ X88% : '%8888"    "888*""888"    ""   'Y"   "888*""888"  `"888*""     `Y"   'YP
             </ul>
             <div class='tab-content container-fluid'>
               <div role='tabpanel' class='tab-pane active' id='roster'>
-                <div id='roster-data'>
-                  <div class='row'>
-                    <div class='col-xs-8'>
-                      Some_Player_1
-                    </div>
-                    <div class='col-xs-4'>
-                      SP_1 class
-                    </div>
-                  </div>
-                  <div class='row'>
-                    <div class='col-xs-8'>
-                      Some_Player_2
-                    </div>
-                    <div class='col-xs-4'>
-                      SP_2 class
-                    </div>
-                  </div>
-                </div>
+                <div id='roster-data'></div>
               </div>
               <div role='tabpanel' class='tab-pane' id='game-info'>
                 <div id='details-wrapper'>
