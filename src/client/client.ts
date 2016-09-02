@@ -190,8 +190,6 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket,
 
     /* * * DETAILS (RHS PANE) * * */
 
-    // TODO: add player name and character class somewhere too
-
     const $detailSelectors = createSelectors($);
 
     socket.on('details', (data: PlayerDetailsJSON) => {
@@ -203,7 +201,6 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket,
 
     /* * * ROSTER (RHS PANE) * * */
     socket.on('roster', (data: PlayerRosterJSON[]) => {
-      // TODO: remove when done
       logger.log('debug', 'Got roster: ', data);
 
       const $rosterDataBox = $('#roster-data');
@@ -215,12 +212,10 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket,
 
       $rosterDataBox.empty();
 
-      // TODO: add a "table header row" in index.html
-      // TODO: clicking name link adds name to current message
       sortedData.forEach(rosterEntry => {
         $(`
         <div class='row'>
-          <div class='col-xs-4'>
+          <div class='col-xs-4 roster-name'>
             <a href='#'>${ rosterEntry.name }</a>
           </div>
           <div class='col-xs-4'>
@@ -240,6 +235,10 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket,
     $('#tab-navs a').click(function (event) {
       event.preventDefault();
       $(this).tab('show');
+    });
+
+    $('#roster-data').on('click', '.roster-name a', function(event) {
+      handleRosterNameClick($(this), input, event);
     });
 
     $('#player-info').hide();
@@ -429,4 +428,18 @@ export function updateDetails($selectors: JQueryDetailSelectors, data: PlayerDet
   }
 
   return $selectors;
+}
+
+export function handleRosterNameClick($nameAnchor: JQuery, $input: JQuery, event: JQueryEventObject): void {
+  event.preventDefault();
+  const name = $nameAnchor.text();
+  const currentMessage = $input.val() as string;
+
+  if (currentMessage.length) {
+    // add this name to the current message
+    $input.val(`${currentMessage} ${name} `);
+  } else {
+    // create a new talk message with this name
+    $input.val(`/t ${name} `);
+  }
 }
