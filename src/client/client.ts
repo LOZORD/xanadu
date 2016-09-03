@@ -208,12 +208,14 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket,
         return rosterEntryA.name.localeCompare(rosterEntryB.name);
       });
 
+      const myName = $('#player-info-name').text();
+
       $rosterDataBox.hide();
 
       $rosterDataBox.empty();
 
       sortedData.forEach(rosterEntry => {
-        $(`
+        const $rosterRow = $(`
         <div class='row'>
           <div class='col-xs-4 roster-name'>
             <a href='#'>${ rosterEntry.name }</a>
@@ -226,6 +228,10 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket,
           </div>
         </div>
         `).appendTo($rosterDataBox);
+
+        if (rosterEntry.name === myName) {
+          $rosterRow.addClass('me');
+        }
       });
 
       $rosterDataBox.show();

@@ -2,24 +2,7 @@
 :root {
   /* Typefaces/Fonts */
   --xanadu-fonts: 'Nova Mono', Menlo, monospace;
-  /* Colors
-   *
-   * Black
-   * Near Black
-   * White
-   * Grey
-   * Red
-   * Green
-   * Blue
-   * Cyan
-   * Magenta
-   * Yellow
-   * Orange
-   *
-   * Possible alternatives
-   * FC3659-C95A89-6EB328-F27004-10BBC7 -- high saturation
-   * FCA9B8-C987A3-96B378-F2C6A2-85C3C7 -- low  saturation
-   */
+
   --xanadu-black:       black;
   --xanadu-near-black:  #222;
   --xanadu-white:       white;
@@ -43,8 +26,6 @@
   --xanadu-losat-green:     #96B378;
   --xanadu-losat-orange:    #F2C6A2;
   --xanadu-losat-blue:      #85C3C7;
-
-
 }
 
 body {
@@ -221,10 +202,25 @@ body {
   padding-bottom: 1em;
 }
 
+#roster #roster-header {
+  border-bottom: 1px solid var(--xanadu-near-black);
+  margin-bottom: 0.75em;
+  padding-bottom: 0.25em
+}
+
 #roster #roster-data div.row {
   margin-bottom: 1em;
   font-size: 1.25em;
 }
+
+#roster #roster-data div.row.me {
+  border-left: 1px solid var(--xanadu-red);
+  border-right: 1px solid var(--xanadu-red);
+}
+
+/*#roster #roster-data div.row.me div.roster-name::before {
+  content: '>';
+}*/
 
 #player-map {
   overflow: scroll;
