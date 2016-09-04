@@ -12,7 +12,7 @@ type StyleClass = ServerMessaging.MessageType | 'Error' | 'Unknown';
 
 type ContextMode = 'Game' | 'Lobby';
 
-type JQueryCreator = (selector: string) => JQuery;
+export type JQueryCreator = (selector: string) => JQuery;
 
 // this is ok to export as it will be removed during compilation via tsc
 export type JQueryDetailSelectors = {
@@ -84,9 +84,9 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket,
 
     let form = $('#main-form');
     let input = $('#main-input');
+    const $detailSelectors = createSelectors($);
 
-    $('#parent-container').click(() => input.focus());
-
+    // TODO: put in assignDOMListensers
     form.submit((event) => {
       event.preventDefault();
       let msg = input.val().trim();
@@ -99,25 +99,12 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket,
       }
     });
 
-    let addMessage = (viewMessage: ViewMessage) => {
-      const newElem = newMessageElement(viewMessage, $);
-      messageOutput.append(newElem);
-      // TODO: this scrolling needs to be fixed
-      messageOutput.parent().scrollTop(messageOutput.parent().height());
-      input.focus();
-    };
-
-    addMessage({
-      content: 'Please enter your name below...',
-      styleClasses: [ 'Game' ]
-    });
-
     /* * * MESSAGE HANDLER * * */
 
     socket.on('message', (data: ServerMessaging.MessageJSON) => {
       logger.log('debug', 'Received message: ', data);
       const viewMessage = processServerMessage(data);
-      addMessage(viewMessage);
+      addMessage(viewMessage, $);
     });
 
     /* * * DISCONNECT * * */
@@ -126,7 +113,7 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket,
       addMessage({
         content: 'The server has encountered a fatal error!',
         styleClasses: [ 'Error' ]
-      });
+      }, $);
       logger.log('debug', 'Error data', data);
     });
 
@@ -148,49 +135,22 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket,
       addMessage({
         content: 'The game is at capacity',
         styleClasses: [ 'Game' ]
-      });
+      }, $);
       socket.disconnect();
     });
 
     /* * * PLAYER INFO * * */
-    socket.on('player-info', ({ playerName, className }: PlayerInfo) => {
-      const showData = playerName || className;
-
-      if (showData) {
-        if (playerName) {
-          $('#player-info-name').text(playerName).show();
-        } else {
-          $('#player-info-name').hide();
-        }
-
-        if (className) {
-          $('#player-info-class').text(className).show();
-        } else {
-          $('#player-info-class').hide();
-        }
-
-        $('#player-info').show();
-
-      } else {
-        $('#player-info').hide();
-      }
+    socket.on('player-info', (playerInfo: PlayerInfo) => {
+      updatePlayerInfo(playerInfo, $);
     });
 
     /* * * CONTEXT CHANGE * * */
 
     socket.on('context-change', (newContext: ContextMode) => {
-      if (newContext === 'Game') {
-        $('#game-info-tab').show();
-      } else if (newContext === 'Lobby') {
-        $('#game-info-tab').hide();
-      } else {
-        throw new Error(`Unkown context mode: ${newContext}`);
-      }
+      handleContextChange(newContext, $);
     });
 
     /* * * DETAILS (RHS PANE) * * */
-
-    const $detailSelectors = createSelectors($);
 
     socket.on('details', (data: PlayerDetailsJSON) => {
       logger.log('debug', 'Got details: ', data);
@@ -203,57 +163,68 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket,
     socket.on('roster', (data: PlayerRosterJSON[]) => {
       logger.log('debug', 'Got roster: ', data);
 
-      const $rosterDataBox = $('#roster-data');
-      const sortedData = data.sort((rosterEntryA, rosterEntryB) => {
-        return rosterEntryA.name.localeCompare(rosterEntryB.name);
-      });
-
-      const myName = $('#player-info-name').text();
-
-      $rosterDataBox.hide();
-
-      $rosterDataBox.empty();
-
-      sortedData.forEach(rosterEntry => {
-        const $rosterRow = $(`
-        <div class='row'>
-          <div class='col-xs-4 roster-name'>
-            <a href='#'>${ rosterEntry.name }</a>
-          </div>
-          <div class='col-xs-4'>
-            ${ rosterEntry.state }
-          </div>
-          <div class='col-xs-4'>
-            ${ rosterEntry.characterClass || '' }
-          </div>
-        </div>
-        `).appendTo($rosterDataBox);
-
-        if (rosterEntry.name === myName) {
-          $rosterRow.addClass('me');
-        }
-      });
-
-      $rosterDataBox.show();
+      updateRoster(data, $);
     });
 
     /* * * FINAL VIEW SETUP * * */
-    $('#tab-navs a').click(function (event) {
-      event.preventDefault();
-      $(this).tab('show');
-    });
+    assignDOMListensers($);
 
-    $('#roster-data').on('click', '.roster-name a', function(event) {
-      handleRosterNameClick($(this), input, event);
-    });
-
-    $('#player-info').hide();
-    $('#player-info-name').hide();
-    $('#player-info-class').hide();
-    $('#game-info-tab').hide();
-
-    input.focus();
+    finalViewSetup($);
   };
+}
+
+export function assignDOMListensers($: JQueryCreator): JQueryCreator {
+  const $messageOutput = $('#messages');
+  const $detailOutput = $('#details');
+  const $form = $('#main-form');
+  const $messageInput = $('#main-input');
+
+  $('#parent-container').click(() => $messageInput.focus());
+
+  $('#tab-navs a').click(function(event) {
+    event.preventDefault();
+    $(this).tab('show');
+  });
+
+  $('#roster-data').on('click', '.roster-name a', function(event) {
+    handleRosterNameClick($(this), $messageInput, event);
+  });
+
+  // TODO: more...
+  return $;
+}
+
+export function assignClientSocketListeners(socket: SocketIOClient.Socket, $: JQueryCreator): SocketIOClient.Socket {
+  // TODO
+  return socket;
+}
+
+export function finalViewSetup($: JQueryCreator): JQueryCreator {
+  $('#player-info').hide();
+  $('#player-info-name').hide();
+  $('#player-info-class').hide();
+  $('#game-info-tab').hide();
+  $('#main-input').focus();
+
+  addMessage({
+      content: 'Please enter your name below...',
+      styleClasses: [ 'Game' ]
+    }, $);
+  return $;
+}
+
+export function addMessage(viewMessage: ViewMessage, $: JQueryCreator): JQueryCreator {
+  const $newMessage = newMessageElement(viewMessage, $);
+  const $messageOutput = $('#messages');
+  const $messageInput = $('#main-input');
+
+  $messageOutput.append($newMessage);
+  // FIXME: the scrolling is broken
+  $messageOutput.parent().scrollTop($messageOutput.parent().height());
+
+  $messageInput.focus();
+
+  return $;
 }
 
 export function createSelectors($: JQueryCreator): JQueryDetailSelectors {
@@ -436,6 +407,64 @@ export function updateDetails($selectors: JQueryDetailSelectors, data: PlayerDet
   return $selectors;
 }
 
+export function updatePlayerInfo({ playerName, className }: PlayerInfo, $: JQueryCreator): void {
+  const showData = playerName || className;
+
+  if (showData) {
+    if (playerName) {
+      $('#player-info-name').text(playerName).show();
+    } else {
+      $('#player-info-name').hide();
+    }
+
+    if (className) {
+      $('#player-info-class').text(className).show();
+    } else {
+      $('#player-info-class').hide();
+    }
+
+    $('#player-info').show();
+
+  } else {
+    $('#player-info').hide();
+  }
+}
+
+export function updateRoster(rosterData: PlayerRosterJSON[], $: JQueryCreator): void {
+  const $rosterDataBox = $('#roster-data');
+  const sortedData = rosterData.sort((rosterEntryA, rosterEntryB) => {
+    return rosterEntryA.name.localeCompare(rosterEntryB.name);
+  });
+
+  const myName = $('#player-info-name').text();
+
+  $rosterDataBox.hide();
+
+  $rosterDataBox.empty();
+
+  sortedData.forEach(rosterEntry => {
+    const $rosterRow = $(`
+        <div class='row'>
+          <div class='col-xs-4 roster-name'>
+            <a href='#'>${ rosterEntry.name}</a>
+          </div>
+          <div class='col-xs-4'>
+            ${ rosterEntry.state}
+          </div>
+          <div class='col-xs-4'>
+            ${ rosterEntry.characterClass || ''}
+          </div>
+        </div>
+        `).appendTo($rosterDataBox);
+
+    if (rosterEntry.name === myName) {
+      $rosterRow.addClass('me');
+    }
+  });
+
+  $rosterDataBox.show();
+}
+
 export function handleRosterNameClick($nameAnchor: JQuery, $input: JQuery, event: JQueryEventObject): void {
   event.preventDefault();
   const name = $nameAnchor.text();
@@ -447,5 +476,15 @@ export function handleRosterNameClick($nameAnchor: JQuery, $input: JQuery, event
   } else {
     // create a new talk message with this name
     $input.val(`/t ${name} `);
+  }
+}
+
+export function handleContextChange(newContext: ContextMode, $: JQueryCreator): void {
+  if (newContext === 'Game') {
+    $('#game-info-tab').show();
+  } else if (newContext === 'Lobby') {
+    $('#game-info-tab').hide();
+  } else {
+    throw new Error(`Unkown context mode: ${newContext}`);
   }
 }

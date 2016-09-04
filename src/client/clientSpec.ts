@@ -14,6 +14,48 @@ describe('Client', () => {
   function getText($selectors: Client.JQueryDetailSelectors, idSelector: string): string {
     return normalize($selectors._JQUERY_(idSelector).text());
   }
+
+  // FIXME: this is not as nice as handling the actual event, but that would require using `Client.onDocumentReady`
+  function createFakeEvent(preventFunc = _.noop): JQueryEventObject {
+    return {
+      preventDefault: preventFunc
+    } as JQueryEventObject;
+  }
+
+  before(function () {
+    // because of all the setup and file i/o, let 500 ms be considered "slow"
+    this.slow(500);
+    const htmlPath = Path.resolve(__dirname,
+      '..', '..', 'assets', 'client', 'index.html');
+    const jqueryPath = Path.resolve(__dirname,
+      '..', '..', 'node_modules', 'jquery', 'dist', 'jquery.min.js');
+    const bootstrapPath = Path.resolve(__dirname,
+      '..', '..', 'node_modules', 'bootstrap', 'dist', 'js', 'bootstrap.min.js');
+
+    return this.windowPromise = new Promise<Window>((resolve, reject) => {
+      // XXX: should virtualConsole be set?
+      jsdom.env({
+        file: htmlPath,
+        scripts: [ jqueryPath, bootstrapPath ],
+        done: (error, window) => {
+          if (error) {
+            reject(error);
+          } else {
+            // resolve(window);
+            // const $ = (window as any).$ as JQuery;
+            // $.ready(() => resolve(window));
+
+            (window as any).$(window.document).ready(function () {
+              resolve(window);
+            });
+          }
+        }
+      });
+    });
+  });
+  after(function () {
+    this.windowPromise.then(window => window.close());
+  });
   describe('processServerMessage', () => {
     it('should work for the `Game` type', () => {
       expect(Client.processServerMessage({
@@ -80,32 +122,7 @@ describe('Client', () => {
     });
   });
   describe('updateDetails', function () {
-    // because of all the setup and file i/o, let 500 ms be considered "slow"
-    this.slow(500);
-
     before(function () {
-      const htmlPath = Path.resolve(__dirname,
-        '..', '..', 'assets', 'client', 'index.html');
-      const jqueryPath = Path.resolve(__dirname,
-        '..', '..', 'node_modules', 'jquery', 'dist', 'jquery.min.js');
-      const bootstrapPath = Path.resolve(__dirname,
-        '..', '..', 'node_modules', 'bootstrap', 'dist', 'js', 'bootstrap.min.js');
-
-      this.windowPromise = new Promise<Window>((resolve, reject) => {
-        // XXX: should virtualConsole be set?
-        jsdom.env({
-          file: htmlPath,
-          scripts: [ jqueryPath, bootstrapPath ],
-          done: (error, window) => {
-            if (error) {
-              reject(error);
-            } else {
-              resolve(window);
-            }
-          }
-        });
-      });
-
       this.testSelectorsPromise = new Promise<Client.JQueryDetailSelectors>((resolve, reject) => {
         this.windowPromise.then(
           (window) => {
@@ -114,6 +131,8 @@ describe('Client', () => {
             } else {
               reject(new Error('jQuery ($) not attached to window!'));
             }
+
+            return window;
           },
           (error) => reject(error)
         );
@@ -149,10 +168,6 @@ describe('Client', () => {
       };
 
       this.testDetailsUpdatePromise = this.createPostUpdatePromise(this.TEST_DETAILS);
-    });
-
-    after(function () {
-      this.windowPromise.then(window => window.close());
     });
 
     describe('Stats', function () {
@@ -205,6 +220,96 @@ describe('Client', () => {
           });
         });
       });
+    });
+  });
+  describe('Player Info', function () {
+    describe('updatePlayerInfo', function () {
+      it('should be tested!');
+    });
+  });
+  describe('Roster', function () {
+    describe('updateRoster', function () {
+      it('should be tested!');
+    });
+    describe('handleRosterNameClick', function () {
+      before(function () {
+        return this.windowPromise.then(window => {
+          const $ = window.$ as Client.JQueryCreator;
+
+          // $(window.document).ready(function() {
+          Client.updatePlayerInfo({
+            playerName: 'Alice'
+          }, $);
+
+          Client.updateRoster([
+            {
+              name: 'Alice',
+              state: 'Preparing'
+            }, {
+              name: 'Bob',
+              state: 'Preparing'
+            }
+          ], $);
+
+          // finally, empty the input of any content
+          $('#main-input').val('');
+
+          return window;
+        });
+      });
+      describe('when there is no message', function () {
+        it('should create a new talk message with the clicked name', function () {
+          return this.windowPromise.then(window => {
+            const $ = window.$ as Client.JQueryCreator;
+
+            const $input = $('#main-input');
+
+            // expect($input.length).to.equal(1);
+            // expect($input.val()).to.eql('');
+
+            const $nameAnchor = $('.me .roster-name a');
+
+            expect($nameAnchor.length).to.equal(1);
+
+            //FIXME: this is preferable: $nameAnchor.click();
+            // however, we would need to set up the handlers via `Client.onDocumentReady`
+
+            Client.handleRosterNameClick($nameAnchor, $input, createFakeEvent());
+
+            const newContent = $input.val();
+
+            expect(newContent).to.equal('/t Alice ');
+
+            return window;
+          });
+        });
+      });
+      describe('when the input already has text', function () {
+        it('should just append the clicked name', function () {
+          return this.windowPromise.then(window => {
+            const $ = window.$ as Client.JQueryCreator;
+
+            const $input = $('#main-input');
+
+            $input.val('/t Bob hello from');
+
+            const $nameAnchor = $('.me .roster-name a');
+
+            Client.handleRosterNameClick($nameAnchor, $input, createFakeEvent());
+
+            const newContent = $input.val();
+
+            expect(newContent).to.equal('/t Bob hello from Alice ');
+
+            return window;
+          });
+        });
+      });
+    });
+  });
+  describe('Context Change', function () {
+    describe('handleContextChange', function () {
+      it('should be tested!');
     });
   });
 });
