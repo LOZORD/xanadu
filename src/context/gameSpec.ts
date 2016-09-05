@@ -17,11 +17,11 @@ const createPlayer = (id: string, name: string, state: PlayerState): Player => {
     state,
     character: {
       nextAction: null,
-      characterClass: Character.NoClass,
+      characterClass: Character.NO_CLASS,
       allegiance: 'None',
-      goldAmount: Character.NoClass.startingGold,
-      inventory: Character.NoClass.startingInventory,
-      stats: Character.NoClass.startingStats,
+      goldAmount: Character.NO_CLASS.startingGold,
+      inventory: Character.NO_CLASS.startingInventory,
+      stats: Character.NO_CLASS.startingStats,
       row: 0,
       col: 0,
       modifiers: null

@@ -30,7 +30,7 @@ export type CharacterClassName = 'None' | 'Benefactor' | 'Gunslinger' |
 
 // XXX: warning - maybe these CharacterClass objects should be frozen/immutable?
 
-export const NoClass: CharacterClass = {
+export const NO_CLASS: CharacterClass = {
   className: 'None',
   startingStats: {
     health: 0,
@@ -42,7 +42,7 @@ export const NoClass: CharacterClass = {
   startingInventory: createInventory([], 0)
 };
 
-export const Benefactor: CharacterClass = {
+export const BENEFACTOR: CharacterClass = {
   className: 'Benefactor',
   startingStats: {
     health: 30,
@@ -54,7 +54,7 @@ export const Benefactor: CharacterClass = {
   startingInventory: createInventory([], 0)
 };
 
-export const Gunslinger: CharacterClass = {
+export const GUNSLINGER: CharacterClass = {
   className: 'Gunslinger',
   startingStats: {
     health: 30,
@@ -66,7 +66,7 @@ export const Gunslinger: CharacterClass = {
   startingInventory: createInventory([], 0)
 };
 
-export const Excavator: CharacterClass = {
+export const EXCAVATOR: CharacterClass = {
   className: 'Excavator',
   startingStats: {
     health: 40,
@@ -78,7 +78,7 @@ export const Excavator: CharacterClass = {
   startingInventory: createInventory([], 0)
 };
 
-export const Doctor: CharacterClass = {
+export const DOCTOR: CharacterClass = {
   className: 'Doctor',
   startingStats: {
     health: 30,
@@ -107,7 +107,7 @@ export const Doctor: CharacterClass = {
   ], 0) // FIXME
 };
 
-export const Chef: CharacterClass = {
+export const CHEF: CharacterClass = {
   className: 'Chef',
   startingStats: {
     health: 10,
@@ -119,7 +119,7 @@ export const Chef: CharacterClass = {
   startingInventory: createInventory([], 0)
 };
 
-export const Shaman: CharacterClass = {
+export const SHAMAN: CharacterClass = {
   className: 'Shaman',
   startingStats: {
     health: 10,
@@ -131,7 +131,7 @@ export const Shaman: CharacterClass = {
   startingInventory: createInventory([], 0)
 };
 
-export const Caveman: CharacterClass = {
+export const CAVEMAN: CharacterClass = {
   className: 'Caveman',
   startingStats: {
     health: 10,
@@ -143,7 +143,7 @@ export const Caveman: CharacterClass = {
   startingInventory: createInventory([], 0)
 };
 
-export const Cartographer: CharacterClass = {
+export const CARTOGRAPHER: CharacterClass = {
   className: 'Cartographer',
   startingStats: {
     health: 20,
@@ -155,7 +155,7 @@ export const Cartographer: CharacterClass = {
   startingInventory: createInventory([], 0)
 };
 
-export const Professor: CharacterClass = {
+export const PROFESSOR: CharacterClass = {
   className: 'Professor',
   startingStats: {
     health: 10,
@@ -167,7 +167,7 @@ export const Professor: CharacterClass = {
   startingInventory: createInventory([], 0)
 };
 
-export const Smith: CharacterClass = {
+export const SMITH: CharacterClass = {
   className: 'Smith',
   startingStats: {
     health: 10,

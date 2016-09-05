@@ -70,16 +70,16 @@ describe('Actions', () => {
       });
       context('when the move is valid', () => {
         it('should have `isValid` = `true`', function () {
-          const action = Actions.MoveComponent.parse('go south', this.player.character, Date.now());
-          const { isValid } = Actions.MoveComponent.validate(action, this.game);
+          const action = Actions.MOVE_COMPONENT.parse('go south', this.player.character, Date.now());
+          const { isValid } = Actions.MOVE_COMPONENT.validate(action, this.game);
 
           expect(isValid).to.be.true;
         });
       });
       context('when the move is not into a room', function () {
         before(function () {
-          this.invalidAction = Actions.MoveComponent.parse('go north', this.player.character, Date.now());
-          this.validationResult = Actions.MoveComponent.validate(this.invalidAction, this.game);
+          this.invalidAction = Actions.MOVE_COMPONENT.parse('go north', this.player.character, Date.now());
+          this.validationResult = Actions.MOVE_COMPONENT.validate(this.invalidAction, this.game);
         });
         it('should have `isValid` = `false`', function () {
           expect(this.validationResult.isValid).to.be.false;
@@ -96,8 +96,8 @@ describe('Actions', () => {
           this.player.character.row = 0;
           this.game.players = [ this.player ];
 
-          this.invalidAction = Actions.MoveComponent.parse('go north', this.player.character, Date.now());
-          this.validationResult = Actions.MoveComponent.validate(this.invalidAction, this.game);
+          this.invalidAction = Actions.MOVE_COMPONENT.parse('go north', this.player.character, Date.now());
+          this.validationResult = Actions.MOVE_COMPONENT.validate(this.invalidAction, this.game);
         });
         after(function () {
           this.player.character.row = this.initRow;
@@ -132,7 +132,7 @@ describe('Actions', () => {
     describe('validate', () => {
       it('should return true', function() {
         const passAction = Actions.parseAction('pass', this.player.character, Date.now()) as Actions.PassAction;
-        expect(Actions.PassComponent.validate(passAction, this.game).isValid).to.be.true;
+        expect(Actions.PASS_COMPONENT.validate(passAction, this.game).isValid).to.be.true;
       });
     });
   });

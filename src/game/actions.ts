@@ -43,7 +43,7 @@ export interface MoveAction extends Action {
 // nothing special about a pass action...
 export type PassAction = Action;
 
-export const MoveComponent: ActionParserComponent<MoveAction> = {
+export const MOVE_COMPONENT: ActionParserComponent<MoveAction> = {
   pattern: /^go (north|south|east|west)$/i,
   parse(text: string, actor: Animal, timestamp: number): MoveAction {
     const matches = text.match(this.pattern);
@@ -133,7 +133,7 @@ export const MoveComponent: ActionParserComponent<MoveAction> = {
   componentKey: 'Move'
 };
 
-export const PassComponent: ActionParserComponent<PassAction> = {
+export const PASS_COMPONENT: ActionParserComponent<PassAction> = {
   pattern: /^pass$/i,
   parse(text: string, actor: Animal, timestamp: number) {
     return {
@@ -168,9 +168,9 @@ export interface ActionParserComponentMap<A extends Action> {
   [ componentKey: string ]: ActionParserComponent<A>;
 };
 
-export const Parsers: ActionParserComponentMap<Action> = {
-  'Move': MoveComponent,
-  'Pass': PassComponent
+export const PARSERS: ActionParserComponentMap<Action> = {
+  'Move': MOVE_COMPONENT,
+  'Pass': PASS_COMPONENT
 };
 
 export function parseAction(text: string, actor: Animal, timestamp: number): Action {
@@ -184,11 +184,11 @@ export function parseAction(text: string, actor: Animal, timestamp: number): Act
 }
 
 export function getComponentByText<A extends Action>(text: string): ActionParserComponent<Action> {
-  return _.find(Parsers, comp => comp.pattern.test(text));
+  return _.find(PARSERS, comp => comp.pattern.test(text));
 }
 
 export function getComponentByKey<A extends Action>(key: ComponentKey): ActionParserComponent<Action> {
-  return Parsers[ key ];
+  return PARSERS[ key ];
 }
 
 export function isParsableAction(text: string): boolean {

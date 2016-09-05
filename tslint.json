@@ -10,6 +10,7 @@
     "quotemark": [true, "single", "avoid-escape"],
     "trailing-comma": false,
     "comment-format": [],
-    "no-angle-bracket-type-assertion": true
+    "no-angle-bracket-type-assertion": true,
+    "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"]
   }
 }

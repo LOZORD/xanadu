@@ -71,15 +71,15 @@ export default class Game extends Context {
       if (!player.character) {
         player.character = {
           player: player,
-          characterClass: Character.NoClass,
+          characterClass: Character.NO_CLASS,
           row: 0,
           col: 0,
           allegiance: 'None',
           modifiers: modifiers,
-          goldAmount: Character.NoClass.startingGold,
+          goldAmount: Character.NO_CLASS.startingGold,
           nextAction: null,
-          stats: Character.NoClass.startingStats,
-          inventory: Character.NoClass.startingInventory
+          stats: Character.NO_CLASS.startingStats,
+          inventory: Character.NO_CLASS.startingInventory
         };
       }
 
