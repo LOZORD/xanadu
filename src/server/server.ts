@@ -7,11 +7,12 @@ import Context from '../context/context';
 import Game from '../context/game';
 import Lobby from '../context/lobby';
 import { Message, show as showMessage, createGameMessage } from '../game/messaging';
-import { Player, debugDetails as playerDebugDetails, playerDetails, isAnon } from '../game/player';
+import * as Player from '../game/player';
 import { Promise } from 'es6-promise';
-import { mapToString } from '../game/map/map';
 import { Logger } from '../logger';
 import { Seed } from '../rng';
+import * as Map from '../game/map/map';
+import describeRoom from '../game/map/describeRoom';
 
 export default class Server {
   expressApp: Express.Express;
@@ -60,11 +61,20 @@ export default class Server {
 
   stop(closeCallback = _.noop): Promise<Server> {
     this.logger.log('debug', 'Stopping server at ', (new Date()).toString());
-    return new Promise<Server>((resolve, reject) => {
-      //this.gameNS.removeAllListeners();
-      //this.debugNS.removeAllListeners();
-      this.httpServer.close(closeCallback);
-      resolve(this);
+    return new Promise<Server>((resolve) => {
+      const port = this.address.port;
+
+      this.currentContext.players.forEach(player => {
+        const socket = this.getSocket(player.id);
+        socket.emit('server-stopped');
+        socket.disconnect(true);
+      });
+
+      this.httpServer.close(() => {
+        closeCallback();
+        this.logger.log('debug', `HTTP SERVER CLOSED! (PORT ${port})`);
+        resolve(this);
+      });
     });
   }
 
@@ -102,19 +112,12 @@ export default class Server {
       socket.on('get', () => {
         let dataToSend: any = {};
         dataToSend.playerData =
-          this.currentContext.players.map((player) => playerDebugDetails(player));
+          this.currentContext.players.map((player) => Player.debugDetails(player));
 
         if (this.currentContext instanceof Game) {
-          dataToSend.gameMap = mapToString((this.currentContext as Game).map);
+          dataToSend.gameMap = Map.mapToString((this.currentContext as Game).map);
           dataToSend.turnNumber = (this.currentContext as Game).turnNumber;
         }
-
-        /*
-        socket.emit('debug-update', this.currentContext.players
-          // pretty print the json
-          .map(player => JSON.stringify(playerDebugDetails(player), null, 2))
-          .join('\n'));
-          */
 
         socket.emit('debug-update', JSON.stringify(dataToSend, null, 2));
       });
@@ -138,17 +141,41 @@ export default class Server {
         createGameMessage('THE GAME HAS BEGUN!', this.currentContext.players)
       );
 
+      this.currentContext.players.forEach(player => {
+        const socket = this.getSocket(player.id);
+        socket.emit('context-change', 'Game');
+      });
+
+      const gameMap = (this.currentContext as Game).map;
+
+      const startingRoom = (this.currentContext as Game).startingRoom;
+
+      const startingRoomDescription = describeRoom(startingRoom, gameMap);
+
+      this.sendMessage(
+        createGameMessage(startingRoomDescription, this.currentContext.players)
+      );
+
       // send details to players
       this.sendDetails();
     } else {
       this.currentContext = this.createLobby(this.currentContext.players);
+
+      this.currentContext.players.forEach(player => {
+        const socket = this.getSocket(player.id);
+        socket.emit('context-change', 'Lobby');
+      });
     }
+
+    this.sendRoster();
   }
   acceptSocket(socket: SocketIO.Socket) {
     this.logger.log('info', `Server accepted socket ${socket.id}`);
     this.sockets.push(socket);
 
     this.addPlayer(socket.id);
+
+    this.sendRoster();
 
     // when people send _anything_ from the client
     // the game handles the message, and then passes the server a response
@@ -179,12 +206,17 @@ export default class Server {
 
         this.logger.log('info', `\tPlayer ${removedPlayer.id + '--' + removedPlayer.name} disconnected`);
 
-        if (!isAnon(removedPlayer)) {
+        if (!Player.isAnon(removedPlayer)) {
           const disconnectMessage =
             this.currentContext.broadcastFromPlayer(`${removedPlayer.name} has left the game.`, removedPlayer);
 
           this.sendMessage(disconnectMessage);
+
+          this.sendRoster();
         }
+
+        // TODO: current context might need to be tested for update
+        // e.g. all but leaving player have given their commands
       } else {
         this.logger.log('info', `Unrecognized socket ${socket.id} disconnected`);
       }
@@ -206,7 +238,7 @@ export default class Server {
     this.currentContext.addPlayer(socketId);
   }
 
-  removePlayer(socketId: string): Player {
+  removePlayer(socketId: string): Player.Player {
     return this.currentContext.removePlayer(socketId);
   }
 
@@ -214,8 +246,16 @@ export default class Server {
 
     messageObj.player = this.currentContext.getPlayer(socket.id);
 
+    const beforeState = messageObj.player.state as Player.PlayerState;
+
     this.currentContext.handleMessage(messageObj)
       .forEach(message => this.sendMessage(message));
+
+    const afterState = messageObj.player.state as Player.PlayerState;
+
+    if (beforeState !== afterState) {
+      this.sendRoster();
+    }
 
     return {
       isReadyForNextContext: this.currentContext.isReadyForNextContext(),
@@ -224,11 +264,11 @@ export default class Server {
   }
 
   // Reason for `createGame`: we may want one server but many games!
-  createGame(players: Player[], seed: Seed = this.seed): Game {
+  createGame(players: Player.Player[], seed: Seed = this.seed): Game {
     return new Game(this.maxPlayers, players, { seed });
   }
 
-  createLobby(players: Player[]): Lobby {
+  createLobby(players: Player.Player[]): Lobby {
     return new Lobby(this.maxPlayers, players);
   }
 
@@ -252,7 +292,16 @@ export default class Server {
   }
   sendDetails() {
     this.currentContext.players.forEach(player => {
-      this.getSocket(player.id).emit('details', playerDetails(player));
+      this.getSocket(player.id).emit('details', Player.playerDetails(player));
+    });
+  }
+  sendRoster() {
+    const rosterInformation = this.currentContext.getRosterData();
+
+    this.currentContext.players.forEach(player => {
+      const socket = this.getSocket(player.id);
+      socket.emit('player-info', Player.getPlayerInfo(player));
+      socket.emit('roster', rosterInformation);
     });
   }
 }
