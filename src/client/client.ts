@@ -1,7 +1,3 @@
-/* global io */
-
-//import * as io from 'socket.io-client';
-//import * as $ from 'jquery';
 import * as ServerMessaging from '../game/messaging';
 import { PlayerDetailsJSON, PlayerRosterJSON, PlayerInfo } from '../game/player';
 import { Logger } from '../logger';
@@ -14,7 +10,6 @@ type ContextMode = 'Game' | 'Lobby';
 
 export type JQueryCreator = (selector: string) => JQuery;
 
-// this is ok to export as it will be removed during compilation via tsc
 export type JQueryDetailSelectors = {
   current: {
     $health: JQuery;
@@ -52,8 +47,6 @@ if (isRunningOnClient) {
     reconnection: false
   });
 
-  // TODO: wrap console.log so output is similar to Winston's levels
-  // maybe even include winston?
   $(document).ready(onDocumentReady($, socket, console));
 
   // since we're in the client, exporting is not allowed
@@ -63,6 +56,129 @@ if (isRunningOnClient) {
 }
 
 /* FUNCTIONS */
+
+export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket, logger: Logger): () => void {
+  return () => {
+    assignDOMListensers(socket, $, logger);
+    assignClientSocketListeners(socket, $, logger);
+    finalViewSetup($);
+  };
+}
+
+export function assignDOMListensers(socket: SocketIOClient.Socket, $: JQueryCreator, logger: Logger): void {
+  const $form = $('#main-form');
+  const $messageInput = $('#main-input');
+
+  $('#parent-container').click(() => $messageInput.focus());
+
+  $('#tab-navs a').click(function (event) {
+    event.preventDefault();
+    $(this).tab('show');
+  });
+
+  $('#roster-data').on('click', '.roster-name a', function (event) {
+    handleRosterNameClick($(this), $messageInput, event);
+  });
+
+  $form.submit((event) => {
+    event.preventDefault();
+    let msg = $messageInput.val().trim();
+    $messageInput.val('');
+
+    // don't send a blank message!
+    if (msg.length) {
+      logger.log('debug', 'Sending message: ', msg);
+      sendMessage(msg, socket);
+    }
+  });
+}
+
+export function assignClientSocketListeners(socket: SocketIOClient.Socket, $: JQueryCreator, logger: Logger): void {
+  const $detailOutput = $('#details');
+  const $detailSelectors = createSelectors($);
+
+  /* * * MESSAGE HANDLER * * */
+
+  socket.on('message', (data: ServerMessaging.MessageJSON) => {
+    logger.log('debug', 'Received message: ', data);
+    const viewMessage = processServerMessage(data);
+    addMessage(viewMessage, $);
+  });
+
+  /* * * DISCONNECT * * */
+
+  socket.on('disconnect', (data) => {
+    addMessage({
+      content: 'The server has encountered a fatal error!',
+      styleClasses: [ 'Error' ]
+    }, $);
+    logger.log('debug', 'Error data', data);
+  });
+
+  /* * * SERVER STOPPED * * */
+  // TODO: do we want this?
+  // this could be useful for server-side SIGINTs (#30)
+  // socket.on('server-stopped', () => {
+  //   addMessage({
+  //     content: 'The server been stopped!',
+  //     styleClasses: [ 'Error' ]
+  //   });
+  //   socket.disconnect();
+  //   socket.close();
+  // });
+
+  /* * * REJECTED FROM ROOM * * */
+
+  socket.on('rejected-from-room', () => {
+    addMessage({
+      content: 'The game is at capacity',
+      styleClasses: [ 'Game' ]
+    }, $);
+    socket.disconnect();
+  });
+
+  /* * * PLAYER INFO * * */
+  socket.on('player-info', (playerInfo: PlayerInfo) => {
+    updatePlayerInfo(playerInfo, $);
+  });
+
+  /* * * CONTEXT CHANGE * * */
+
+  socket.on('context-change', (newContext: ContextMode) => {
+    handleContextChange(newContext, $);
+  });
+
+  /* * * DETAILS (RHS PANE) * * */
+
+  socket.on('details', (data: PlayerDetailsJSON) => {
+    logger.log('debug', 'Got details: ', data);
+    // quasi-debug
+    $detailOutput.text(JSON.stringify(data));
+    updateDetails($detailSelectors, data);
+  });
+
+  /* * * ROSTER (RHS PANE) * * */
+  socket.on('roster', (data: PlayerRosterJSON[]) => {
+    logger.log('debug', 'Got roster: ', data);
+
+    updateRoster(data, $);
+  });
+}
+
+export function finalViewSetup($: JQueryCreator): JQueryCreator {
+  $('#player-info').hide();
+  $('#player-info-name').hide();
+  $('#player-info-class').hide();
+  $('#game-info-tab').hide();
+  $('#main-input').focus();
+
+  addMessage({
+    content: 'Please enter your name below...',
+    styleClasses: [ 'Game' ]
+  }, $);
+
+  return $;
+}
 
 export function newMessageElement(viewMessage: ViewMessage, $: JQueryCreator): JQuery {
   const listElem = $('<li>');
@@ -75,142 +191,6 @@ export function newMessageElement(viewMessage: ViewMessage, $: JQueryCreator): J
   listElem.append(textElem);
 
   return listElem;
-}
-
-export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket, logger: Logger): () => void {
-  return function () {
-    let messageOutput = $('#messages');
-    let detailOutput = $('#details');
-
-    let form = $('#main-form');
-    let input = $('#main-input');
-    const $detailSelectors = createSelectors($);
-
-    // TODO: put in assignDOMListensers
-    form.submit((event) => {
-      event.preventDefault();
-      let msg = input.val().trim();
-      input.val('');
-
-      // don't send a blank message!
-      if (msg.length) {
-        logger.log('info', 'Sending message: ', msg);
-        sendMessage(msg, socket);
-      }
-    });
-
-    /* * * MESSAGE HANDLER * * */
-
-    socket.on('message', (data: ServerMessaging.MessageJSON) => {
-      logger.log('debug', 'Received message: ', data);
-      const viewMessage = processServerMessage(data);
-      addMessage(viewMessage, $);
-    });
-
-    /* * * DISCONNECT * * */
-
-    socket.on('disconnect', (data) => {
-      addMessage({
-        content: 'The server has encountered a fatal error!',
-        styleClasses: [ 'Error' ]
-      }, $);
-      logger.log('debug', 'Error data', data);
-    });
-
-    /* * * SERVER STOPPED * * */
-    // TODO: do we want this?
-    // this could be useful for server-side SIGINTs (#30)
-    // socket.on('server-stopped', () => {
-    //   addMessage({
-    //     content: 'The server been stopped!',
-    //     styleClasses: [ 'Error' ]
-    //   });
-    //   socket.disconnect();
-    //   socket.close();
-    // });
-
-    /* * * REJECTED FROM ROOM * * */
-
-    socket.on('rejected-from-room', () => {
-      addMessage({
-        content: 'The game is at capacity',
-        styleClasses: [ 'Game' ]
-      }, $);
-      socket.disconnect();
-    });
-
-    /* * * PLAYER INFO * * */
-    socket.on('player-info', (playerInfo: PlayerInfo) => {
-      updatePlayerInfo(playerInfo, $);
-    });
-
-    /* * * CONTEXT CHANGE * * */
-
-    socket.on('context-change', (newContext: ContextMode) => {
-      handleContextChange(newContext, $);
-    });
-
-    /* * * DETAILS (RHS PANE) * * */
-
-    socket.on('details', (data: PlayerDetailsJSON) => {
-      logger.log('debug', 'Got details: ', data);
-      // quasi-debug
-      detailOutput.text(JSON.stringify(data));
-      updateDetails($detailSelectors, data);
-    });
-
-    /* * * ROSTER (RHS PANE) * * */
-    socket.on('roster', (data: PlayerRosterJSON[]) => {
-      logger.log('debug', 'Got roster: ', data);
-
-      updateRoster(data, $);
-    });
-
-    /* * * FINAL VIEW SETUP * * */
-    assignDOMListensers($);
-
-    finalViewSetup($);
-  };
-}
-
-export function assignDOMListensers($: JQueryCreator): JQueryCreator {
-  const $messageOutput = $('#messages');
-  const $detailOutput = $('#details');
-  const $form = $('#main-form');
-  const $messageInput = $('#main-input');
-
-  $('#parent-container').click(() => $messageInput.focus());
-
-  $('#tab-navs a').click(function(event) {
-    event.preventDefault();
-    $(this).tab('show');
-  });
-
-  $('#roster-data').on('click', '.roster-name a', function(event) {
-    handleRosterNameClick($(this), $messageInput, event);
-  });
-
-  // TODO: more...
-  return $;
-}
-
-export function assignClientSocketListeners(socket: SocketIOClient.Socket, $: JQueryCreator): SocketIOClient.Socket {
-  // TODO
-  return socket;
-}
-
-export function finalViewSetup($: JQueryCreator): JQueryCreator {
-  $('#player-info').hide();
-  $('#player-info-name').hide();
-  $('#player-info-class').hide();
-  $('#game-info-tab').hide();
-  $('#main-input').focus();
-
-  addMessage({
-      content: 'Please enter your name below...',
-      styleClasses: [ 'Game' ]
-    }, $);
-  return $;
 }
 
 export function addMessage(viewMessage: ViewMessage, $: JQueryCreator): JQueryCreator {
@@ -487,4 +467,10 @@ export function handleContextChange(newContext: ContextMode, $: JQueryCreator): 
   } else {
     throw new Error(`Unkown context mode: ${newContext}`);
   }
+}
+
+export function createClientLogger(console: Console): Logger {
+  // TODO: wrap console.log so output is similar to Winston's levels
+  // maybe even include winston instead?
+  return console; // TODO: implement me!
 }
