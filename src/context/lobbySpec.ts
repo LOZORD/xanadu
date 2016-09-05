@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import * as _ from 'lodash';
-import { Player, PlayerState } from '../game/player';
 import Lobby from './lobby';
 import * as Messaging from '../game/messaging';
 
@@ -66,7 +65,7 @@ describe('Lobby', () => {
 
           const p1 = lobby.getPlayer('007');
 
-          const m1 = lobby.handleMessage({
+          lobby.handleMessage({
             player: p1,
             content: 'James_Bond',
             timestamp: Date.now()
@@ -117,13 +116,13 @@ describe('Lobby', () => {
 
         const p1 = lobby.getPlayer('007');
 
-        const m1 = lobby.handleMessage({
+        lobby.handleMessage({
           player: p1,
           timestamp: Date.now(),
           content: 'James_Bond'
         });
 
-        const m2 = lobby.handleMessage({
+        lobby.handleMessage({
           content: 'Shaken, not stirred',
           player: p1,
           timestamp: Date.now()

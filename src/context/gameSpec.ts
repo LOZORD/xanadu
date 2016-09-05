@@ -1,12 +1,10 @@
 import { expect } from 'chai';
 import * as _ from 'lodash';
 import Game from './game';
-import * as Map from '../game/map/map';
 import { TEST_PARSE_RESULT } from '../game/map/parseGrid';
 import { Player, PlayerState } from '../game/player';
 import * as Messaging from '../game/messaging';
 import * as Character from '../game/character';
-import { Action } from '../game/actions';
 
 const createGame = (players = []): Game => {
   return new Game(8, players);

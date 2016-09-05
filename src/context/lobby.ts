@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 
 import { ClientMessage, Context } from './context';
-import { Player, isReady } from '../game/player';
+import { isReady } from '../game/player';
 import { Message, createEchoMessage, createGameMessage, createTalkMessage } from '../game/messaging';
 
 export default class Lobby extends Context {

@@ -1,7 +1,5 @@
 import { expect } from 'chai';
-import * as _ from 'lodash';
 import * as Messaging from './messaging';
-import { Player } from './player';
 import Game from '../context/game';
 
 describe('Server Messaging ', () => {

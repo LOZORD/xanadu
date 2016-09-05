@@ -6,7 +6,7 @@
     "object-literal-sort-keys": false,
     "no-console": [],
     "no-trailing-whitespace": true,
-    "no-unused-variable": false,
+    "no-unused-variable": [true, {"ignore-pattern": "^_\\w+"}],
     "quotemark": [true, "single", "avoid-escape"],
     "trailing-comma": false,
     "comment-format": [],

@@ -3,11 +3,11 @@ import * as Actions from '../game/actions';
 import { moveEntity } from '../game/entity';
 import { Player, canCommunicate } from '../game/player';
 import * as Map from '../game/map/map';
-import { isRoom, PassageRoom } from '../game/map/cell';
+import { PassageRoom } from '../game/map/cell';
 import * as Messaging from '../game/messaging';
 import { Context, ClientMessage } from './context';
 import { TEST_PARSE_RESULT } from '../game/map/parseGrid';
-import { Message, gameMessage } from '../game/messaging';
+import { Message } from '../game/messaging';
 import * as Character from '../game/character';
 import { Animal } from '../game/animal';
 import { Entity } from '../game/entity';
@@ -207,7 +207,7 @@ export default class Game extends Context {
         const { messages: newMessages, log: newLog } = component.perform(action, this, log);
 
         return {
-          log,
+          log: log.concat(newLog),
           messages: messages.concat(newMessages)
         };
       }, { messages: [], log: [] });

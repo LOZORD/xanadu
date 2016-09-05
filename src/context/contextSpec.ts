@@ -1,10 +1,7 @@
 import { expect } from 'chai';
 import * as _ from 'lodash';
-
-import Context from './context';
 import Lobby from './lobby';
 import { Player } from '../game/player';
-import { createEchoMessage } from '../game/messaging';
 
 describe('Context (tested via Lobby)', () => {
 

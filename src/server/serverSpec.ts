@@ -1,4 +1,3 @@
-import * as _ from 'lodash';
 import { expect } from 'chai';
 import Server from './server';
 import { createDefaultWinstonLogger } from '../logger';
@@ -6,7 +5,6 @@ import * as ClientSocket from 'socket.io-client';
 import { Promise } from 'es6-promise';
 
 type ClientSocket = SocketIOClient.Socket;
-const FIRST_FREE_PORT = 0;
 
 describe('Server', () => {
   function createClient(serverPromise: Promise<Server>, nsp: string): Promise<ClientSocket> {
@@ -31,6 +29,7 @@ describe('Server', () => {
     const winson = createDefaultWinstonLogger('error');
     const s = new Server(3, Date.now(), true, winson);
 
+    // test the server on the first free port
     this.serverPromise = s.start(0);
 
     this.gameClients = [

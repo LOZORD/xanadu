@@ -2,7 +2,6 @@ import { expect } from 'chai';
 import * as _ from 'lodash';
 import * as Actions from './actions';
 import Game from '../context/game';
-import { isWithinMap } from './map/map';
 
 describe('Actions', () => {
   describe('isParsableAction', () => {

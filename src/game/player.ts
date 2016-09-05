@@ -1,6 +1,5 @@
-import { canTranslateModern, Character, CharacterClass, Allegiance, CharacterClassName } from './character';
+import * as Character from './character';
 import { Stats } from './stats';
-import { Item } from './items/item';
 import { toJSON as inventoryToJSON, InventoryJSON } from './inventory';
 import { Map } from './map/map';
 import { omit, startsWith } from 'lodash';
@@ -12,19 +11,20 @@ export interface Player {
   // this is the id of the socket on which the player is connected
   id: string;
   name: string;
-  character?: Character;
+  character?: Character.Character;
   state: PlayerState;
 }
 
 export interface PlayerRosterJSON {
   name: string;
   state: PlayerState;
-  characterClass?: CharacterClassName;
+  characterClass?: Character.CharacterClassName;
   goldAmount?: number;
-  allegiance?: Allegiance;
+  allegiance?: Character.Allegiance;
 }
 
-export function createPlayer(id: string, name: string, state: PlayerState, character: Character = null): Player {
+export
+function createPlayer(id: string, name: string, state: PlayerState, character: Character.Character = null): Player {
   return { id, name, state, character };
 }
 
@@ -68,8 +68,8 @@ export function canCommunicate(p1: Player, p2: Player): boolean {
   if (isPlaying(p1) === isPlaying(p2)) {
     if (isPlaying(p1)) {
       return (p1.character.allegiance === p2.character.allegiance
-        || canTranslateModern(p1.character)
-        || canTranslateModern(p2.character));
+        || Character.canTranslateModern(p1.character)
+        || Character.canTranslateModern(p2.character));
     } else {
       return true;
     }
@@ -150,7 +150,7 @@ export function rosterData(player: Player): PlayerRosterJSON {
 
 export interface PlayerInfo {
   playerName?: string;
-  className?: CharacterClassName;
+  className?: Character.CharacterClassName;
 }
 
 export function getPlayerInfo(player: Player): PlayerInfo {
