@@ -8,7 +8,7 @@ type StyleClass = ServerMessaging.MessageType | 'Error' | 'Unknown';
 
 type ContextMode = 'Game' | 'Lobby';
 
-export type JQueryCreator = (selector: string) => JQuery;
+export type JQueryCreator = (selector: (string | Element)) => JQuery;
 
 export type JQueryDetailSelectors = {
   current: {

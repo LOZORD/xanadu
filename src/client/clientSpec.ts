@@ -22,6 +22,14 @@ describe('Client', () => {
     } as JQueryEventObject;
   }
 
+  function elemIsHidden($elem: JQuery): boolean {
+    return $elem.css('display') === 'none';
+  }
+
+  function elemIsVisible($elem: JQuery): boolean {
+    return !elemIsHidden($elem);
+  }
+
   before(function () {
     // because of all the setup and file i/o, let 500 ms be considered "slow"
     this.slow(500);
@@ -229,14 +237,42 @@ describe('Client', () => {
   });
   describe('Roster', function () {
     describe('updateRoster', function () {
-      it('should be tested!');
+      it('should have the names listed alphabetically', function () {
+        return this.windowPromise.then(window => {
+          const $ = window.$ as Client.JQueryCreator;
+
+          Client.updatePlayerInfo({
+            playerName: 'Alice'
+          }, $);
+
+          Client.updateRoster([
+            {
+              name: 'Carol',
+              state: 'Preparing'
+            },
+            {
+              name: 'Alice',
+              state: 'Preparing'
+            }, {
+              name: 'Bob',
+              state: 'Preparing'
+            }
+          ], $);
+
+          const namesInOrder = [ 'Alice', 'Bob', 'Carol' ];
+
+          const names = $('.roster-name').toArray().map(
+            (elem => normalize($(elem).text())));
+
+          expect(names).to.eql(namesInOrder);
+        });
+      });
     });
     describe('handleRosterNameClick', function () {
       before(function () {
         return this.windowPromise.then(window => {
           const $ = window.$ as Client.JQueryCreator;
 
-          // $(window.document).ready(function() {
           Client.updatePlayerInfo({
             playerName: 'Alice'
           }, $);
@@ -309,7 +345,32 @@ describe('Client', () => {
   });
   describe('Context Change', function () {
     describe('handleContextChange', function () {
-      it('should be tested!');
+      context('to Game', function () {
+        it('should show game information', function () {
+          return this.windowPromise.then(window => {
+            const $ = window.$ as Client.JQueryCreator;
+
+            Client.handleContextChange('Game', $);
+
+            expect(elemIsVisible($('#game-info-tab'))).to.be.true;
+
+            return window;
+          });
+        });
+      });
+      context('to Lobby', function () {
+        it('should hide game information', function () {
+          return this.windowPromise.then(window => {
+            const $ = window.$ as Client.JQueryCreator;
+
+            Client.handleContextChange('Lobby', $);
+
+            expect(elemIsHidden($('#game-info-tab'))).to.be.true;
+
+            return window;
+          });
+        });
+      });
     });
   });
 });
