@@ -38,15 +38,15 @@ describe('Context (tested via Lobby)', () => {
   });
 
   describe('removePlayer', () => {
-    beforeEach(function() {
-      this.context = new Lobby(8, [{
+    beforeEach(function () {
+      this.context = new Lobby(8, [ {
         name: 'James_Bond',
         id: '007',
         state: 'Ready'
       }]);
     });
     testContext('when the player is present', () => {
-      it('should remove and return the player', function() {
+      it('should remove and return the player', function () {
         const bond = this.context.removePlayer('007');
         expect(bond.id).to.equal('007');
         expect(this.context.hasPlayer('007')).to.be.false;
@@ -54,7 +54,7 @@ describe('Context (tested via Lobby)', () => {
       });
     });
     testContext('when the player is NOT present', () => {
-      it('should return undefined', function() {
+      it('should return undefined', function () {
         const noOne = this.context.removePlayer('foobar');
         expect(noOne).to.be.undefined;
       });
@@ -62,8 +62,8 @@ describe('Context (tested via Lobby)', () => {
   });
 
   describe('broadcast', () => {
-    before(function() {
-      this.players =  [
+    before(function () {
+      this.players = [
         { name: 'Alex', id: 'guitar', state: 'Ready' },
         { name: 'Geddy', id: 'bass', state: 'Ready' },
         { name: 'Neil', id: 'drums', state: 'Ready' }
@@ -71,7 +71,7 @@ describe('Context (tested via Lobby)', () => {
 
       this.context = new Lobby(8, this.players);
     });
-    it('should return a game message addressed to all players', function() {
+    it('should return a game message addressed to all players', function () {
       const msg = this.context.broadcast('hell world');
       expect(msg.to).to.eql(this.players);
     });
@@ -91,7 +91,7 @@ describe('Context (tested via Lobby)', () => {
         state: 'Preparing'
       };
 
-      const context = new Lobby(8, [player1, player2]);
+      const context = new Lobby(8, [ player1, player2 ]);
 
       // test name superset of present name
       expect(context.validateName('James_Bond_Imposter')).to.equal('Taken');
@@ -103,14 +103,14 @@ describe('Context (tested via Lobby)', () => {
 
   describe('updatePlayer', () => {
     testContext('when the player is present', () => {
-      before(function() {
+      before(function () {
         this.originalPlayer = {
           name: 'nada',
           id: '007',
           state: 'Preparing'
         };
 
-        this.context = new Lobby(8, [_.cloneDeep(this.originalPlayer)]);
+        this.context = new Lobby(8, [ _.cloneDeep(this.originalPlayer) ]);
 
         this.context.updatePlayer('007', {
           name: 'James_Bond',
@@ -119,10 +119,10 @@ describe('Context (tested via Lobby)', () => {
 
         this.updatedPlayer = this.context.getPlayerByName('James_Bond');
       });
-      it('should update the name field', function() {
+      it('should update the name field', function () {
         expect(this.updatedPlayer.name).to.equal('James_Bond');
       });
-      it('should update the state field', function() {
+      it('should update the state field', function () {
         expect(this.updatedPlayer.state).to.equal('Ready');
       });
     });
@@ -130,9 +130,27 @@ describe('Context (tested via Lobby)', () => {
     testContext('when the player is NOT present', () => {
       it('should throw an error', () => {
         expect(
-          () => ( (new Lobby(8, [])).updatePlayer('foobar', {}) )
+          () => ((new Lobby(8, [])).updatePlayer('foobar', {}))
         ).to.throw(Error);
       });
     });
+  });
+
+  describe('getRosterData', function () {
+    before(function () {
+      const lobby = new Lobby(8);
+
+      lobby.addPlayer('abc');
+      lobby.addPlayer('def', 'Darwin', 'Preparing');
+      lobby.addPlayer('ghi', 'Georgia', 'Ready');
+
+      this.lobby = lobby;
+    });
+    it('should not include anonymous players', function () {
+      const rosterData = (this.lobby as Lobby).getRosterData();
+
+      expect(rosterData).to.have.lengthOf(2);
+    });
+    it('should include character information if available');
   });
 });
