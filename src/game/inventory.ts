@@ -1,13 +1,13 @@
 import * as _ from 'lodash';
-import {Item, ItemStack, ItemStackJSON, changeStackAmount, createItemStack, stackIsEmpty } from './items/item';
+import { ItemStack, ItemStackJSON, changeStackAmount, createItemStack, stackIsEmpty } from './items/item';
 import { ItemName } from './items/itemName';
 
 export interface Inventory {
-  itemStacks: ItemStack<Item>[];
+  itemStacks: ItemStack[];
   size: number;
 }
 
-export function createInventory(itemStacks: ItemStack<Item>[], size: number): Inventory {
+export function createInventory(itemStacks: ItemStack[], size: number): Inventory {
   return {
     size,
     itemStacks: removeEmptyStacks(_.take(itemStacks, size))
@@ -22,9 +22,9 @@ export function inventoryIsFull(inventory: Inventory): boolean {
   return inventory.itemStacks.length === inventory.size;
 }
 
-export function getItem(inventory: Inventory, itemName: ItemName): ItemStack<Item> {
+export function getItem(inventory: Inventory, itemName: ItemName): ItemStack {
   const needle = _.find(inventory.itemStacks,
-    (itemStack: ItemStack<Item>) => itemStack.itemName === itemName);
+    (itemStack: ItemStack) => itemStack.itemName === itemName);
 
   // some odd condition (error) checking
   if (needle && stackIsEmpty(needle)) {
@@ -76,6 +76,6 @@ export function toJSON(inventory: Inventory): InventoryJSON {
   );
 }
 
-export function removeEmptyStacks(stacks: ItemStack<Item>[]): ItemStack<Item>[] {
+export function removeEmptyStacks(stacks: ItemStack[]): ItemStack[] {
   return _.filter(stacks, _.negate(stackIsEmpty));
 }
