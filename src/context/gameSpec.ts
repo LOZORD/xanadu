@@ -10,27 +10,16 @@ const createGame = (players = []): Game => {
   return new Game(8, players);
 };
 
-const createPlayer = (id: string, name: string, state: PlayerState): Player => {
-  const player = {
+const createPlayer = (game: Game, id: string, name: string, state: PlayerState): Player => {
+  const player: Player = {
     id,
     name,
-    state,
-    character: {
-      nextAction: null,
-      characterClass: Character.NO_CLASS,
-      allegiance: 'None',
-      goldAmount: Character.NO_CLASS.startingGold,
-      inventory: Character.NO_CLASS.startingInventory,
-      stats: Character.NO_CLASS.startingStats,
-      row: 0,
-      col: 0,
-      modifiers: null
-    }
-  } as any;
+    state
+  };
 
-  //player.character.player = player;
+  player.character = Character.createCharacter(game, player, game.map.startingPosition);
 
-  player.character.player = player;
+  game.players.push(player);
 
   return player;
 };
@@ -48,23 +37,24 @@ describe('Game', () => {
   });
 
   describe('handleMessage', function () {
-    function setup(self) {
-      self.player1 = createPlayer('vader', 'Darth_Vader', 'Playing');
-      self.player2 = createPlayer('yoda', 'Yoda', 'Playing');
-      self.player3 = createPlayer('r2d2', 'R2D2', 'Playing');
-      self.game = createGame([ self.player1, self.player2, self.player3 ]);
-    }
     before(function () {
-      setup(this);
-    });
-    afterEach(function () {
-      setup(this);
+      this.game = createGame();
+      this.player1 = createPlayer(this.game, 'vader', 'Darth_Vader', 'Playing');
+      this.player2 = createPlayer(this.game, 'yoda', 'Yoda', 'Playing');
+      this.player3 = createPlayer(this.game, 'r2d2', 'R2D2', 'Playing');
     });
     describe('when given a valid action command', function () {
       before(function () {
         expect((this.player1.character as Character.Character).nextAction).to.be.null;
         this.responses = (this.game as Game).handleMessage({
           content: 'go south', // a valid movement on the default test map
+          player: this.player1,
+          timestamp: Date.now()
+        });
+      });
+      after(function () {
+        (this.game as Game).handleMessage({
+          content: 'go north', // after the tests, reverse the movement
           player: this.player1,
           timestamp: Date.now()
         });
@@ -82,6 +72,7 @@ describe('Game', () => {
     });
     describe('when given an invalid action command', function () {
       before(function () {
+        (this.player1 as Player).character.nextAction = null;
         this.responses = (this.game as Game).handleMessage({
           content: 'go north', // north of the starting position is a barrier,
           player: this.player1,
@@ -211,10 +202,10 @@ describe('Game', () => {
   });
 
   describe('update', () => {
-    beforeEach(function () {
-      this.p1 = createPlayer('007', 'James_Bond', 'Playing');
-      this.p2 = createPlayer('008', 'Bill', 'Playing');
-      this.game = createGame([ this.p1, this.p2 ]);
+    before(function () {
+      this.game = createGame();
+      this.p1 = createPlayer(this.game, '123', 'Alice', 'Playing');
+      this.p2 = createPlayer(this.game, '456', 'Bob', 'Playing');
     });
 
     it('should work with move actions', function () {
@@ -252,9 +243,9 @@ describe('Game', () => {
 
   describe('isReadyForUpdate', () => {
     it('should be true iff all players have an action', () => {
-      const p1 = createPlayer('007', 'James_Bond', 'Playing');
-      const p2 = createPlayer('008', 'Bill', 'Playing');
-      const game = createGame([ p1, p2 ]);
+      const game = createGame();
+      const p1 = createPlayer(game, '007', 'James_Bond', 'Playing');
+      const p2 = createPlayer(game, '008', 'Bill', 'Playing');
 
       p1.character.nextAction = {
         timestamp: Date.now(),
@@ -275,11 +266,12 @@ describe('Game', () => {
       expect(game.isReadyForUpdate()).to.be.true;
     });
   });
+
   describe('getNearbyAnimals', function () {
     before(function () {
-      this.player1 = createPlayer('luke', 'Luke', 'Playing');
-      this.player2 = createPlayer('leia', 'Leia', 'Playing');
-      this.game = createGame([ this.player1, this.player2 ]);
+      this.game = createGame();
+      this.player1 = createPlayer(this.game, 'luke', 'Luke', 'Playing');
+      this.player2 = createPlayer(this.game, 'leia', 'Leia', 'Playing');
     });
 
     it('should return the other player', function () {
@@ -288,15 +280,14 @@ describe('Game', () => {
       expect(nearby).to.include(this.player1.character).and.to.include(this.player2.character);
     });
   });
-  describe('getSortedActions', function() {
-    before(function() {
-      this.player1 = createPlayer('123', 'Alice', 'Playing');
 
-      this.player2 = createPlayer('456', 'Bob', 'Playing');
+  describe('getSortedActions', function () {
+    before(function () {
+      this.game = createGame();
 
-      this.player3 = createPlayer('789', 'Carol', 'Playing');
-
-      this.game = createGame([this.player1, this.player2, this.player3]);
+      this.player1 = createPlayer(this.game, '123', 'Alice', 'Playing');
+      this.player2 = createPlayer(this.game, '456', 'Bob', 'Playing');
+      this.player3 = createPlayer(this.game, '789', 'Carol', 'Playing');
 
       (this.game as Game).getPlayer('123').character.stats = {
         health: 50,
@@ -329,12 +320,12 @@ describe('Game', () => {
 
       this.sortedActions = (this.game as Game).getSortedActions();
     });
-    it('should sort first by player agility', function() {
-      expect(((this.sortedActions)[0].actor as Character.Character).player.id).to.eql(this.player1.id);
+    it('should sort first by player agility', function () {
+      expect(((this.sortedActions)[ 0 ].actor as Character.Character).player.id).to.eql(this.player1.id);
     });
-    it('should sort second by timestamp', function() {
-      expect(this.sortedActions[1].actor.player.id).to.equal(this.player3.id);
-      expect(this.sortedActions[2].actor.player.id).to.equal(this.player2.id);
+    it('should sort second by timestamp', function () {
+      expect(this.sortedActions[ 1 ].actor.player.id).to.equal(this.player3.id);
+      expect(this.sortedActions[ 2 ].actor.player.id).to.equal(this.player2.id);
     });
   });
 });

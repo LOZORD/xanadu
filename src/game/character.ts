@@ -1,9 +1,9 @@
 import { Animal } from './animal';
-import { ModernTranslationBook } from './items/books';
-import * as Ingestible from './items/ingestible';
 import { createInventory, hasItem, Inventory } from './inventory';
 import { meetsRequirements, Stats } from './stats';
 import { Player } from './player';
+import Game from '../context/game';
+import { Position } from './map/cell';
 
 export interface Character extends Animal {
   characterClass: CharacterClass;
@@ -25,159 +25,156 @@ export interface CharacterClass {
 }
 
 export type CharacterClassName = 'None' | 'Benefactor' | 'Gunslinger' |
-'Excavator' | 'Doctor' | 'Chef' | 'Shaman' | 'Caveman' | 'Cartographer' |
-'Professor' | 'Smith';
+  'Excavator' | 'Doctor' | 'Chef' | 'Shaman' | 'Caveman' | 'Cartographer' |
+  'Professor' | 'Smith';
 
-// XXX: warning - maybe these CharacterClass objects should be frozen/immutable?
-
-export const NO_CLASS: CharacterClass = {
-  className: 'None',
-  startingStats: {
-    health: 0,
-    strength: 0,
-    intelligence: 0,
-    agility: 0
-  },
-  startingGold: 0,
-  startingInventory: createInventory([], 0)
+export type CLASS_DICTIONARY<V> = {
+  None: V,
+  Benefactor: V,
+  Gunslinger: V,
+  Excavator: V,
+  Doctor: V,
+  Chef: V,
+  Shaman: V,
+  Caveman: V,
+  Cartographer: V,
+  Professor: V,
+  Smith: V
 };
 
-export const BENEFACTOR: CharacterClass = {
-  className: 'Benefactor',
-  startingStats: {
+export const CLASS_STARTING_STATS: CLASS_DICTIONARY<Stats> = {
+  None: {
+    health: 1,
+    agility: 1,
+    intelligence: 1,
+    strength: 1
+  },
+  Benefactor: {
     health: 30,
     intelligence: 20,
     agility: 40,
     strength: 10
   },
-  startingGold: 0,
-  startingInventory: createInventory([], 0)
-};
-
-export const GUNSLINGER: CharacterClass = {
-  className: 'Gunslinger',
-  startingStats: {
+  Gunslinger: {
     health: 30,
     intelligence: 10,
     agility: 30,
     strength: 30
   },
-  startingGold: 0,
-  startingInventory: createInventory([], 0)
-};
-
-export const EXCAVATOR: CharacterClass = {
-  className: 'Excavator',
-  startingStats: {
+  Excavator: {
     health: 40,
     intelligence: 10,
     agility: 10,
     strength: 40
   },
-  startingGold: 0,
-  startingInventory: createInventory([], 0)
-};
-
-export const DOCTOR: CharacterClass = {
-  className: 'Doctor',
-  startingStats: {
+  Doctor: {
     health: 30,
     intelligence: 50,
     agility: 10,
     strength: 10
   },
-  startingGold: 0,
-  // TODO: max stack amounts should be global
-  startingInventory: createInventory([
-    {
-      item: Ingestible.Morphine,
-      stackAmount: 1,
-      maxStackAmount: 5
-    },
-    {
-      item: Ingestible.Opium,
-      stackAmount: 1,
-      maxStackAmount: 5
-    },
-    {
-      item: Ingestible.MedicalKits,
-      stackAmount: 1,
-      maxStackAmount: 5
-    }
-  ], 0) // FIXME
-};
-
-export const CHEF: CharacterClass = {
-  className: 'Chef',
-  startingStats: {
+  Chef: {
     health: 10,
     intelligence: 40,
     agility: 30,
     strength: 20
   },
-  startingGold: 0,
-  startingInventory: createInventory([], 0)
-};
-
-export const SHAMAN: CharacterClass = {
-  className: 'Shaman',
-  startingStats: {
+  Shaman: {
     health: 10,
     intelligence: 50,
     agility: 30,
     strength: 10
   },
-  startingGold: 0,
-  startingInventory: createInventory([], 0)
-};
-
-export const CAVEMAN: CharacterClass = {
-  className: 'Caveman',
-  startingStats: {
+  Caveman: {
     health: 10,
     intelligence: 10,
     agility: 40,
     strength: 40
   },
-  startingGold: 0,
-  startingInventory: createInventory([], 0)
-};
-
-export const CARTOGRAPHER: CharacterClass = {
-  className: 'Cartographer',
-  startingStats: {
+  Cartographer: {
     health: 20,
     intelligence: 40,
     agility: 30,
     strength: 10
   },
-  startingGold: 0,
-  startingInventory: createInventory([], 0)
-};
-
-export const PROFESSOR: CharacterClass = {
-  className: 'Professor',
-  startingStats: {
+  Professor: {
     health: 10,
     intelligence: 50,
     agility: 20,
     strength: 20
   },
-  startingGold: 0,
-  startingInventory: createInventory([], 0)
-};
-
-export const SMITH: CharacterClass = {
-  className: 'Smith',
-  startingStats: {
+  Smith: {
     health: 10,
     intelligence: 40,
     agility: 20,
     strength: 30
-  },
-  startingGold: 0,
-  startingInventory: createInventory([], 0)
+  }
 };
+
+type InventoryCreator = (game: Game) => Inventory;
+
+export const DEFAULT_INVENTORY_SIZE = 10;
+
+export const CLASS_STARTING_INVENTORY: CLASS_DICTIONARY<InventoryCreator> = {
+  None: function (game: Game) {
+    return createInventory([], DEFAULT_INVENTORY_SIZE);
+  },
+  Benefactor: function (game: Game) {
+    return createInventory([], DEFAULT_INVENTORY_SIZE);
+  },
+  Gunslinger: function (game: Game) {
+    return createInventory([], DEFAULT_INVENTORY_SIZE);
+  },
+  Excavator: function (game: Game) {
+    return createInventory([], DEFAULT_INVENTORY_SIZE);
+  },
+  Doctor: function (game: Game) {
+    return createInventory([], DEFAULT_INVENTORY_SIZE);
+  },
+  Chef: function (game: Game) {
+    return createInventory([], DEFAULT_INVENTORY_SIZE);
+  },
+  Shaman: function (game: Game) {
+    return createInventory([], DEFAULT_INVENTORY_SIZE);
+  },
+  Caveman: function (game: Game) {
+    return createInventory([], DEFAULT_INVENTORY_SIZE);
+  },
+  Cartographer: function (game: Game) {
+    return createInventory([], DEFAULT_INVENTORY_SIZE);
+  },
+  Professor: function (game: Game) {
+    return createInventory([], DEFAULT_INVENTORY_SIZE);
+  },
+  Smith: function (game: Game) {
+    return createInventory([], DEFAULT_INVENTORY_SIZE);
+  }
+};
+
+export const DEFAULT_GOLD_AMOUNT = 500;
+
+export const CLASS_STARTING_GOLD: CLASS_DICTIONARY<number> = {
+  None: DEFAULT_GOLD_AMOUNT,
+  Benefactor: DEFAULT_GOLD_AMOUNT,
+  Gunslinger: DEFAULT_GOLD_AMOUNT,
+  Excavator: DEFAULT_GOLD_AMOUNT,
+  Doctor: DEFAULT_GOLD_AMOUNT,
+  Chef: DEFAULT_GOLD_AMOUNT,
+  Shaman: DEFAULT_GOLD_AMOUNT,
+  Caveman: DEFAULT_GOLD_AMOUNT,
+  Cartographer: DEFAULT_GOLD_AMOUNT,
+  Professor: DEFAULT_GOLD_AMOUNT,
+  Smith: DEFAULT_GOLD_AMOUNT
+};
+
+export function createCharacterClass(className: CharacterClassName, game: Game): CharacterClass {
+  return {
+    className: className,
+    startingStats: CLASS_STARTING_STATS[ className ],
+    startingGold: CLASS_STARTING_GOLD[ className ],
+    startingInventory: CLASS_STARTING_INVENTORY[ className ](game)
+  };
+}
 
 export type Allegiance = 'None' | 'Eastern' | 'Western';
 
@@ -219,8 +216,29 @@ export function createEmptyModifiers(): Modifiers {
   };
 }
 
+export function createCharacter(
+  game: Game, player: Player, pos: Position,
+  className: CharacterClassName = 'None', allegiance: Allegiance = 'None',
+  modifiers: Modifiers = createEmptyModifiers()
+): Character {
+  const characterClass = createCharacterClass(className, game);
+
+  return {
+    player,
+    characterClass,
+    modifiers,
+    row: pos.row,
+    col: pos.col,
+    allegiance: allegiance,
+    goldAmount: characterClass.startingGold,
+    stats: characterClass.startingStats,
+    inventory: characterClass.startingInventory,
+    nextAction: null
+  };
+}
+
 export function canTranslateModern(c: Character): boolean {
-  return hasItem(c.inventory, ModernTranslationBook) || meetsRequirements(c.stats, {
+  return hasItem(c.inventory, 'Modern Translation Book') || meetsRequirements(c.stats, {
     intelligence: 50
   });
 }

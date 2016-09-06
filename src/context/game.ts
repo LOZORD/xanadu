@@ -1,6 +1,5 @@
 import * as _ from 'lodash';
 import * as Actions from '../game/actions';
-import { moveEntity } from '../game/entity';
 import { Player, canCommunicate } from '../game/player';
 import * as Map from '../game/map/map';
 import { PassageRoom } from '../game/map/cell';
@@ -69,21 +68,8 @@ export default class Game extends Context {
 
       // FIXME: this should probably be changed later...
       if (!player.character) {
-        player.character = {
-          player: player,
-          characterClass: Character.NO_CLASS,
-          row: 0,
-          col: 0,
-          allegiance: 'None',
-          modifiers: modifiers,
-          goldAmount: Character.NO_CLASS.startingGold,
-          nextAction: null,
-          stats: Character.NO_CLASS.startingStats,
-          inventory: Character.NO_CLASS.startingInventory
-        };
+        player.character = Character.createCharacter(this, player, this.map.startingPosition);
       }
-
-      moveEntity(player.character, this.map.startingPosition);
     });
 
     this.turnNumber = 0;

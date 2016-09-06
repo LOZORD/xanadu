@@ -11,6 +11,10 @@ interface AbstractCell extends Position {
   representation: CellRepresentation;
 };
 
+export interface UnknownCell extends AbstractCell {
+  representation: '?';
+}
+
 export interface PermanentBarrier extends AbstractCell {
   representation: '#';
 };
@@ -69,10 +73,10 @@ export interface FromRepresentationOptions {
   items: ItemStack<Item>[];
 }
 
-export type Cell = Barrier | Room;
+export type Cell = Barrier | Room | UnknownCell;
 
 export function isCellRepresentation(cr: string): cr is CellRepresentation {
-  return (['_', 'X', '^', '#', '%', '?', ' '].indexOf(cr) >= 0);
+  return ([ '_', 'X', '^', '#', '%', '?', ' ' ].indexOf(cr) >= 0);
 }
 
 export function
@@ -88,6 +92,8 @@ fromRepresentation(cr: CellRepresentation, { row, col }: Position, opts: FromRep
       return { row, col, representation: 'X', items: opts.items };
     case '^':
       return { row, col, representation: '^', items: opts.items };
+    case '?':
+      return { row, col, representation: '?' };
     default:
       return { row, col, representation: '#' };
   }
@@ -107,4 +113,8 @@ export function getCardinalNeighboringPositions({ row, col }: Position): Cardina
     south: { row: row + 1, col },
     west: { row, col: col - 1 }
   };
+}
+
+export function getPosition({ row, col }: Cell): Position {
+  return { row, col };
 }

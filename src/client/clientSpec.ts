@@ -49,10 +49,6 @@ describe('Client', () => {
           if (error) {
             reject(error);
           } else {
-            // resolve(window);
-            // const $ = (window as any).$ as JQuery;
-            // $.ready(() => resolve(window));
-
             (window as any).$(window.document).ready(function () {
               resolve(window);
             });
@@ -237,7 +233,7 @@ describe('Client', () => {
   });
   describe('Roster', function () {
     describe('updateRoster', function () {
-      it('should have the names listed alphabetically', function () {
+      before(function () {
         return this.windowPromise.then(window => {
           const $ = window.$ as Client.JQueryCreator;
 
@@ -259,12 +255,21 @@ describe('Client', () => {
             }
           ], $);
 
+          return window;
+        });
+      });
+      it('should have the names listed alphabetically', function () {
+        return this.windowPromise.then(window => {
+          const $ = window.$ as Client.JQueryCreator;
+
           const namesInOrder = [ 'Alice', 'Bob', 'Carol' ];
 
           const names = $('.roster-name').toArray().map(
             (elem => normalize($(elem).text())));
 
           expect(names).to.eql(namesInOrder);
+
+          return window;
         });
       });
     });
