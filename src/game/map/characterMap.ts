@@ -1,11 +1,11 @@
 import * as _ from 'lodash';
-import * as Item from './item';
 import * as Map from '../map/map';
 import * as Cell from '../map/cell';
+import { Player } from '../player';
 
 export type Names = 'Map';
 
-export interface CharacterMap extends Item.Item, Map.Map {
+export interface CharacterMap extends Map.Map {
   gameMap: Map.Map;
 }
 
@@ -16,7 +16,6 @@ export function createCharacterMap(gameMap: Map.Map): CharacterMap {
 
   return {
     gameMap: gameMap,
-    name: 'Map',
     grid: characterMapGrid,
     width: gameMap.width,
     height: gameMap.height,
@@ -39,4 +38,13 @@ export function reveal(characterMap: CharacterMap, cell: Cell.Cell): CharacterMa
   });
 
   return characterMap;
+}
+
+export function characterMapToString(characterMap: CharacterMap, player: Player): string {
+  const repMap = Map.mapToRepresentations(characterMap);
+  const { row: cRow, col: cCol } = player.character;
+
+  repMap[cRow][cCol] = '*';
+
+  return repMap.map(row => row.join('')).join('\n');
 }

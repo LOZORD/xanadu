@@ -191,6 +191,8 @@ export default class Server {
         messages.forEach(message => this.sendMessage(message));
         log.forEach(logItem => this.logger.log('info', logItem));
 
+        this.sendDetails();
+
         this.sendMessage(this.currentContext.broadcast('What is your next action?'));
       }
 

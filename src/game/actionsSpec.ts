@@ -2,6 +2,8 @@ import { expect } from 'chai';
 import * as _ from 'lodash';
 import * as Actions from './actions';
 import Game from '../context/game';
+import * as Player from './player';
+import * as Character from './character';
 
 describe('Actions', () => {
   describe('isParsableAction', () => {
@@ -21,16 +23,12 @@ describe('Actions', () => {
     it('should be tested!');
   });
   describe('MoveAction', () => {
-    beforeEach(function () {
-      this.player = {
-        id: '007',
-        name: 'James_Bond',
-        state: 'Preparing',
-        character: {
-          row: 1,
-          col: 1
-        }
-      };
+    // remember: we are using the test map!
+    before(function () {
+      this.game = new Game(8, []);
+      this.player = Player.createPlayer('007', 'James_Bond', 'Playing');
+      this.player.character = Character.createCharacter(this.game, this.player, this.game.map.startingPosition, 'None');
+      this.game.players.push(this.player);
     });
     describe('parse', () => {
       it('parsing should return a MoveAction', function () {
@@ -64,10 +62,6 @@ describe('Actions', () => {
       });
     });
     describe('validate', () => {
-      // remember: we are using the test map!
-      before(function () {
-        this.game = new Game(8, [ this.player ]);
-      });
       context('when the move is valid', () => {
         it('should have `isValid` = `true`', function () {
           const action = Actions.MOVE_COMPONENT.parse('go south', this.player.character, Date.now());
@@ -114,13 +108,10 @@ describe('Actions', () => {
   });
   describe('PassAction', () => {
     before(function () {
-      this.player = {
-        id: '007',
-        name: 'James_Bond',
-        state: 'Playing',
-        character: {}
-      };
-      this.game = new Game(8, [ this.player ]);
+      this.game = new Game(8, []);
+      this.player = Player.createPlayer('007', 'James_Bond', 'Playing');
+      this.player.character = Character.createCharacter(this.game, this.player, this.game.map.startingPosition, 'None');
+      this.game.players.push(this.player);
     });
 
     describe('parse', () => {
@@ -130,7 +121,7 @@ describe('Actions', () => {
       });
     });
     describe('validate', () => {
-      it('should return true', function() {
+      it('should return true', function () {
         const passAction = Actions.parseAction('pass', this.player.character, Date.now()) as Actions.PassAction;
         expect(Actions.PASS_COMPONENT.validate(passAction, this.game).isValid).to.be.true;
       });

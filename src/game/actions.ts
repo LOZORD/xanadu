@@ -7,6 +7,8 @@ import { moveEntity } from './entity';
 import * as _ from 'lodash';
 import * as Messaging from './messaging';
 import describeRoom from './map/describeRoom';
+import { reveal } from './map/characterMap';
+import * as Inventory from './inventory';
 
 export interface Action {
   actor: Animal;
@@ -123,6 +125,10 @@ export const MOVE_COMPONENT: ActionParserComponent<MoveAction> = {
       const newRoom = Map.getCell(game.map, newPos) as Cell.Room;
 
       messages.push(Messaging.createGameMessage(describeRoom(newRoom, game.map), [ player ]));
+
+      if (Inventory.hasItem(player.character.inventory, 'Map')) {
+        reveal(player.character.map, Map.getCell(game.map, newPos));
+      }
     }
 
     return {

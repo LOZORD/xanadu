@@ -12,6 +12,8 @@ import { Animal } from '../game/animal';
 import { Entity } from '../game/entity';
 import { Seed, SeededRNG } from '../rng';
 import { Chance } from 'chance';
+import * as Inventory from '../game/inventory';
+import { reveal } from '../game/map/characterMap';
 
 export type GameConfig = {
   map?: Map.Map;
@@ -69,6 +71,11 @@ export default class Game extends Context {
       // FIXME: this should probably be changed later...
       if (!player.character) {
         player.character = Character.createCharacter(this, player, this.map.startingPosition);
+      }
+
+      // reveal the area around the starting room
+      if (Inventory.hasItem(player.character.inventory, 'Map')) {
+        reveal(player.character.map, Map.getCell(this.map, this.map.startingPosition));
       }
     });
 

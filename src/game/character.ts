@@ -4,6 +4,10 @@ import { meetsRequirements, Stats } from './stats';
 import { Player } from './player';
 import Game from '../context/game';
 import { Position } from './map/cell';
+import * as Item from './items/item';
+import { CharacterMap, createCharacterMap } from './map/characterMap';
+import * as _ from 'lodash';
+import * as Book from './items/book';
 
 export interface Character extends Animal {
   characterClass: CharacterClass;
@@ -11,6 +15,7 @@ export interface Character extends Animal {
   modifiers: Modifiers;
   goldAmount: number;
   player: Player;
+  map: CharacterMap;
 }
 
 export function isPlayerCharacter(actor: Animal | Character): actor is Character {
@@ -117,7 +122,9 @@ export const DEFAULT_INVENTORY_SIZE = 10;
 
 export const CLASS_STARTING_INVENTORY: CLASS_DICTIONARY<InventoryCreator> = {
   None: function (game: Game) {
-    return createInventory([], DEFAULT_INVENTORY_SIZE);
+    return createInventory([
+      Item.createItemStack(_.clone(Book.MAP), 1, 1)
+    ], DEFAULT_INVENTORY_SIZE);
   },
   Benefactor: function (game: Game) {
     return createInventory([], DEFAULT_INVENTORY_SIZE);
@@ -233,7 +240,8 @@ export function createCharacter(
     goldAmount: characterClass.startingGold,
     stats: characterClass.startingStats,
     inventory: characterClass.startingInventory,
-    nextAction: null
+    nextAction: null,
+    map: createCharacterMap(game.map)
   };
 }
 

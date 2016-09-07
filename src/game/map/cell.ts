@@ -1,4 +1,4 @@
-import { ItemStack } from '../items/item';
+import { Item, ItemStack } from '../items/item';
 
 export interface Position {
   row: number;
@@ -27,7 +27,7 @@ export interface ExcavatableBarrier extends AbstractCell {
 export type Barrier = PermanentBarrier | ExcavatableBarrier;
 
 interface AbstractRoom extends AbstractCell {
-  items: ItemStack[];
+  items: ItemStack<Item>[];
 };
 
 export interface SimpleRoom extends AbstractRoom {
@@ -70,7 +70,7 @@ export function isPassageRoom(room: Room): room is PassageRoom {
 
 export interface FromRepresentationOptions {
   health: number;
-  items: ItemStack[];
+  items: ItemStack<Item>[];
 }
 
 export type Cell = Barrier | Room | UnknownCell;

@@ -1,7 +1,7 @@
 import * as Character from './character';
 import { Stats } from './stats';
-import { toJSON as inventoryToJSON, InventoryJSON } from './inventory';
-import { Map } from './map/map';
+import { toJSON as inventoryToJSON, InventoryJSON, hasItem } from './inventory';
+import { characterMapToString } from './map/characterMap';
 import { omit, startsWith } from 'lodash';
 
 // TODO: find a way to remove this (as most if not all can be computed from player properties)
@@ -85,14 +85,13 @@ export type PlayerDetailsJSON = {
   }
   // TODO: modifiers
   // TODO: effects
-  // TODO: this is the character's representation of the game's map (the type/interface will likely be different)
-  map?: Map;
+  map?: string;
   gold: number;
   items: InventoryJSON;
 };
 
 export function playerDetails(player: Player): PlayerDetailsJSON {
-  return {
+  const ret: PlayerDetailsJSON = {
     stats: {
       maximum: player.character.characterClass.startingStats,
       current: player.character.stats
@@ -100,6 +99,12 @@ export function playerDetails(player: Player): PlayerDetailsJSON {
     gold: player.character.goldAmount,
     items: inventoryToJSON(player.character.inventory)
   };
+
+  if (hasItem(player.character.inventory, 'Map')) {
+    ret.map = characterMapToString(player.character.map, player);
+  }
+
+  return ret;
 }
 
 // no interface for this functions return value since it is for debug only

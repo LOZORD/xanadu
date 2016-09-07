@@ -334,8 +334,7 @@ export function updateDetails($selectors: JQueryDetailSelectors, data: PlayerDet
 
   // map
   if (data.map) {
-    // TODO: implement something like `Map.show`
-    $selectors.$playerMap.text(data.map.grid.toString());
+    $selectors.$playerMap.text(data.map);
     $selectors.$mapWrapper.show();
   } else {
     $selectors.$mapWrapper.hide();
