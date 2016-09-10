@@ -1,4 +1,6 @@
-import { Position, Cell, isRoom } from './cell';
+import { Position, Cell, isRoom, CellRepresentation } from './cell';
+
+// TODO: use grid.ts
 
 export interface Map {
     width: number;
@@ -14,7 +16,7 @@ export function isWithinMap(map: Map, { row, col }: Position): boolean {
         col < map.width;
 }
 
-export function mapToRepresentations(map: Map): string[][] {
+export function mapToRepresentations(map: Map): CellRepresentation[][] {
     return map.grid.map(row => row.map(cell => cell.representation));
 }
 

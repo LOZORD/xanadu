@@ -224,6 +224,43 @@ body {
 
 #player-map {
   overflow: scroll;
+  background-color: var(--xanadu-black);
+  color: var(--xanadu-white);
+  border: 1px solid var(--xanadu-near-black);
+}
+
+#player-map span {
+  font-size: 1.25em;
+  margin: 0.4em;
+  padding: 0.1em;
+}
+
+#player-map span.SimpleRoom {
+  color: var(--xanadu-white);
+}
+
+#player-map span.TreasureRoom {
+  color: var(--xanadu-yellow);
+}
+
+#player-map span.PassageRoom {
+  color: var(--xanadu-green);
+}
+
+#player-map span.PermanentBarrier {
+  color: var(--xanadu-near-black);
+}
+
+#player-map span.ExcavatableBarrier {
+  color: var(--xanadu-magenta);
+}
+
+#player-map span.Unknown {
+  color: var(--xanadu-grey);
+}
+
+#player-map span.PlayerHere {
+  background-color: var(--xanadu-blue);
 }
 
 #details-wrapper {

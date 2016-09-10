@@ -1,8 +1,9 @@
 import * as Character from './character';
 import { Stats } from './stats';
 import { toJSON as inventoryToJSON, InventoryJSON, hasItem } from './inventory';
-import { characterMapToString } from './map/characterMap';
+import { mapToRepresentations } from './map/map';
 import { omit, startsWith } from 'lodash';
+import { CellRepresentation, Position } from './map/cell';
 
 // TODO: find a way to remove this (as most if not all can be computed from player properties)
 export type PlayerState = 'Anon' | 'Preparing' | 'Ready' | 'Playing' | 'Dead' | 'Spectating' | 'Absent';
@@ -85,7 +86,10 @@ export type PlayerDetailsJSON = {
   }
   // TODO: modifiers
   // TODO: effects
-  map?: string;
+  map?: {
+    currentPosition: Position,
+    grid: CellRepresentation[][]
+  };
   gold: number;
   items: InventoryJSON;
 };
@@ -101,7 +105,13 @@ export function playerDetails(player: Player): PlayerDetailsJSON {
   };
 
   if (hasItem(player.character.inventory, 'Map')) {
-    ret.map = characterMapToString(player.character.map, player);
+    ret.map = {
+      currentPosition: {
+        row: player.character.row,
+        col: player.character.col
+      },
+      grid: mapToRepresentations(player.character.map)
+    };
   }
 
   return ret;

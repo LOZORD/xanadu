@@ -79,6 +79,9 @@ export function isCellRepresentation(cr: string): cr is CellRepresentation {
   return ([ '_', 'X', '^', '#', '%', '?', ' ' ].indexOf(cr) >= 0);
 }
 
+export type CellName = 'Unknown' | 'PermanentBarrier' | 'ExcavatableBarrier' |
+'SimpleRoom' | 'TreasureRoom' | 'PassageRoom';
+
 export function
 fromRepresentation(cr: CellRepresentation, { row, col }: Position, opts: FromRepresentationOptions): Cell {
   switch (cr) {
