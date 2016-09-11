@@ -1,6 +1,7 @@
 import * as ServerMessaging from '../game/messaging';
 import { PlayerDetailsJSON, PlayerRosterJSON, PlayerInfo } from '../game/player';
 import { Logger } from '../logger';
+import { CellRepresentation, Position, CellName } from '../game/map/cell';
 
 /* TYPES */
 
@@ -281,6 +282,8 @@ export function processServerMessage(data: ServerMessaging.MessageJSON): ViewMes
 
 export function updateDetails($selectors: JQueryDetailSelectors, data: PlayerDetailsJSON): JQueryDetailSelectors {
 
+  const $ = $selectors._JQUERY_;
+
   // stats
   $selectors.current.$health.text(data.stats.current.health);
   $selectors.maximum.$health.text(data.stats.maximum.health);
@@ -334,11 +337,13 @@ export function updateDetails($selectors: JQueryDetailSelectors, data: PlayerDet
 
   // map
   if (data.map) {
-    $selectors.$playerMap.text(data.map);
+    const $colorizedMap = colorizeMap(data.map.grid, data.map.currentPosition, $);
+    $selectors.$playerMap.empty();
+    $selectors.$playerMap.append($colorizedMap);
     $selectors.$mapWrapper.show();
   } else {
     $selectors.$mapWrapper.hide();
-    $selectors.$playerMap.text('');
+    $selectors.$playerMap.empty();
   }
 
   // gold
@@ -472,4 +477,47 @@ export function createClientLogger(console: Console): Logger {
   // TODO: wrap console.log so output is similar to Winston's levels
   // maybe even include winston instead?
   return console; // TODO: implement me!
+}
+
+export function classifyCell(c: CellRepresentation): CellName {
+  return {
+    '_': 'SimpleRoom',
+    'X': 'TreasureRoom',
+    '^': 'PassageRoom',
+    '#': 'PermanentBarrier',
+    '%': 'ExcavatableBarrier',
+    '?': 'Unknown'
+  }[ c ];
+}
+
+export function cellToSpan(cr: CellRepresentation, playerHere: boolean, $: JQueryCreator): JQuery {
+  const $span = $('<span>');
+
+  $span.text(cr);
+  $span.addClass(classifyCell(cr));
+
+  if (playerHere) {
+    $span.text('*');
+    $span.addClass('PlayerHere');
+  }
+
+  return $span;
+}
+
+export function colorizeMap(grid: CellRepresentation[][], currPos: Position, $: JQueryCreator): JQuery {
+  const $cellContainer = $(`<div class='cells'>`);
+
+  for (let rowInd = 0; rowInd < grid.length; rowInd++) {
+    for (let colInd = 0; colInd < grid[rowInd].length; colInd++) {
+      const currCR = grid[rowInd][colInd];
+      const playerIsHere = currPos.row === rowInd && currPos.col === colInd;
+      const $span = cellToSpan(currCR, playerIsHere, $);
+
+      $cellContainer.append($span);
+    }
+
+    $cellContainer.append($(`<br>`));
+  }
+
+  return $cellContainer;
 }

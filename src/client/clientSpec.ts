@@ -5,6 +5,8 @@ import { Promise } from 'es6-promise';
 import * as Path from 'path';
 import { PlayerDetailsJSON } from '../game/player';
 import * as _ from 'lodash';
+import { TEST_PARSE_RESULT } from '../game/map/parseGrid';
+import { mapToRepresentations } from '../game/map/map';
 
 describe('Client', () => {
   function normalize(rawText: string): string {
@@ -40,25 +42,33 @@ describe('Client', () => {
     const bootstrapPath = Path.resolve(__dirname,
       '..', '..', 'node_modules', 'bootstrap', 'dist', 'js', 'bootstrap.min.js');
 
-    return this.windowPromise = new Promise<Window>((resolve, reject) => {
+    return this.windowPromise = new Promise<Window>((resolve) => {
       // XXX: should virtualConsole be set?
       jsdom.env({
         file: htmlPath,
         scripts: [ jqueryPath, bootstrapPath ],
         done: (error, window) => {
           if (error) {
-            reject(error);
+            throw error;
           } else {
-            (window as any).$(window.document).ready(function () {
-              resolve(window);
-            });
+            if ((window as any).$) {
+              (window as any).$(window.document).ready(function () {
+                resolve(window);
+              });
+            } else {
+              throw new Error('jQuery not attached to window!');
+            }
           }
         }
       });
     });
   });
   after(function () {
-    this.windowPromise.then(window => window.close());
+    return this.windowPromise.then((window) => {
+      window.close();
+    }, (error) => {
+      throw error;
+    });
   });
   describe('processServerMessage', () => {
     it('should work for the `Game` type', () => {
@@ -127,21 +137,6 @@ describe('Client', () => {
   });
   describe('updateDetails', function () {
     before(function () {
-      this.testSelectorsPromise = new Promise<Client.JQueryDetailSelectors>((resolve, reject) => {
-        this.windowPromise.then(
-          (window) => {
-            if (window.$) {
-              resolve(Client.createSelectors(window.$));
-            } else {
-              reject(new Error('jQuery ($) not attached to window!'));
-            }
-
-            return window;
-          },
-          (error) => reject(error)
-        );
-      });
-
       const testDetails: PlayerDetailsJSON = {
         stats: {
           current: {
@@ -158,32 +153,60 @@ describe('Client', () => {
           }
         },
         gold: 7890,
-        items: []
+        items: [],
+        map: {
+          currentPosition: TEST_PARSE_RESULT.startingPosition,
+          grid: mapToRepresentations(TEST_PARSE_RESULT)
+        }
       };
 
       this.TEST_DETAILS = testDetails;
 
       this.createPostUpdatePromise = (details: PlayerDetailsJSON) => {
-        return new Promise<Client.JQueryDetailSelectors>((resolve, reject) => {
-          this.testSelectorsPromise.then(($selectors: Client.JQueryDetailSelectors) => {
+        return new Promise<Client.JQueryDetailSelectors>(resolve => {
+          this.windowPromise.then(window => {
+            const $ = window.$ as Client.JQueryCreator;
+            const $selectors = Client.createSelectors($);
+
             resolve(Client.updateDetails($selectors, details));
-          }, reject);
+            return window;
+          });
         });
       };
 
-      this.testDetailsUpdatePromise = this.createPostUpdatePromise(this.TEST_DETAILS);
+      this.revertToOriginalTestDetails = (doneFunc: MochaDone): void => {
+        this.createPostUpdatePromise(this.TEST_DETAILS).then(() => doneFunc());
+      };
+
+      this.testDetailsUpdatePromise = this.createPostUpdatePromise(testDetails);
+
+      return this.testDetailsUpdatePromise;
     });
 
     describe('Stats', function () {
+      before(function () {
+        this.statsPromise = new Promise(resolve => {
+          this.testDetailsUpdatePromise.then($selectors => {
+            const gt = _.curry(getText)($selectors);
+
+            resolve({
+              'HLT 3/13': gt('#details-health'),
+              'AGL 4/14': gt('#details-agility'),
+              'INT 5/15': gt('#details-intelligence'),
+              'STR 6/16': gt('#details-strength')
+            });
+
+            return $selectors;
+          });
+        });
+      });
       it('should have updated the stats', function () {
-        return this.testDetailsUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
+        return this.statsPromise.then((results) => {
+          _.forEach(results, (actual, expected) => {
+            expect(expected).to.eql(actual);
+          });
 
-          const gt = _.curry(getText)($selectors);
-
-          expect(gt('#details-health')).to.equal('HLT 3/13');
-          expect(gt('#details-agility')).to.equal('AGL 4/14');
-          expect(gt('#details-intelligence')).to.equal('INT 5/15');
-          expect(gt('#details-strength')).to.equal('STR 6/16');
+          return results;
         });
       });
     });
@@ -194,12 +217,51 @@ describe('Client', () => {
       it('should be implemented and tested!');
     });
     describe('Map', function () {
-      it('should be implemented and tested!');
+      context('when map data is present', function () {
+        it('should render the map', function() {
+          return this.testDetailsUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
+
+            expect(elemIsVisible($selectors.$playerMap)).to.be.true;
+
+            // this is not nec. what players will see since the map is completely revealed
+            const normalizedText = normalize($selectors.$playerMap.text());
+
+            const expectedMap = mapToRepresentations(TEST_PARSE_RESULT) as string[][];
+
+            // add the "current position" marker to the map
+            expectedMap[TEST_PARSE_RESULT.startingPosition.row][TEST_PARSE_RESULT.startingPosition.col] = '*';
+
+            const expectedText = expectedMap.map(row => row.join('')).join('');
+
+            expect(normalizedText).to.equal(expectedText);
+
+            return $selectors;
+          });
+        });
+      });
+      context('when map data is NOT present', function () {
+        before(function() {
+          const detailsWithoutMap = _.extend({}, this.TEST_DETAILS, { map: null });
+          this.hiddenMapPromise = this.createPostUpdatePromise(detailsWithoutMap);
+        });
+        after(function(done) {
+          this.revertToOriginalTestDetails(done);
+        });
+        it('should hide the map', function() {
+          return this.hiddenMapPromise.then(($selectors: Client.JQueryDetailSelectors) => {
+            expect(elemIsHidden($selectors.$playerMap));
+            expect(normalize($selectors.$playerMap.text())).to.equal('');
+            return $selectors;
+          });
+        });
+      });
     });
     describe('Gold', function () {
-      it('should appear in the view', function () {
+      it('should appear in the view', function (done) {
         return this.testDetailsUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
           expect(getText($selectors, '#gold-row')).to.equal('Gold: 7890');
+          done();
+          return $selectors;
         });
       });
     });
@@ -215,12 +277,17 @@ describe('Client', () => {
 
           this.itemsPromise = this.createPostUpdatePromise(this.testDetailsWithItems);
         });
+        after(function (done) {
+          this.revertToOriginalTestDetails(done);
+        });
         it('should be tested!');
       });
       context('when there are NO items', () => {
         it('should show the proper message', function () {
           return this.testDetailsUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
             expect(getText($selectors, '#items-wrapper')).to.equal('Your inventory is empty.');
+
+            return $selectors;
           });
         });
       });
