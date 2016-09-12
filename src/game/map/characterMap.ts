@@ -22,8 +22,8 @@ export function createCharacterMap(gameMap: Map.Map): CharacterMap {
   };
 }
 
-export function reveal(characterMap: CharacterMap, cell: Cell.Cell): CharacterMap {
-  const cardinalNeighbors = Cell.getCardinalNeighboringPositions(Cell.getPosition(cell));
+export function reveal(characterMap: CharacterMap, centerPos: Cell.Position): CharacterMap {
+  const cardinalNeighbors = Cell.getCardinalNeighboringPositions(centerPos);
 
   const neighborPositions = _.values(cardinalNeighbors) as Cell.Position[];
 
@@ -31,7 +31,7 @@ export function reveal(characterMap: CharacterMap, cell: Cell.Cell): CharacterMa
     pos => Map.isWithinMap(characterMap.gameMap, pos));
 
   // remember to include the cell we're currently in!
-  inMapNeighbors.concat(cell).forEach(pos => {
+  inMapNeighbors.concat(centerPos).forEach(pos => {
     const actualCell = Map.getCell(characterMap.gameMap, pos);
 
     characterMap.grid[ pos.row ][ pos.col ] = _.clone(actualCell);
