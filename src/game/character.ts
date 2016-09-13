@@ -6,8 +6,8 @@ import Game from '../context/game';
 import { Position } from './map/cell';
 import * as Item from './items/item';
 import { CharacterMap, createCharacterMap } from './map/characterMap';
-import * as _ from 'lodash';
-import * as Book from './items/book';
+import { createItem } from './items/itemCreator';
+import * as ItemName from './items/itemName';
 
 export interface Character extends Animal {
   characterClass: CharacterClass;
@@ -116,47 +116,81 @@ export const CLASS_STARTING_STATS: CLASS_DICTIONARY<Stats> = {
   }
 };
 
-type InventoryCreator = (game: Game) => Inventory;
+type PrimordialStack = {
+  name: ItemName.ItemName;
+  stackAmount?: number;
+  maxAmount: number;
+};
+
+export const CLASS_PRIMORDIAL_INVENTORY_STACKS: CLASS_DICTIONARY<PrimordialStack[]> = {
+  None: [
+    { name: 'Map', maxAmount: 1}
+  ],
+  Benefactor: [
+    { name: 'Map', maxAmount: 1},
+    { name: 'Ancient Translation Book', maxAmount: 1},
+    { name: 'Revolver', maxAmount: 1},
+    { name: 'Revolver Bullet', maxAmount: 12 }
+  ],
+  Gunslinger: [
+    { name: 'Rifle', maxAmount: 1},
+    { name: 'Rifle Bullet', maxAmount: 20 },
+    { name: 'Revolver', maxAmount: 1 },
+    { name: 'Revolver Bullet', maxAmount: 24 },
+    { name: 'Knife', maxAmount: 1 }
+  ],
+  Excavator: [
+    { name: 'Pickaxe', maxAmount: 1 },
+    { name: 'Dynamite', maxAmount: 5 },
+  ],
+  Doctor: [
+    { name: 'Morphine', maxAmount: 5 },
+    { name: 'Opium', maxAmount: 5 },
+    { name: 'Medical Kit', maxAmount: 5 },
+    { name: 'Poison Antidote', maxAmount: 5 },
+    { name: 'Modern Translation Book', maxAmount: 1 }
+  ],
+  Chef: [
+    { name: 'Knife', maxAmount: 2 },
+    { name: 'Camp Supplies', maxAmount: 2 },
+    { name: 'Stew', maxAmount: 10 }
+  ],
+  Shaman: [
+    { name: 'Knife', maxAmount: 2 }
+  ],
+  Caveman: [
+    { name: 'Knife', maxAmount: 1 },
+    { name: 'Pickaxe', maxAmount: 1 }
+  ],
+  Cartographer: [
+    { name: 'Map', maxAmount: 1 },
+    { name: 'Modern Translation Book', maxAmount: 1 },
+    { name: 'Ancient Translation Book', maxAmount: 1 },
+    { name: 'Camp Supplies', maxAmount: 1 }
+  ],
+  Professor: [
+    { name: 'Modern Translation Book', maxAmount: 1 },
+    { name: 'Ancient Translation Book', maxAmount: 1 }
+  ],
+  Smith: [
+    { name: 'Camp Supplies', maxAmount: 2 },
+    { name: 'Pickaxe', maxAmount: 1 }
+  ]
+};
 
 export const DEFAULT_INVENTORY_SIZE = 10;
 
-export const CLASS_STARTING_INVENTORY: CLASS_DICTIONARY<InventoryCreator> = {
-  None: function (game: Game) {
-    return createInventory([
-      Item.createItemStack(_.clone(Book.MAP), 1, 1)
-    ], DEFAULT_INVENTORY_SIZE);
-  },
-  Benefactor: function (game: Game) {
-    return createInventory([], DEFAULT_INVENTORY_SIZE);
-  },
-  Gunslinger: function (game: Game) {
-    return createInventory([], DEFAULT_INVENTORY_SIZE);
-  },
-  Excavator: function (game: Game) {
-    return createInventory([], DEFAULT_INVENTORY_SIZE);
-  },
-  Doctor: function (game: Game) {
-    return createInventory([], DEFAULT_INVENTORY_SIZE);
-  },
-  Chef: function (game: Game) {
-    return createInventory([], DEFAULT_INVENTORY_SIZE);
-  },
-  Shaman: function (game: Game) {
-    return createInventory([], DEFAULT_INVENTORY_SIZE);
-  },
-  Caveman: function (game: Game) {
-    return createInventory([], DEFAULT_INVENTORY_SIZE);
-  },
-  Cartographer: function (game: Game) {
-    return createInventory([], DEFAULT_INVENTORY_SIZE);
-  },
-  Professor: function (game: Game) {
-    return createInventory([], DEFAULT_INVENTORY_SIZE);
-  },
-  Smith: function (game: Game) {
-    return createInventory([], DEFAULT_INVENTORY_SIZE);
-  }
-};
+export function createClassInventory(className: CharacterClassName): Inventory {
+  const primordialStacks = CLASS_PRIMORDIAL_INVENTORY_STACKS[className] as PrimordialStack[];
+
+  const stacks = primordialStacks.map(primordialStack => {
+    const newItem = createItem(primordialStack.name);
+    const initialAmount = primordialStack.stackAmount || primordialStack.maxAmount;
+    return Item.createItemStack(newItem, initialAmount, primordialStack.maxAmount);
+  });
+
+  return createInventory(stacks, DEFAULT_INVENTORY_SIZE);
+}
 
 export const DEFAULT_GOLD_AMOUNT = 500;
 
@@ -174,12 +208,12 @@ export const CLASS_STARTING_GOLD: CLASS_DICTIONARY<number> = {
   Smith: DEFAULT_GOLD_AMOUNT
 };
 
-export function createCharacterClass(className: CharacterClassName, game: Game): CharacterClass {
+export function createCharacterClass(className: CharacterClassName): CharacterClass {
   return {
     className: className,
     startingStats: CLASS_STARTING_STATS[ className ],
     startingGold: CLASS_STARTING_GOLD[ className ],
-    startingInventory: CLASS_STARTING_INVENTORY[ className ](game)
+    startingInventory: createClassInventory(className)
   };
 }
 
@@ -228,7 +262,8 @@ export function createCharacter(
   className: CharacterClassName = 'None', allegiance: Allegiance = 'None',
   modifiers: Modifiers = createEmptyModifiers()
 ): Character {
-  const characterClass = createCharacterClass(className, game);
+
+  const characterClass = createCharacterClass(className);
 
   return {
     player,

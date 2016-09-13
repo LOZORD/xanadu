@@ -1,14 +1,15 @@
 import { Item } from './item';
 import { PartialStats } from '../stats';
+import { extend } from 'lodash';
 
 export type FoodName = 'Raw Meat' | 'Cooked Meat' | 'Stew' | 'Honeydew' |
   'Cave Leaf' | 'Nightshade' | 'Dark Poppy';
 
 export type DrinkName = 'Water' | 'Alph Water' | 'Alcohol';
 
-export type MedicineName = 'Morphine' | 'Opium' | 'Medical Kit';
+export type MedicineName = 'Morphine' | 'Opium' | 'Medical Kit' | 'Poison Antidote';
 
-export type Names = FoodName | DrinkName | MedicineName;
+export type Name = FoodName | DrinkName | MedicineName;
 
 // TODO: Use Maybe type for addiction relief?
 export interface Ingestible extends Item {
@@ -20,14 +21,11 @@ export interface Ingestible extends Item {
 }
 
 export function poison(ingestible: Ingestible): Ingestible {
-  return {
-    name: ingestible.name,
-    addictionRelief: ingestible.addictionRelief,
-    isPoisoned: true,
-    isAddictive: ingestible.isAddictive,
-    givesImmortality: ingestible.givesImmortality,
-    stats: ingestible.stats
-  };
+  return extend({}, ingestible, { isPoisoned: true }) as Ingestible;
+}
+
+export function unpoison(ingestible: Ingestible): Ingestible {
+  return extend({}, ingestible, { isPoisoned: false }) as Ingestible;
 }
 
 export interface Food extends Ingestible {
@@ -185,6 +183,17 @@ export const OPIUM: Medicine = {
 export const MEDICAL_KIT: Medicine = {
   name: 'Medical Kit',
   addictionRelief: 5,
+  isPoisoned: false,
+  isAddictive: false,
+  givesImmortality: false,
+  stats: {
+    // TODO
+  }
+};
+
+export const POISON_ANTIDOTE: Medicine = {
+  name: 'Poison Antidote',
+  addictionRelief: 3,
   isPoisoned: false,
   isAddictive: false,
   givesImmortality: false,

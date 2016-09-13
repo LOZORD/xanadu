@@ -3,14 +3,17 @@ import { Item } from './item';
 export type BulletName = 'Rifle Bullet' | 'Revolver Bullet';
 export type MeleeWeaponName = 'Knife' | 'Pickaxe';
 export type GunName = 'Rifle' | 'Revolver';
-export type Names = BulletName | MeleeWeaponName | GunName;
+export type ExplosiveName = 'Dynamite';
+export type Name = BulletName | MeleeWeaponName | GunName | ExplosiveName;
 
 export interface Weapon extends Item {
   damageAmount: number;
+  name: Name;
 }
 
 export interface MeleeWeapon extends Weapon {
   mineRate: number;
+  name: MeleeWeaponName;
 }
 
 export const KNIFE: MeleeWeapon = {
@@ -29,6 +32,14 @@ export interface Bullet {
   name: BulletName;
 }
 
+export const RIFLE_BULLET = {
+  name: 'Rifle Bullet'
+};
+
+export const REVOLVER_BULLET = {
+  name: 'Revolver Bullet'
+};
+
 export interface Gun extends Weapon {
   accuracy: number;   // integer percentage coefficient of how accurate this gun will be
   // when firing, given the wielder's agility and strength and the gun's
@@ -37,6 +48,7 @@ export interface Gun extends Weapon {
   bulletDistance: number; // a number 1 - 3 (how many rooms away)
   currentClipAmount: number; // how many bullets are currently loaded
   totalClipAmount: number; // how many bullets can be loaded at a time
+  name: GunName;
 }
 
 // XXX: not currently supported
@@ -68,4 +80,18 @@ export const REVOLVER: Gun = {
   bulletDistance: 1,
   currentClipAmount: 6,
   totalClipAmount: 6
+};
+
+export interface Explosive extends Weapon {
+  radius: number;
+  countdown: number;
+  name: ExplosiveName;
+  // effect
+};
+
+export const DYNAMITE: Explosive = {
+  radius: 2,
+  countdown: 3,
+  damageAmount: 40,
+  name: 'Dynamite'
 };

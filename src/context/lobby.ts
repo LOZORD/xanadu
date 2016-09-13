@@ -3,6 +3,7 @@ import * as _ from 'lodash';
 import { ClientMessage, Context } from './context';
 import { isReady } from '../game/player';
 import { Message, createEchoMessage, createGameMessage, createTalkMessage } from '../game/messaging';
+import * as Character from '../game/character';
 
 export default class Lobby extends Context {
   isReadyForNextContext() {
@@ -58,6 +59,8 @@ export default class Lobby extends Context {
           // for example, maybe allow the player to prefer a certain character class
           // or for them to start with a certain number of modifiers
 
+          // assignCharacter(fromClient.player, words);
+
           this.updatePlayer(fromClient.player.id, { state: 'Ready' });
           responses.push(this.broadcastFromPlayer(`${fromClient.player.name} is ready`, fromClient.player));
 
@@ -85,3 +88,29 @@ export default class Lobby extends Context {
     return responses;
   }
 }
+
+type CharacterConfig = {
+  className: Character.CharacterClassName;
+  allegiance: Character.Allegiance;
+  numModifiers: number;
+};
+
+export function parseCharacterConfig(words: string[]): CharacterConfig {
+  return null;
+};
+
+// export function assignCharacter(player: Player, words: string[]): Character.Character {
+//   if (player.character) {
+//     throw new Error('Player character is already present!');
+//   } else {
+//     const characterConfig = parseCharacterConfig(words);
+
+//     // return {
+//     //   row: 0,
+//     //   col: 0,
+//     //   characterClass: Character.createCharacter
+//     // };
+
+//     return null;
+//   }
+// }

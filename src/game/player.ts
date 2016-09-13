@@ -16,6 +16,18 @@ export interface Player {
   state: PlayerState;
 }
 
+// export interface LobbyPlayer extends Player {
+//   primordialCharacter?: {
+//     className: Character.CharacterClassName;
+//     allegiance: Character.Allegiance;
+//     modifiers: Character.Modifiers;
+//   };
+// }
+
+// export interface GamePlayer extends Player {
+//   character: Character.Character;
+// }
+
 export interface PlayerRosterJSON {
   name: string;
   state: PlayerState;
