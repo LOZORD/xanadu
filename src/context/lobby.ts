@@ -4,6 +4,7 @@ import { ClientMessage, Context } from './context';
 import * as Player from '../game/player';
 import { Message, createEchoMessage, createGameMessage, createTalkMessage } from '../game/messaging';
 import * as Character from '../game/character';
+import * as Helpers from '../helpers';
 
 export default class Lobby extends Context<Player.LobbyPlayer> {
 
@@ -58,33 +59,33 @@ export default class Lobby extends Context<Player.LobbyPlayer> {
         }
         break;
       }
-      case 'Preparing': {
+      case 'Preparing':
+      // pass through (i.e. allow the player to reconfigure their character)
+      case 'Ready': {
         const message = fromClient.content;
         const words = message.split(' ');
 
         if (words[ 0 ].toLowerCase() === 'ready') {
-          // TODO: maybe do something with the 'rest' of the words for this command
-          // for example, maybe allow the player to prefer a certain character class
-          // or for them to start with a certain number of modifiers
 
-          // assignCharacter(fromClient.player, words);
+          const { log, characterConfig } = parseCharacterConfig(words);
+
+          if (log.length > 0) {
+            const configErrStr = log.join('\n');
+            responses.push(
+              createGameMessage(configErrStr, [ fromClient.player ])
+            );
+          }
+
+          fromClient.player.primordialCharacter = characterConfig;
 
           this.updatePlayer(fromClient.player.id, { state: 'Ready' });
           responses.push(this.broadcastFromPlayer(`${fromClient.player.name} is ready`, fromClient.player));
-
-          // the caller will have to check for `isReadyForNextContext`
         } else {
           responses.push(
-            createTalkMessage(fromClient.player, fromClient.content, this.playersWithout([fromClient.player]))
+            createTalkMessage(fromClient.player, fromClient.content, this.playersWithout([ fromClient.player ]))
           );
         }
 
-        break;
-      }
-      case 'Ready': {
-        responses.push(
-          createTalkMessage(fromClient.player, fromClient.content, this.playersWithout([fromClient.player]))
-        );
         break;
       }
       default: {
@@ -107,7 +108,7 @@ export default class Lobby extends Context<Player.LobbyPlayer> {
         primordialCharacter: {
           className: player.character.characterClass.className,
           allegiance: player.character.allegiance,
-          modifiers: player.character.modifiers
+          numModifiers: Character.getActiveModifierNames(player.character.modifiers).length
         }
       };
     } else {
@@ -118,39 +119,94 @@ export default class Lobby extends Context<Player.LobbyPlayer> {
         primordialCharacter: {
           className: 'None',
           allegiance: 'None',
-          modifiers: Character.createEmptyModifiers()
+          numModifiers: 0
         }
       };
     }
   }
 }
 
-type CharacterConfig = {
-  className: Character.CharacterClassName;
-  allegiance: Character.Allegiance;
-  numModifiers: number;
-};
+export function parseCharacterConfig(splitReadyCommand: string[]): {
+  log: string[], characterConfig: Character.PrimordialCharacter
+} {
+  const log = [];
+  let characterConfig: Character.PrimordialCharacter = {
+    className: null,
+    allegiance: null,
+    numModifiers: null
+  };
 
-export function parseCharacterConfig(words: string[]): CharacterConfig {
-  return null;
+  if (splitReadyCommand[ 0 ].toLowerCase() !== 'ready') {
+    throw new Error('Unexpected parse without `ready`!');
+  }
+
+  const configComponents = splitReadyCommand.filter(component => _.includes(component, '='));
+
+  configComponents.forEach(component => {
+    const [ key, value ] = component.split('=');
+
+    const lKey = key.toLowerCase();
+
+    switch (lKey[ 0 ]) {
+      case 'c': {
+        if (_.isNull(characterConfig.className)) {
+          const chosenCharacterClass = _.find(Character.CHARACTER_CLASS_NAMES, (name) => {
+            return Helpers.isApproximateString(value, name);
+          });
+
+          if (chosenCharacterClass) {
+            characterConfig.className = chosenCharacterClass;
+          } else {
+            log.push(`Unrecognized character class: ${value}`);
+          }
+        }
+
+        break;
+      }
+      case 'a': {
+        if (_.isNull(characterConfig.allegiance)) {
+          const chosenAllegiance = _.find(Character.ALLEGIANCES, (allegiance) => {
+            return Helpers.isApproximateString(value, allegiance);
+          });
+
+          if (chosenAllegiance) {
+            characterConfig.allegiance = chosenAllegiance;
+          } else {
+            log.push(`Unrecognized allegiance: ${value}`);
+          }
+        }
+
+        break;
+      }
+      case 'm': {
+        if (_.isNull(characterConfig.numModifiers)) {
+          const chosenNumModifiers = _.parseInt(value, 10);
+
+          if (_.isFinite(chosenNumModifiers) && chosenNumModifiers >= 0) {
+            characterConfig.numModifiers = chosenNumModifiers;
+          } else {
+            log.push(`Bad number of modifers: ${value}`);
+          }
+
+          break;
+        }
+      }
+      default: {
+        log.push(`Unrecognized key: ${key}`);
+        break;
+      }
+    }
+  });
+
+  characterConfig = _.defaults(characterConfig, {
+    className: 'None',
+    allegiance: 'None',
+    numModifiers: 0
+  } as Character.PrimordialCharacter) as Character.PrimordialCharacter;
+
+  return { log, characterConfig };
 };
 
 export function isContextLobby(context: Context<any>): context is Lobby {
   return context instanceof Lobby;
 }
-
-// export function assignCharacter(player: Player, words: string[]): Character.Character {
-//   if (player.character) {
-//     throw new Error('Player character is already present!');
-//   } else {
-//     const characterConfig = parseCharacterConfig(words);
-
-//     // return {
-//     //   row: 0,
-//     //   col: 0,
-//     //   characterClass: Character.createCharacter
-//     // };
-
-//     return null;
-//   }
-// }

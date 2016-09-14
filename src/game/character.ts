@@ -8,6 +8,7 @@ import * as Item from './items/item';
 import { CharacterMap, createCharacterMap } from './map/characterMap';
 import { createItem } from './items/itemCreator';
 import * as ItemName from './items/itemName';
+import * as _ from 'lodash';
 
 export interface Character extends Animal {
   characterClass: CharacterClass;
@@ -17,6 +18,12 @@ export interface Character extends Animal {
   player: GamePlayer;
   map: CharacterMap;
 }
+
+export interface PrimordialCharacter {
+  className: CharacterClassName;
+  allegiance: Allegiance;
+  numModifiers: number;
+};
 
 export function isPlayerCharacter(actor: Animal): actor is Character {
   return Boolean((actor as Character).player);
@@ -32,6 +39,11 @@ export interface CharacterClass {
 export type CharacterClassName = 'None' | 'Benefactor' | 'Gunslinger' |
   'Excavator' | 'Doctor' | 'Chef' | 'Shaman' | 'Caveman' | 'Cartographer' |
   'Professor' | 'Smith';
+
+export const CHARACTER_CLASS_NAMES: CharacterClassName[] = [
+  'Benefactor', 'Gunslinger', 'Excavator', 'Doctor', 'Chef', 'Shaman',
+  'Caveman', 'Cartographer', 'Professor', 'Smith'
+];
 
 export type CLASS_DICTIONARY<V> = {
   None: V,
@@ -124,16 +136,16 @@ type PrimordialStack = {
 
 export const CLASS_PRIMORDIAL_INVENTORY_STACKS: CLASS_DICTIONARY<PrimordialStack[]> = {
   None: [
-    { name: 'Map', maxAmount: 1}
+    { name: 'Map', maxAmount: 1 }
   ],
   Benefactor: [
-    { name: 'Map', maxAmount: 1},
-    { name: 'Ancient Translation Book', maxAmount: 1},
-    { name: 'Revolver', maxAmount: 1},
+    { name: 'Map', maxAmount: 1 },
+    { name: 'Ancient Translation Book', maxAmount: 1 },
+    { name: 'Revolver', maxAmount: 1 },
     { name: 'Revolver Bullet', maxAmount: 12 }
   ],
   Gunslinger: [
-    { name: 'Rifle', maxAmount: 1},
+    { name: 'Rifle', maxAmount: 1 },
     { name: 'Rifle Bullet', maxAmount: 20 },
     { name: 'Revolver', maxAmount: 1 },
     { name: 'Revolver Bullet', maxAmount: 24 },
@@ -181,7 +193,7 @@ export const CLASS_PRIMORDIAL_INVENTORY_STACKS: CLASS_DICTIONARY<PrimordialStack
 export const DEFAULT_INVENTORY_SIZE = 10;
 
 export function createClassInventory(className: CharacterClassName): Inventory {
-  const primordialStacks = CLASS_PRIMORDIAL_INVENTORY_STACKS[className] as PrimordialStack[];
+  const primordialStacks = CLASS_PRIMORDIAL_INVENTORY_STACKS[ className ] as PrimordialStack[];
 
   const stacks = primordialStacks.map(primordialStack => {
     const newItem = createItem(primordialStack.name);
@@ -219,42 +231,56 @@ export function createCharacterClass(className: CharacterClassName): CharacterCl
 
 export type Allegiance = 'None' | 'Eastern' | 'Western';
 
+export const ALLEGIANCES: Allegiance[] = [ 'Eastern', 'Western' ];
+
+export type ModifierName = 'Killer' | 'Immortal' | 'Psycho' | 'Racist' |
+  'Cannibal' | 'Fatalist' | 'Pacifist' | 'Rusky' | 'Arsonist' | 'Angel of Death' |
+  'Collector' | 'Scalper' | 'Missionary';
+
 // Think of these as achievement that can be unlocked.
 // If a property is true, that means we include it when calculating final gold winnings.
 // Some "activity log" should be added to characters to keep track of the data that would be used
 // to find if these modifier "achievements" have been completed.
 export type Modifiers = {
-  killer: boolean;
-  immortal: boolean;
-  psycho: boolean;
-  racist: boolean;
-  cannibal: boolean;
-  fatalist: boolean;
-  pacifist: boolean;
-  rusky: boolean;
-  arsonist: boolean;
-  angelOfDeath: boolean;
-  collector: boolean;
-  scalper: boolean;
-  missionary: boolean;
+  'Killer': boolean;
+  'Immortal': boolean;
+  'Psycho': boolean;
+  'Racist': boolean;
+  'Cannibal': boolean;
+  'Fatalist': boolean;
+  'Pacifist': boolean;
+  'Rusky': boolean;
+  'Arsonist': boolean;
+  'Angel of Death': boolean;
+  'Collector': boolean;
+  'Scalper': boolean;
+  'Missionary': boolean;
 }
 
 export function createEmptyModifiers(): Modifiers {
   return {
-    killer: false,
-    immortal: false,
-    psycho: false,
-    racist: false,
-    cannibal: false,
-    fatalist: false,
-    pacifist: false,
-    rusky: false,
-    arsonist: false,
-    angelOfDeath: false,
-    collector: false,
-    scalper: false,
-    missionary: false
+    'Killer': false,
+    'Immortal': false,
+    'Psycho': false,
+    'Racist': false,
+    'Cannibal': false,
+    'Fatalist': false,
+    'Pacifist': false,
+    'Rusky': false,
+    'Arsonist': false,
+    'Angel of Death': false,
+    'Collector': false,
+    'Scalper': false,
+    'Missionary': false
   };
+}
+
+export const MODIFIER_NAMES = _.keys(createEmptyModifiers()) as ModifierName[];
+
+export const MAX_NUM_MODIFIERS = MODIFIER_NAMES.length;
+
+export function getActiveModifierNames(modifiers: Modifiers): ModifierName[] {
+  return MODIFIER_NAMES.filter(name => Boolean(modifiers[name]));
 }
 
 export function createCharacter(

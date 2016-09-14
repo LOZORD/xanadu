@@ -3,6 +3,7 @@ import * as ItemName from './itemName';
 import * as Book from './book';
 import * as Ingestible from './ingestible';
 import * as Weapon from './weapon';
+import * as CampSupplies from './campSupplies';
 import { cloneDeep } from 'lodash';
 
 const NAME_TO_ITEM = {
@@ -29,7 +30,8 @@ const NAME_TO_ITEM = {
   'Morphine': Ingestible.MORPHINE,
   'Opium': Ingestible.OPIUM,
   'Medical Kit': Ingestible.MEDICAL_KIT,
-  'Poison Antidote': Ingestible.POISON_ANTIDOTE
+  'Poison Antidote': Ingestible.POISON_ANTIDOTE,
+  'Camp Supplies': CampSupplies.CAMP_SUPPLIES
 };
 
 export function createItem(name: ItemName.ItemName): Item.Item {

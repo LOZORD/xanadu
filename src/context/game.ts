@@ -21,7 +21,7 @@ export type GameConfig = {
     minimum: number;
     maximum: number;
   };
-  seed: Seed
+  seed?: Seed
 };
 
 export default class Game extends Context<Player.GamePlayer> {
@@ -31,6 +31,8 @@ export default class Game extends Context<Player.GamePlayer> {
   map: Map.Map;
   rng: SeededRNG;
   beasts: Animal[];
+  minNumModifiers: number;
+  maxNumModifiers: number;
 
   constructor(maxPlayers: number, players: Player.Player[], gameConfig: GameConfig = { seed: Date.now() }) {
     super();
@@ -40,35 +42,20 @@ export default class Game extends Context<Player.GamePlayer> {
     this.map = gameConfig.map ? gameConfig.map : TEST_PARSE_RESULT;
     this.rng = Chance(gameConfig.seed);
 
-    this.players = players.map(player => this.convertPlayer(player));
-
-    let minNumModifiers: number;
-    let maxNumModifiers: number;
-
     if (gameConfig.numModifiers) {
-      minNumModifiers = gameConfig.numModifiers.minimum;
-      maxNumModifiers = gameConfig.numModifiers.maximum;
+      this.minNumModifiers = gameConfig.numModifiers.minimum;
+      this.maxNumModifiers = gameConfig.numModifiers.maximum;
     } else {
-      minNumModifiers = 0;
-      maxNumModifiers = 0;
+      this.minNumModifiers = 0;
+      this.maxNumModifiers = 0;
     }
+
+    this.players = players.map(player => this.convertPlayer(player));
 
     // TODO: populate
     this.beasts = [];
 
     this.players.forEach((player) => {
-      const numActiveModifiers = this.rng.integer({
-        min: minNumModifiers,
-        max: maxNumModifiers
-      });
-
-      const modifiers = Character.createEmptyModifiers();
-
-      const activeModifers = this.rng.pickset(_.keys(modifiers), numActiveModifiers);
-
-      activeModifers.forEach(modifier => {
-        modifiers[ modifier ] = true;
-      });
 
       // reveal the area around the starting room
       if (Inventory.hasItem(player.character.inventory, 'Map')) {
@@ -239,8 +226,10 @@ export default class Game extends Context<Player.GamePlayer> {
       };
 
       const character = Character.createCharacter(
-        this, newGamePlayer, this.map.startingPosition, player.primordialCharacter.className,
-        player.primordialCharacter.allegiance, player.primordialCharacter.modifiers
+        this, newGamePlayer, this.map.startingPosition,
+        player.primordialCharacter.className,
+        player.primordialCharacter.allegiance,
+        this.generateModifiers(player.primordialCharacter.numModifiers)
       );
 
       newGamePlayer.character = character;
@@ -263,6 +252,22 @@ export default class Game extends Context<Player.GamePlayer> {
 
       return newGamePlayer;
     }
+  }
+
+  generateModifiers(chosenNumModifiers: number): Character.Modifiers {
+    const numActiveModifiers = _.clamp(
+      chosenNumModifiers, this.minNumModifiers, this.maxNumModifiers
+    );
+
+    const modifiers = Character.createEmptyModifiers();
+
+    const activeModifers = this.rng.pickset(Character.MODIFIER_NAMES, numActiveModifiers);
+
+    activeModifers.forEach(modifier => {
+      modifiers[ modifier ] = true;
+    });
+
+    return modifiers;
   }
 }
 

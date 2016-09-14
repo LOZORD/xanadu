@@ -145,8 +145,34 @@ describe('Lobby', () => {
       });
     });
     testContext('when the player is ready', () => {
+      before(function() {
+        this.lobby = new Lobby(8, [
+          { id: '123', name: 'Alice', state: 'Preparing' },
+          { id: '456', name: 'Bob', state: 'Ready' }
+        ]);
+      });
       it('should default to (global/broadcasted) talk messages');
       it('should send whisper messages');
+      it('should be able to reconfigure their primordial character', function() {
+        this.player2 = (this.lobby as Lobby).getPlayerByName('Bob');
+        (this.lobby as Lobby).handleMessage({
+          player: this.player2,
+          timestamp: Date.now(),
+          content: 'ready c=chef a=west'
+        });
+
+        expect(this.player2.primordialCharacter.className).to.equal('Chef');
+        expect(this.player2.primordialCharacter.allegiance).to.equal('Western');
+
+        (this.lobby as Lobby).handleMessage({
+          player: this.player2,
+          timestamp: Date.now(),
+          content: 'ready c=doc a=e'
+        });
+
+        expect(this.player2.primordialCharacter.className).to.equal('Doctor');
+        expect(this.player2.primordialCharacter.allegiance).to.equal('Eastern');
+      });
     });
     testContext('when the player is in another state', () => {
       it('should produce no responses', () => {

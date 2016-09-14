@@ -5,6 +5,7 @@ import { TEST_PARSE_RESULT } from '../game/map/parseGrid';
 import { PlayerState, GamePlayer, Player } from '../game/player';
 import * as Messaging from '../game/messaging';
 import * as Character from '../game/character';
+import Lobby from './lobby';
 
 const createGame = (players: Player[] = []): Game => {
   return new Game(8, players);
@@ -337,6 +338,50 @@ describe('Game', () => {
     it('should sort second by timestamp', function () {
       expect(this.sortedActions[ 1 ].actor.player.id).to.equal(this.player3.id);
       expect(this.sortedActions[ 2 ].actor.player.id).to.equal(this.player2.id);
+    });
+  });
+
+  describe('convertPlayer', function() {
+    before(function() {
+      this.game = new Game(8, [{
+        id: '123', name: 'Alice', state: 'Playing'
+      }], {
+        numModifiers: {
+          maximum: Character.MAX_NUM_MODIFIERS,
+          minimum: 0
+        }
+      });
+    });
+    context('when given a GamePlayer', function() {
+      it('should return the player', function() {
+        const gamePlayer = (this.game as Game).getPlayer('123');
+        expect((this.game as Game).convertPlayer(gamePlayer)).to.eql(gamePlayer);
+      });
+    });
+    context('when given a LobbyPlayer', function() {
+      before(function() {
+        this.lobby = new Lobby(8, []);
+
+        (this.lobby as Lobby).addPlayer('007', 'James_Bond', 'Preparing');
+
+        this.player = (this.lobby as Lobby).getPlayer('007');
+
+        (this.lobby as Lobby).handleMessage({
+          player: this.player,
+          timestamp: Date.now(),
+          content: 'ready c=gunslinger a=western m=3'
+        });
+
+        expect(this.player.primordialCharacter.className).to.equal('Gunslinger');
+      });
+      it('should build off of the primordial character', function() {
+        const gamePlayer = (this.game as Game).convertPlayer(this.player);
+
+        expect(gamePlayer.state).to.equal('Playing');
+        expect(gamePlayer.character.characterClass.className).to.equal('Gunslinger');
+        expect(gamePlayer.character.allegiance).to.equal('Western');
+        expect(Character.getActiveModifierNames(gamePlayer.character.modifiers)).to.have.lengthOf(3);
+      });
     });
   });
 });

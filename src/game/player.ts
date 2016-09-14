@@ -2,7 +2,8 @@ import * as Character from './character';
 import { Stats } from './stats';
 import { toJSON as inventoryToJSON, InventoryJSON, hasItem } from './inventory';
 import { mapToRepresentations } from './map/map';
-import { omit, startsWith } from 'lodash';
+import { isApproximateSubstring } from '../helpers';
+import { omit } from 'lodash';
 import { CellRepresentation, Position } from './map/cell';
 
 // TODO: find a way to remove this (as most if not all can be computed from player properties)
@@ -16,11 +17,7 @@ export interface Player {
 }
 
 export interface LobbyPlayer extends Player {
-  primordialCharacter: {
-    className: Character.CharacterClassName;
-    allegiance: Character.Allegiance;
-    modifiers: Character.Modifiers;
-  };
+  primordialCharacter: Character.PrimordialCharacter;
 }
 
 export interface GamePlayer extends Player {
@@ -41,6 +38,7 @@ export interface PlayerRosterJSON {
   characterClass?: Character.CharacterClassName;
   goldAmount?: number;
   allegiance?: Character.Allegiance;
+  numModifiers?: number;
 }
 
 export
@@ -164,7 +162,7 @@ export function debugDetails(player: Player): {} {
 }
 
 export function isApproximateName(chunk: string, name: string): boolean {
-  return startsWith(name.toLowerCase(), chunk.toLowerCase());
+  return isApproximateSubstring(chunk, name);
 }
 
 export function rosterData(player: Player): PlayerRosterJSON {
@@ -177,6 +175,11 @@ export function rosterData(player: Player): PlayerRosterJSON {
     ret.characterClass = player.character.characterClass.className;
     ret.goldAmount = player.character.goldAmount;
     ret.allegiance = player.character.allegiance;
+    ret.numModifiers = Character.getActiveModifierNames(player.character.modifiers).length;
+  } else if (isLobbyPlayer(player)) {
+    ret.numModifiers = player.primordialCharacter.numModifiers;
+  } else {
+    // do nothing
   }
 
   return ret;
@@ -196,6 +199,14 @@ export function getPlayerInfo(player: Player): PlayerInfo {
 
   if (isGamePlayer(player)) {
     ret.className = player.character.characterClass.className;
+  } else if (isLobbyPlayer(player)) {
+    const className = player.primordialCharacter.className;
+
+    if (className && className !== 'None') {
+      ret.className = className;
+    }
+  } else {
+    // do nothing
   }
 
   return ret;
