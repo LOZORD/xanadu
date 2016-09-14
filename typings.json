@@ -1,21 +1,21 @@
 {
   "globalDependencies": {
     "bootstrap": "registry:dt/bootstrap#3.3.5+20160619023404",
+    "chai": "registry:dt/chai#3.4.0+20160601211834",
     "chance": "registry:dt/chance#0.7.3+20160317120654",
     "express": "registry:dt/express#4.0.0+20160708185218",
-    "express-serve-static-core": "registry:dt/express-serve-static-core#4.0.0+20160819131900",
-    "jquery": "registry:dt/jquery#1.10.0+20160704162008",
-    "jsdom": "registry:dt/jsdom#2.0.0+20160316155526",
+    "express-serve-static-core": "registry:dt/express-serve-static-core#4.0.0+20160829034835",
+    "jquery": "registry:dt/jquery#1.10.0+20160908203239",
+    "jsdom": "registry:dt/jsdom#2.0.0+20160906180921",
     "mime": "registry:dt/mime#0.0.0+20160316155526",
     "mocha": "registry:dt/mocha#2.2.5+20160720003353",
-    "node": "registry:dt/node#6.0.0+20160823142437",
+    "node": "registry:dt/node#6.0.0+20160909174046",
     "serve-static": "registry:dt/serve-static#0.0.0+20160606155157",
-    "socket.io": "registry:dt/socket.io#1.4.4+20160317120654",
+    "socket.io": "registry:dt/socket.io#1.4.4+20160909205835",
     "socket.io-client": "registry:dt/socket.io-client#1.4.4+20160317120654",
     "winston": "registry:dt/winston#0.0.0+20160417152829"
   },
   "dependencies": {
-    "chai": "registry:npm/chai#3.5.0+20160723033700",
     "es6-promise": "registry:npm/es6-promise#3.0.0+20160723033700",
     "lodash": "registry:npm/lodash#4.0.0+20160723033700"
   }
