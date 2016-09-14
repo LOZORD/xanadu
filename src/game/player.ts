@@ -12,21 +12,28 @@ export interface Player {
   // this is the id of the socket on which the player is connected
   id: string;
   name: string;
-  character?: Character.Character;
   state: PlayerState;
 }
 
-// export interface LobbyPlayer extends Player {
-//   primordialCharacter?: {
-//     className: Character.CharacterClassName;
-//     allegiance: Character.Allegiance;
-//     modifiers: Character.Modifiers;
-//   };
-// }
+export interface LobbyPlayer extends Player {
+  primordialCharacter: {
+    className: Character.CharacterClassName;
+    allegiance: Character.Allegiance;
+    modifiers: Character.Modifiers;
+  };
+}
 
-// export interface GamePlayer extends Player {
-//   character: Character.Character;
-// }
+export interface GamePlayer extends Player {
+  character: Character.Character;
+}
+
+export function isGamePlayer(player: Player): player is GamePlayer {
+  return Boolean((player as GamePlayer).character);
+}
+
+export function isLobbyPlayer(player: Player): player is LobbyPlayer {
+  return Boolean((player as LobbyPlayer).primordialCharacter);
+}
 
 export interface PlayerRosterJSON {
   name: string;
@@ -37,8 +44,8 @@ export interface PlayerRosterJSON {
 }
 
 export
-function createPlayer(id: string, name: string, state: PlayerState, character: Character.Character = null): Player {
-  return { id, name, state, character };
+  function createPlayer(id: string, name: string, state: PlayerState): Player {
+  return { id, name, state };
 }
 
 export function isAnon(p: Player): boolean {
@@ -69,7 +76,7 @@ export function isAbsent(p: Player): boolean {
   return p.state === 'Absent';
 }
 
-export function canCommunicate(p1: Player, p2: Player): boolean {
+export function canCommunicate(p1: GamePlayer, p2: GamePlayer): boolean {
   // two players can always talk if neither of them are playing
 
   // if both are playing,
@@ -106,7 +113,7 @@ export type PlayerDetailsJSON = {
   items: InventoryJSON;
 };
 
-export function playerDetails(player: Player): PlayerDetailsJSON {
+export function playerDetails(player: GamePlayer): PlayerDetailsJSON {
   const ret: PlayerDetailsJSON = {
     stats: {
       maximum: player.character.characterClass.startingStats,
@@ -136,7 +143,7 @@ export function debugDetails(player: Player): {} {
   retObj.name = player.name;
   retObj.state = player.state;
 
-  if (player.character) {
+  if (isGamePlayer(player)) {
     retObj.character = {
       row: player.character.row,
       col: player.character.col
@@ -144,7 +151,7 @@ export function debugDetails(player: Player): {} {
     if (player.character.nextAction) {
       const ts = new Date(player.character.nextAction.timestamp);
       // this could be faulty later with richer/more complex action types
-      const otherData = omit(player.character.nextAction, ['key', 'timestamp', 'actor']);
+      const otherData = omit(player.character.nextAction, [ 'key', 'timestamp', 'actor' ]);
       retObj.character.nextAction = {
         key: player.character.nextAction.key,
         timestamp: ts.toLocaleTimeString(),
@@ -166,7 +173,7 @@ export function rosterData(player: Player): PlayerRosterJSON {
     state: player.state
   };
 
-  if (player.character) {
+  if (isGamePlayer(player)) {
     ret.characterClass = player.character.characterClass.className;
     ret.goldAmount = player.character.goldAmount;
     ret.allegiance = player.character.allegiance;
@@ -187,9 +194,13 @@ export function getPlayerInfo(player: Player): PlayerInfo {
     ret.playerName = player.name;
   }
 
-  if (player.character) {
+  if (isGamePlayer(player)) {
     ret.className = player.character.characterClass.className;
   }
 
   return ret;
+}
+
+export function toBasePlayer<P extends Player>({ id, name, state }: P): Player {
+  return { id, name, state };
 }

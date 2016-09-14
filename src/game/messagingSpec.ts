@@ -2,8 +2,8 @@ import { expect } from 'chai';
 import * as Messaging from './messaging';
 import Game from '../context/game';
 
-describe('Server Messaging ', () => {
-  before(function() {
+describe('Server Messaging', () => {
+  before(function () {
     this.player1 = {
       id: '007',
       name: 'James_Bond',
@@ -29,7 +29,7 @@ describe('Server Messaging ', () => {
     });
   });
   describe('Echo Message', () => {
-    it('should return the correct JSON', function() {
+    it('should return the correct JSON', function () {
       const em = Messaging.createEchoMessage('go north', this.player1);
 
       expect(Messaging.show(em)).to.eql({
@@ -39,7 +39,7 @@ describe('Server Messaging ', () => {
     });
   });
   describe('Whisper Message', () => {
-    it('should return the correct JSON', function() {
+    it('should return the correct JSON', function () {
       const wm = Messaging.createWhisperMessage(this.player1, 'wazzup', this.player2);
 
       expect(Messaging.show(wm)).to.eql({
@@ -52,8 +52,8 @@ describe('Server Messaging ', () => {
     });
   });
   describe('Talk Message', () => {
-    it('should return the correct JSON', function() {
-      const tm = Messaging.createTalkMessage(this.player1, 'greetings', [this.player2]);
+    it('should return the correct JSON', function () {
+      const tm = Messaging.createTalkMessage(this.player1, 'greetings', [ this.player2 ]);
 
       expect(Messaging.show(tm)).to.eql({
         from: {
@@ -65,8 +65,8 @@ describe('Server Messaging ', () => {
     });
   });
   describe('Shout Message', () => {
-    it('should return the correct JSON', function() {
-      const sm = Messaging.createShoutMessage(this.player1, 'hooray', [this.player2]);
+    it('should return the correct JSON', function () {
+      const sm = Messaging.createShoutMessage(this.player1, 'hooray', [ this.player2 ]);
 
       expect(Messaging.show(sm)).to.eql({
         from: {
@@ -77,8 +77,8 @@ describe('Server Messaging ', () => {
       });
     });
   });
-  describe('spanMessagePlayerNames', function() {
-    before(function() {
+  describe('spanMessagePlayerNames', function () {
+    before(function () {
       this.player1 = {
         id: 'sponge',
         name: 'Spongebob',
@@ -100,16 +100,16 @@ describe('Server Messaging ', () => {
         character: null
       };
 
-      this.game = new Game(8, [this.player1, this.player2, this.player3]);
+      this.game = new Game(8, [ this.player1, this.player2, this.player3 ]);
 
       this.content = '/t patrick did you know that squidward plays clarinet?';
 
       this.result = Messaging.spanMessagePlayerNames(this.content, this.game.players);
     });
-    it('should correctly pull the name from the content', function() {
-      expect(this.result.names).to.eql(['Patrick']);
+    it('should correctly pull the name from the content', function () {
+      expect(this.result.names).to.eql([ 'Patrick' ]);
     });
-    it('should get have the rest of the message', function() {
+    it('should get have the rest of the message', function () {
       expect(this.result.rest).to.equal('did you know that squidward plays clarinet?');
     });
   });

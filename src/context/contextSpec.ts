@@ -1,7 +1,8 @@
 import { expect } from 'chai';
 import * as _ from 'lodash';
 import Lobby from './lobby';
-import { Player } from '../game/player';
+import { Player, toBasePlayer } from '../game/player';
+import * as Messaging from '../game/messaging';
 
 describe('Context (tested via Lobby)', () => {
 
@@ -72,8 +73,9 @@ describe('Context (tested via Lobby)', () => {
       this.context = new Lobby(8, this.players);
     });
     it('should return a game message addressed to all players', function () {
-      const msg = this.context.broadcast('hell world');
-      expect(msg.to).to.eql(this.players);
+      const msg = this.context.broadcast('hello world') as Messaging.Message;
+      const baseTo = msg.to.map(player => toBasePlayer(player));
+      expect(baseTo).to.eql((this as Lobby).players.map(player => toBasePlayer(player)));
     });
   });
 
@@ -138,7 +140,7 @@ describe('Context (tested via Lobby)', () => {
 
   describe('getRosterData', function () {
     before(function () {
-      const lobby = new Lobby(8);
+      const lobby = new Lobby(8, []);
 
       lobby.addPlayer('abc');
       lobby.addPlayer('def', 'Darwin', 'Preparing');

@@ -4,8 +4,8 @@ import * as Http from 'http';
 import * as Express from 'express';
 import * as SocketIO from 'socket.io';
 import Context from '../context/context';
-import Game from '../context/game';
-import Lobby from '../context/lobby';
+import Game, { isContextGame } from '../context/game';
+import Lobby, { isContextLobby } from '../context/lobby';
 import { Message, show as showMessage, createGameMessage } from '../game/messaging';
 import * as Player from '../game/player';
 import { Promise } from 'es6-promise';
@@ -18,7 +18,7 @@ export default class Server {
   expressApp: Express.Express;
   httpServer: Http.Server;
   io: SocketIO.Server;
-  currentContext: Context;
+  currentContext: Context<Player.Player>;
   sockets: SocketIO.Socket[];
   gameNS: SocketIO.Namespace;
   debugNS: SocketIO.Namespace;
@@ -133,7 +133,7 @@ export default class Server {
     }
   }
   changeContext() {
-    if (this.currentContext instanceof Lobby) {
+    if (isContextLobby(this.currentContext)) {
       this.currentContext = this.createGame(this.currentContext.players);
 
       // message players that the game has begun
@@ -293,9 +293,13 @@ export default class Server {
     });
   }
   sendDetails() {
-    this.currentContext.players.forEach(player => {
-      this.getSocket(player.id).emit('details', Player.playerDetails(player));
-    });
+    if (isContextGame(this.currentContext)) {
+      (this.currentContext as Game).players.forEach(player => {
+        this.getSocket(player.id).emit('details', Player.playerDetails(player));
+      });
+    } else {
+      // do nothing
+    }
   }
   sendRoster() {
     const rosterInformation = this.currentContext.getRosterData();

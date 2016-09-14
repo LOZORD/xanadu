@@ -2,26 +2,16 @@ import { expect } from 'chai';
 import * as _ from 'lodash';
 import Game from './game';
 import { TEST_PARSE_RESULT } from '../game/map/parseGrid';
-import { Player, PlayerState } from '../game/player';
+import { PlayerState, GamePlayer, Player } from '../game/player';
 import * as Messaging from '../game/messaging';
 import * as Character from '../game/character';
 
-const createGame = (players = []): Game => {
+const createGame = (players: Player[] = []): Game => {
   return new Game(8, players);
 };
 
-const createPlayer = (game: Game, id: string, name: string, state: PlayerState): Player => {
-  const player: Player = {
-    id,
-    name,
-    state
-  };
-
-  player.character = Character.createCharacter(game, player, game.map.startingPosition);
-
-  game.players.push(player);
-
-  return player;
+const createPlayer = (id: string, name: string, state: PlayerState): Player => {
+  return { id, name, state };
 };
 
 describe('Game', () => {
@@ -38,10 +28,15 @@ describe('Game', () => {
 
   describe('handleMessage', function () {
     before(function () {
-      this.game = createGame();
-      this.player1 = createPlayer(this.game, 'vader', 'Darth_Vader', 'Playing');
-      this.player2 = createPlayer(this.game, 'yoda', 'Yoda', 'Playing');
-      this.player3 = createPlayer(this.game, 'r2d2', 'R2D2', 'Playing');
+      this.game = createGame([
+        createPlayer('vader', 'Darth_Vader', 'Playing'),
+        createPlayer('yoda', 'Yoda', 'Playing'),
+        createPlayer('r2d2', 'R2D2', 'Playing')
+      ]);
+
+      this.player1 = (this.game as Game).getPlayer('vader');
+      this.player2 = (this.game as Game).getPlayer('yoda');
+      this.player3 = (this.game as Game).getPlayer('r2d2');
     });
     describe('when given a valid action command', function () {
       before(function () {
@@ -72,7 +67,7 @@ describe('Game', () => {
     });
     describe('when given an invalid action command', function () {
       before(function () {
-        (this.player1 as Player).character.nextAction = null;
+        (this.player1 as GamePlayer).character.nextAction = null;
         this.responses = (this.game as Game).handleMessage({
           content: 'go north', // north of the starting position is a barrier,
           player: this.player1,
@@ -115,7 +110,7 @@ describe('Game', () => {
             timestamp: Date.now()
           });
         });
-        it('should have sent a shout message to the other player', function () {
+        it('should have sent a shout message to the other players', function () {
           const shout = _.find(this.responses as Messaging.Message[],
             (message) => message.type === 'Shout');
 
@@ -203,9 +198,13 @@ describe('Game', () => {
 
   describe('update', () => {
     before(function () {
-      this.game = createGame();
-      this.p1 = createPlayer(this.game, '123', 'Alice', 'Playing');
-      this.p2 = createPlayer(this.game, '456', 'Bob', 'Playing');
+      this.game = createGame([
+        createPlayer('123', 'Alice', 'Playing'),
+        createPlayer('456', 'Bob', 'Playing')
+      ]);
+
+      this.p1 = (this.game as Game).getPlayerByName('Alice');
+      this.p2 = (this.game as Game).getPlayerByName('Bob');
     });
 
     it('should work with move actions', function () {
@@ -243,9 +242,13 @@ describe('Game', () => {
 
   describe('isReadyForUpdate', () => {
     it('should be true iff all players have an action', () => {
-      const game = createGame();
-      const p1 = createPlayer(game, '007', 'James_Bond', 'Playing');
-      const p2 = createPlayer(game, '008', 'Bill', 'Playing');
+      const game = createGame([
+        createPlayer('007', 'James_Bond', 'Playing'),
+        createPlayer('008', 'Bill', 'Playing')
+      ]);
+
+      const p1 = game.getPlayer('007');
+      const p2 = game.getPlayer('008');
 
       p1.character.nextAction = {
         timestamp: Date.now(),
@@ -269,9 +272,13 @@ describe('Game', () => {
 
   describe('getNearbyAnimals', function () {
     before(function () {
-      this.game = createGame();
-      this.player1 = createPlayer(this.game, 'luke', 'Luke', 'Playing');
-      this.player2 = createPlayer(this.game, 'leia', 'Leia', 'Playing');
+      this.game = createGame([
+        createPlayer('luke', 'Luke', 'Playing'),
+        createPlayer('leia', 'Leia', 'Playing')
+      ]);
+
+      this.player1 = (this.game as Game).getPlayer('luke');
+      this.player2 = (this.game as Game).getPlayer('leia');
     });
 
     it('should return the other player', function () {
@@ -283,11 +290,15 @@ describe('Game', () => {
 
   describe('getSortedActions', function () {
     before(function () {
-      this.game = createGame();
+      this.game = createGame([
+        createPlayer('123', 'Alice', 'Playing'),
+        createPlayer('456', 'Bob', 'Playing'),
+        createPlayer('789', 'Carol', 'Playing')
+      ]);
 
-      this.player1 = createPlayer(this.game, '123', 'Alice', 'Playing');
-      this.player2 = createPlayer(this.game, '456', 'Bob', 'Playing');
-      this.player3 = createPlayer(this.game, '789', 'Carol', 'Playing');
+      this.player1 = (this.game as Game).getPlayer('123');
+      this.player2 = (this.game as Game).getPlayer('456');
+      this.player3 = (this.game as Game).getPlayer('789');
 
       (this.game as Game).getPlayer('123').character.stats = {
         health: 50,

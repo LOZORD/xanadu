@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import * as Actions from '../game/actions';
-import { Player, canCommunicate } from '../game/player';
+import * as Player from '../game/player';
 import * as Map from '../game/map/map';
 import { PassageRoom } from '../game/map/cell';
 import * as Messaging from '../game/messaging';
@@ -24,7 +24,7 @@ export type GameConfig = {
   seed: Seed
 };
 
-export default class Game extends Context {
+export default class Game extends Context<Player.GamePlayer> {
 
   hasEnded: boolean;
   turnNumber: number;
@@ -32,11 +32,15 @@ export default class Game extends Context {
   rng: SeededRNG;
   beasts: Animal[];
 
-  constructor(maxPlayers: number, players: Player[], gameConfig: GameConfig = { seed: Date.now() }) {
-    super(maxPlayers, players);
-    this.map = gameConfig.map ? gameConfig.map : TEST_PARSE_RESULT;
+  constructor(maxPlayers: number, players: Player.Player[], gameConfig: GameConfig = { seed: Date.now() }) {
+    super();
 
+    this.maxPlayers = maxPlayers;
+
+    this.map = gameConfig.map ? gameConfig.map : TEST_PARSE_RESULT;
     this.rng = Chance(gameConfig.seed);
+
+    this.players = players.map(player => this.convertPlayer(player));
 
     let minNumModifiers: number;
     let maxNumModifiers: number;
@@ -53,8 +57,6 @@ export default class Game extends Context {
     this.beasts = [];
 
     this.players.forEach((player) => {
-      // set all the players' states to playing
-      player.state = 'Playing';
       const numActiveModifiers = this.rng.integer({
         min: minNumModifiers,
         max: maxNumModifiers
@@ -68,11 +70,6 @@ export default class Game extends Context {
         modifiers[ modifier ] = true;
       });
 
-      // FIXME: this should probably be changed later...
-      if (!player.character) {
-        player.character = Character.createCharacter(this, player, this.map.startingPosition);
-      }
-
       // reveal the area around the starting room
       if (Inventory.hasItem(player.character.inventory, 'Map')) {
         reveal(player.character.map, Map.getCell(this.map, this.map.startingPosition));
@@ -83,7 +80,7 @@ export default class Game extends Context {
     this.hasEnded = false;
   }
 
-  handleMessage({ content, player, timestamp}: ClientMessage): Message[] {
+  handleMessage({ content, player, timestamp}: ClientMessage<Player.GamePlayer>): Message[] {
     let responses: Message[] = [ Messaging.createEchoMessage(content, player) ];
 
     const component = Actions.getComponentByText(content);
@@ -103,7 +100,7 @@ export default class Game extends Context {
     } else if (_.startsWith(content, '/')) {
       const messageNameSpan = Messaging.spanMessagePlayerNames(content, this.players);
 
-      let toPlayers: Player[];
+      let toPlayers: Player.GamePlayer[];
 
       if (_.startsWith(content, '/s ')) {
         toPlayers = [];
@@ -118,7 +115,7 @@ export default class Game extends Context {
         toPlayers = messageNameSpan.names.map(name => this.getPlayerByName(name));
       }
 
-      const [ yesComm, noComm ] = _.partition(toPlayers, otherPlayer => canCommunicate(player, otherPlayer));
+      const [ yesComm, noComm ] = _.partition(toPlayers, otherPlayer => Player.canCommunicate(player, otherPlayer));
 
       const noCommMessage = 'something [CANNOT COMMUNICATE]';
 
@@ -229,4 +226,46 @@ export default class Game extends Context {
   get startingRoom(): PassageRoom {
     return Map.getCell(this.map, this.map.startingPosition) as PassageRoom;
   }
+
+  convertPlayer(player: Player.Player): Player.GamePlayer {
+    if (Player.isGamePlayer(player)) {
+      return player;
+    } else if (Player.isLobbyPlayer(player)) {
+      const newGamePlayer = {
+        id: player.id,
+        name: player.name,
+        state: 'Playing' as Player.PlayerState,
+        character: null
+      };
+
+      const character = Character.createCharacter(
+        this, newGamePlayer, this.map.startingPosition, player.primordialCharacter.className,
+        player.primordialCharacter.allegiance, player.primordialCharacter.modifiers
+      );
+
+      newGamePlayer.character = character;
+
+      return newGamePlayer;
+    } else {
+      const newGamePlayer = {
+        id: player.id,
+        name: player.name,
+        state: player.state,
+        character: null
+      };
+
+      const character = Character.createCharacter(
+        this, newGamePlayer, this.map.startingPosition,
+        'None', 'None', Character.createEmptyModifiers()
+      );
+
+      newGamePlayer.character = character;
+
+      return newGamePlayer;
+    }
+  }
+}
+
+export function isContextGame(context: Context<any>): context is Game {
+  return context instanceof Game;
 }

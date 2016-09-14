@@ -1,7 +1,7 @@
 import { Animal } from './animal';
 import { createInventory, hasItem, Inventory } from './inventory';
 import { meetsRequirements, Stats } from './stats';
-import { Player } from './player';
+import { GamePlayer } from './player';
 import Game from '../context/game';
 import { Position } from './map/cell';
 import * as Item from './items/item';
@@ -14,11 +14,11 @@ export interface Character extends Animal {
   allegiance: Allegiance;
   modifiers: Modifiers;
   goldAmount: number;
-  player: Player;
+  player: GamePlayer;
   map: CharacterMap;
 }
 
-export function isPlayerCharacter(actor: Animal | Character): actor is Character {
+export function isPlayerCharacter(actor: Animal): actor is Character {
   return Boolean((actor as Character).player);
 }
 
@@ -258,7 +258,7 @@ export function createEmptyModifiers(): Modifiers {
 }
 
 export function createCharacter(
-  game: Game, player: Player, pos: Position,
+  game: Game, player: GamePlayer, pos: Position,
   className: CharacterClassName = 'None', allegiance: Allegiance = 'None',
   modifiers: Modifiers = createEmptyModifiers()
 ): Character {

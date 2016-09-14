@@ -1,13 +1,21 @@
 import * as _ from 'lodash';
 
 import { ClientMessage, Context } from './context';
-import { isReady } from '../game/player';
+import * as Player from '../game/player';
 import { Message, createEchoMessage, createGameMessage, createTalkMessage } from '../game/messaging';
 import * as Character from '../game/character';
 
-export default class Lobby extends Context {
+export default class Lobby extends Context<Player.LobbyPlayer> {
+
+  constructor(maxPlayers: number, players: Player.Player[]) {
+    super();
+
+    this.maxPlayers = maxPlayers;
+    this.players = players.map(player => this.convertPlayer(player));
+  }
+
   isReadyForNextContext() {
-    return _.every(this.players, isReady);
+    return _.every(this.players, Player.isReady);
   }
 
   isReadyForUpdate() {
@@ -21,7 +29,7 @@ export default class Lobby extends Context {
     };
   }
 
-  handleMessage(fromClient: ClientMessage): Message[] {
+  handleMessage(fromClient: ClientMessage<Player.LobbyPlayer>): Message[] {
     // XXX: this will need to be updated if we want flip-flopping between
     // games and lobbies
     let responses: Message[] = [ createEchoMessage(fromClient.content, fromClient.player) ];
@@ -87,6 +95,34 @@ export default class Lobby extends Context {
 
     return responses;
   }
+
+  convertPlayer(player: Player.Player): Player.LobbyPlayer {
+    if (Player.isLobbyPlayer(player)) {
+      return player;
+    } else if (Player.isGamePlayer(player)) {
+      return {
+        id: player.id,
+        name: player.name,
+        state: 'Preparing',
+        primordialCharacter: {
+          className: player.character.characterClass.className,
+          allegiance: player.character.allegiance,
+          modifiers: player.character.modifiers
+        }
+      };
+    } else {
+      return {
+        name: player.name,
+        id: player.id,
+        state: player.state,
+        primordialCharacter: {
+          className: 'None',
+          allegiance: 'None',
+          modifiers: Character.createEmptyModifiers()
+        }
+      };
+    }
+  }
 }
 
 type CharacterConfig = {
@@ -98,6 +134,10 @@ type CharacterConfig = {
 export function parseCharacterConfig(words: string[]): CharacterConfig {
   return null;
 };
+
+export function isContextLobby(context: Context<any>): context is Lobby {
+  return context instanceof Lobby;
+}
 
 // export function assignCharacter(player: Player, words: string[]): Character.Character {
 //   if (player.character) {

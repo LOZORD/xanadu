@@ -9,28 +9,23 @@ export type NameValidation = 'Valid' | 'Taken' | 'Invalid characters';
 
 type Player = Player.Player;
 
-export interface ClientMessage {
-  player: Player.Player;
+export interface ClientMessage<P extends Player> {
+  player: P;
   content: string;
   timestamp: number;
 }
 
 // A Context is a mutable container of Players. Other classes, like Game,
 // can own a Context that they use for dispatch.
-export abstract class Context {
-  players: Player[];
+export abstract class Context<P extends Player> {
+  players: P[];
   maxPlayers: number;
 
-  constructor(maxPlayers: number, players: Player[] = []) {
-    this.maxPlayers = maxPlayers;
-    this.players = players;
-  }
-
-  getPlayer(id: string): Player {
+  getPlayer(id: string): P {
     return _.find(this.players, (player) => player.id === id);
   }
 
-  getPlayerByName(name: string): Player {
+  getPlayerByName(name: string): P {
     return _.find(this.players, (player) => player.name === name);
   }
 
@@ -46,13 +41,13 @@ export abstract class Context {
     if (this.hasPlayer(id)) {
       throw new Error(`Player with id ${id} already exists!`);
     } else if (this.isAcceptingPlayers()) {
-      this.players.push({ id, name, state });
+      this.players.push(this.convertPlayer({ id, name, state }));
     } else {
       throw new Error('Attempted to add a player when not accepting!');
     }
   }
 
-  removePlayer(id: string): Player {
+  removePlayer(id: string): P {
     const removedPlayer = this.getPlayer(id);
     this.players = _.filter(this.players, p => p.id !== id);
     return removedPlayer;
@@ -95,15 +90,15 @@ export abstract class Context {
     }
   }
 
-  playersWithout(playersToLeaveOut = []): Player[] {
+  playersWithout(playersToLeaveOut: P[] = []): P[] {
     return _.difference(this.players, playersToLeaveOut);
   }
 
-  broadcast(message: string, filterOut = []): Message {
+  broadcast(message: string, filterOut: P[] = []): Message {
     return createGameMessage(message, this.playersWithout(filterOut));
   }
 
-  broadcastFromPlayer(message: string, player: Player): Message {
+  broadcastFromPlayer(message: string, player: P): Message {
     // broadcast to all other players except this one
     return this.broadcast(message, [player]);
   }
@@ -124,7 +119,9 @@ export abstract class Context {
 
   abstract update(): PerformResult;
 
-  abstract handleMessage(m: ClientMessage): Message[];
+  abstract handleMessage(m: ClientMessage<P>): Message[];
+
+  abstract convertPlayer(player: Player): P;
 }
 
 export default Context;
