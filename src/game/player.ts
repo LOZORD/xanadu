@@ -78,7 +78,7 @@ export function canCommunicate(p1: GamePlayer, p2: GamePlayer): boolean {
   // two players can always talk if neither of them are playing
 
   // if both are playing,
-  // then they must either be of the same alliance,
+  // then they must either be of the same allegiance,
   // or one must have the proper translation skill
 
   // if only one is playing, they cannot communicate
@@ -178,6 +178,8 @@ export function rosterData(player: Player): PlayerRosterJSON {
     ret.numModifiers = Character.getActiveModifierNames(player.character.modifiers).length;
   } else if (isLobbyPlayer(player)) {
     ret.numModifiers = player.primordialCharacter.numModifiers;
+    ret.allegiance = player.primordialCharacter.allegiance;
+    ret.characterClass = player.primordialCharacter.className;
   } else {
     // do nothing
   }

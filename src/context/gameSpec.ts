@@ -38,6 +38,11 @@ describe('Game', () => {
       this.player1 = (this.game as Game).getPlayer('vader');
       this.player2 = (this.game as Game).getPlayer('yoda');
       this.player3 = (this.game as Game).getPlayer('r2d2');
+
+      // now, force all the players to the same allegiance so they can communicate freely
+      [this.player1, this.player2, this.player3].forEach((player: GamePlayer) => {
+        player.character.allegiance = 'Eastern';
+      });
     });
     describe('when given a valid action command', function () {
       before(function () {
@@ -117,10 +122,11 @@ describe('Game', () => {
 
           expect(shout).to.be.ok;
           expect(shout.content).to.equal('HELP!');
-          expect(shout.to)
-            .to.include(this.player2).and
-            .to.include(this.player3).and
-            .to.not.include(this.player1);
+          expect(shout.to.length).to.equal(2);
+          expect(shout.to.map(player => player.id))
+            .to.include(this.player2.id).and
+            .to.include(this.player3.id).and
+            .to.not.include(this.player1.id);
         });
       });
       describe('for whispering', function () {
@@ -136,7 +142,7 @@ describe('Game', () => {
             message => message.type === 'Whisper');
 
           expect(whisper).to.be.ok;
-          expect(whisper.to).to.eql([ this.player3 ]);
+          expect(whisper.to[0].id).to.eql(this.player3.id);
           expect(whisper.content).to.eql('darth is a sith');
         });
       });
@@ -308,6 +314,9 @@ describe('Game', () => {
         agility: 50
       };
 
+      (this.player2 as GamePlayer).character.stats.agility = 1;
+      (this.player3 as GamePlayer).character.stats.agility = 1;
+
       expect(this.game.getPlayer('123').character.stats.agility)
         .to.be.greaterThan(this.game.getPlayer('456').character.stats.agility).and
         .to.be.greaterThan(this.game.getPlayer('789').character.stats.agility);
@@ -330,6 +339,9 @@ describe('Game', () => {
         timestamp: 2
       });
 
+      // the order should be [p1, p3, p2]
+      // p1 has highest agility
+      // p3's timestamp is before p2's timestamp
       this.sortedActions = (this.game as Game).getSortedActions();
     });
     it('should sort first by player agility', function () {

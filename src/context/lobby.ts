@@ -67,7 +67,9 @@ export default class Lobby extends Context<Player.LobbyPlayer> {
 
         if (words[ 0 ].toLowerCase() === 'ready') {
 
-          const { log, characterConfig } = parseCharacterConfig(words);
+          const { log, primordialCharacter } = parsePrimordialCharacter(
+            words, fromClient.player.primordialCharacter
+          );
 
           if (log.length > 0) {
             const configErrStr = log.join('\n');
@@ -76,7 +78,7 @@ export default class Lobby extends Context<Player.LobbyPlayer> {
             );
           }
 
-          fromClient.player.primordialCharacter = characterConfig;
+          fromClient.player.primordialCharacter = primordialCharacter;
 
           this.updatePlayer(fromClient.player.id, { state: 'Ready' });
           responses.push(this.broadcastFromPlayer(`${fromClient.player.name} is ready`, fromClient.player));
@@ -126,11 +128,13 @@ export default class Lobby extends Context<Player.LobbyPlayer> {
   }
 }
 
-export function parseCharacterConfig(splitReadyCommand: string[]): {
-  log: string[], characterConfig: Character.PrimordialCharacter
-} {
+export function parsePrimordialCharacter(
+  splitReadyCommand: string[], previousPrimordialCharacter: Character.PrimordialCharacter
+): {
+    log: string[], primordialCharacter: Character.PrimordialCharacter
+  } {
   const log = [];
-  let characterConfig: Character.PrimordialCharacter = {
+  let primordialCharacter: Character.PrimordialCharacter = {
     className: null,
     allegiance: null,
     numModifiers: null
@@ -149,13 +153,13 @@ export function parseCharacterConfig(splitReadyCommand: string[]): {
 
     switch (lKey[ 0 ]) {
       case 'c': {
-        if (_.isNull(characterConfig.className)) {
+        if (_.isNull(primordialCharacter.className)) {
           const chosenCharacterClass = _.find(Character.CHARACTER_CLASS_NAMES, (name) => {
             return Helpers.isApproximateString(value, name);
           });
 
           if (chosenCharacterClass) {
-            characterConfig.className = chosenCharacterClass;
+            primordialCharacter.className = chosenCharacterClass;
           } else {
             log.push(`Unrecognized character class: ${value}`);
           }
@@ -164,13 +168,13 @@ export function parseCharacterConfig(splitReadyCommand: string[]): {
         break;
       }
       case 'a': {
-        if (_.isNull(characterConfig.allegiance)) {
+        if (_.isNull(primordialCharacter.allegiance)) {
           const chosenAllegiance = _.find(Character.ALLEGIANCES, (allegiance) => {
             return Helpers.isApproximateString(value, allegiance);
           });
 
           if (chosenAllegiance) {
-            characterConfig.allegiance = chosenAllegiance;
+            primordialCharacter.allegiance = chosenAllegiance;
           } else {
             log.push(`Unrecognized allegiance: ${value}`);
           }
@@ -179,13 +183,13 @@ export function parseCharacterConfig(splitReadyCommand: string[]): {
         break;
       }
       case 'm': {
-        if (_.isNull(characterConfig.numModifiers)) {
+        if (_.isNull(primordialCharacter.numModifiers)) {
           const chosenNumModifiers = _.parseInt(value, 10);
 
           if (_.isFinite(chosenNumModifiers) && chosenNumModifiers >= 0) {
-            characterConfig.numModifiers = chosenNumModifiers;
+            primordialCharacter.numModifiers = chosenNumModifiers;
           } else {
-            log.push(`Bad number of modifers: ${value}`);
+            log.push(`Bad number of modifiers: ${value}`);
           }
 
           break;
@@ -198,13 +202,23 @@ export function parseCharacterConfig(splitReadyCommand: string[]): {
     }
   });
 
-  characterConfig = _.defaults(characterConfig, {
-    className: 'None',
-    allegiance: 'None',
-    numModifiers: 0
-  } as Character.PrimordialCharacter) as Character.PrimordialCharacter;
+  let numModifiers: number;
 
-  return { log, characterConfig };
+  if (primordialCharacter.numModifiers && isFinite(primordialCharacter.numModifiers)) {
+    numModifiers = primordialCharacter.numModifiers;
+  } else {
+    numModifiers = previousPrimordialCharacter.numModifiers;
+  }
+
+  numModifiers = _.clamp(numModifiers, 0, Character.MAX_NUM_MODIFIERS);
+
+  primordialCharacter = {
+    numModifiers,
+    className: primordialCharacter.className || previousPrimordialCharacter.className,
+    allegiance: primordialCharacter.allegiance || previousPrimordialCharacter.allegiance
+  };
+
+  return { log, primordialCharacter };
 };
 
 export function isContextLobby(context: Context<any>): context is Lobby {

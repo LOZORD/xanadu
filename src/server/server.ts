@@ -255,7 +255,8 @@ export default class Server {
 
     const afterState = messageObj.player.state as Player.PlayerState;
 
-    if (beforeState !== afterState) {
+    // if the player's state changed, or they've readied again
+    if (beforeState !== afterState || afterState === 'Ready') {
       this.sendRoster();
     }
 

@@ -53,8 +53,8 @@ body {
 
 #form-wrapper {
   position: absolute;
-  bottom: 0;
-  left: 0;
+  bottom: 1px;
+  left: 1px;
   width: 100%;
 }
 
@@ -162,7 +162,7 @@ body {
   border-bottom: 1px solid var(--xanadu-near-black);
   padding-bottom: 0.5em;
   margin-bottom: 1em;
-  height: 15vh;
+  max-height: 15vh;
 }
 
 #tab-container #tab-navs {
@@ -205,7 +205,7 @@ body {
 #roster #roster-header {
   border-bottom: 1px solid var(--xanadu-near-black);
   margin-bottom: 0.75em;
-  padding-bottom: 0.25em
+  padding-bottom: 0.25em;
 }
 
 #roster #roster-data div.row {

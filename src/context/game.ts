@@ -47,7 +47,7 @@ export default class Game extends Context<Player.GamePlayer> {
       this.maxNumModifiers = gameConfig.numModifiers.maximum;
     } else {
       this.minNumModifiers = 0;
-      this.maxNumModifiers = 0;
+      this.maxNumModifiers = Character.MAX_NUM_MODIFIERS;
     }
 
     this.players = players.map(player => this.convertPlayer(player));

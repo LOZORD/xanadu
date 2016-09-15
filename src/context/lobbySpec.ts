@@ -1,7 +1,8 @@
 import { expect } from 'chai';
 import * as _ from 'lodash';
-import Lobby from './lobby';
+import Lobby, { parsePrimordialCharacter } from './lobby';
 import * as Messaging from '../game/messaging';
+import { LobbyPlayer } from '../game/player';
 
 describe('Lobby', () => {
   // again, for the sake of clarity
@@ -173,6 +174,28 @@ describe('Lobby', () => {
         expect(this.player2.primordialCharacter.className).to.equal('Doctor');
         expect(this.player2.primordialCharacter.allegiance).to.equal('Eastern');
       });
+      it('should report any unknown character options', function() {
+        const player = (this.lobby as Lobby).getPlayerByName('Alice');
+
+        // re-ready player1
+        const responses = (this.lobby as Lobby).handleMessage({
+          player,
+          timestamp: Date.now(),
+          content: 'ReAdY a=_FOO c=_BAR m=_BAZ z=_QUUX'
+        });
+
+        const gameMsgs = responses.filter(
+          msg => msg.type === 'Game' && msg.to[0].name === 'Alice');
+
+        expect(gameMsgs).to.have.lengthOf(1);
+
+        const theMessage = gameMsgs[0];
+
+        ['Unrecognized key', 'Bad number of modifiers',
+        'Unrecognized allegiance', 'Unrecognized character class'].forEach((str) => {
+          expect(theMessage.content).to.include(str);
+        });
+      });
     });
     testContext('when the player is in another state', () => {
       it('should produce no responses', () => {
@@ -197,6 +220,42 @@ describe('Lobby', () => {
 
         expect(m1[0].type).to.equal('Echo');
       });
+    });
+  });
+
+  describe('parsePrimordialCharacter', function() {
+    before(function() {
+      const player: LobbyPlayer = {
+        id: '007',
+        name: 'James_Bond',
+        state: 'Ready',
+        primordialCharacter: {
+          className: 'Excavator',
+          allegiance: 'Eastern',
+          numModifiers: 0
+        }
+      };
+
+      this.player = player;
+    });
+    it('should respect already present properties on the primordial character', function () {
+      const command = 'ready m=3 a=WE';
+
+      const { log, primordialCharacter } = parsePrimordialCharacter(
+        command.split(' '), (this.player as LobbyPlayer).primordialCharacter
+      );
+
+      expect(log).to.be.empty;
+      expect(primordialCharacter.className).to.equal('Excavator');
+      expect(primordialCharacter.allegiance).to.equal('Western');
+      expect(primordialCharacter.numModifiers).to.equal(3);
+
+      // this should do nothing
+      let newPC = parsePrimordialCharacter(
+        ['ready'], primordialCharacter
+      ).primordialCharacter;
+
+      expect(newPC).to.eql(primordialCharacter);
     });
   });
 });

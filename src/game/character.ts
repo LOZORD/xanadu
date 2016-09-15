@@ -40,10 +40,10 @@ export type CharacterClassName = 'None' | 'Benefactor' | 'Gunslinger' |
   'Excavator' | 'Doctor' | 'Chef' | 'Shaman' | 'Caveman' | 'Cartographer' |
   'Professor' | 'Smith';
 
-export const CHARACTER_CLASS_NAMES: CharacterClassName[] = [
+export const CHARACTER_CLASS_NAMES = [
   'Benefactor', 'Gunslinger', 'Excavator', 'Doctor', 'Chef', 'Shaman',
   'Caveman', 'Cartographer', 'Professor', 'Smith'
-];
+].sort() as CharacterClassName[];
 
 export type CLASS_DICTIONARY<V> = {
   None: V,
@@ -231,7 +231,7 @@ export function createCharacterClass(className: CharacterClassName): CharacterCl
 
 export type Allegiance = 'None' | 'Eastern' | 'Western';
 
-export const ALLEGIANCES: Allegiance[] = [ 'Eastern', 'Western' ];
+export const ALLEGIANCES = [ 'Eastern', 'Western' ].sort() as Allegiance[];
 
 export type ModifierName = 'Killer' | 'Immortal' | 'Psycho' | 'Racist' |
   'Cannibal' | 'Fatalist' | 'Pacifist' | 'Rusky' | 'Arsonist' | 'Angel of Death' |
@@ -275,7 +275,7 @@ export function createEmptyModifiers(): Modifiers {
   };
 }
 
-export const MODIFIER_NAMES = _.keys(createEmptyModifiers()) as ModifierName[];
+export const MODIFIER_NAMES = _.keys(createEmptyModifiers()).sort() as ModifierName[];
 
 export const MAX_NUM_MODIFIERS = MODIFIER_NAMES.length;
 
@@ -288,6 +288,14 @@ export function createCharacter(
   className: CharacterClassName = 'None', allegiance: Allegiance = 'None',
   modifiers: Modifiers = createEmptyModifiers()
 ): Character {
+
+  if (className === 'None') {
+    className = game.rng.pickone(CHARACTER_CLASS_NAMES);
+  }
+
+  if (allegiance === 'None') {
+    allegiance = game.rng.pickone(ALLEGIANCES);
+  }
 
   const characterClass = createCharacterClass(className);
 

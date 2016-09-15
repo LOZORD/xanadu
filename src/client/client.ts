@@ -2,6 +2,7 @@ import * as ServerMessaging from '../game/messaging';
 import { PlayerDetailsJSON, PlayerRosterJSON, PlayerInfo } from '../game/player';
 import { Logger } from '../logger';
 import { CellRepresentation, Position, CellName } from '../game/map/cell';
+import * as Character from '../game/character';
 
 /* TYPES */
 
@@ -414,6 +415,22 @@ export function updatePlayerInfo({ playerName, className }: PlayerInfo, $: JQuer
   }
 }
 
+export function classNameToString(name: Character.CharacterClassName = 'None'): string {
+  if (name === 'None') {
+    return '?';
+  } else {
+    return name.toString();
+  }
+}
+
+export function allegianceToString(allegiance: Character.Allegiance = 'None'): string {
+  if (allegiance === 'None') {
+    return '?';
+  } else {
+    return allegiance.toString();
+  }
+}
+
 export function updateRoster(rosterData: PlayerRosterJSON[], $: JQueryCreator): void {
   const $rosterDataBox = $('#roster-data');
   const sortedData = rosterData.sort((rosterEntryA, rosterEntryB) => {
@@ -432,11 +449,17 @@ export function updateRoster(rosterData: PlayerRosterJSON[], $: JQueryCreator): 
           <div class='col-xs-4 roster-name'>
             <a href='#'>${ rosterEntry.name}</a>
           </div>
-          <div class='col-xs-4'>
+          <div class='col-xs-2'>
             ${ rosterEntry.state}
           </div>
-          <div class='col-xs-4'>
-            ${ rosterEntry.characterClass || ''}
+          <div class='col-xs-2'>
+            ${ classNameToString(rosterEntry.characterClass)}
+          </div>
+          <div class='col-xs-2'>
+            ${ allegianceToString(rosterEntry.allegiance)}
+          </div>
+          <div class='col-xs-2'>
+            ${ rosterEntry.numModifiers}
           </div>
         </div>
         `).appendTo($rosterDataBox);
@@ -508,8 +531,8 @@ export function colorizeMap(grid: CellRepresentation[][], currPos: Position, $: 
   const $cellContainer = $(`<div class='cells'>`);
 
   for (let rowInd = 0; rowInd < grid.length; rowInd++) {
-    for (let colInd = 0; colInd < grid[rowInd].length; colInd++) {
-      const currCR = grid[rowInd][colInd];
+    for (let colInd = 0; colInd < grid[ rowInd ].length; colInd++) {
+      const currCR = grid[ rowInd ][ colInd ];
       const playerIsHere = currPos.row === rowInd && currPos.col === colInd;
       const $span = cellToSpan(currCR, playerIsHere, $);
 
