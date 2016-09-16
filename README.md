@@ -10,6 +10,8 @@ Please see the [Wiki](https://github.com/LOZORD/xanadu/wiki) for more informatio
 
 Contributions welcome!
 
+[![Build Status](https://travis-ci.org/LOZORD/xanadu.svg?branch=master)](https://travis-ci.org/LOZORD/xanadu)
+
 ## To run
 
 ### ... in development mode
