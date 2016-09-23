@@ -14,6 +14,7 @@ import { Seed, SeededRNG } from '../rng';
 import { Chance } from 'chance';
 import * as Inventory from '../game/inventory';
 import { reveal } from '../game/map/characterMap';
+//import { updateAnimal } from '../game/animal';
 
 export type GameConfig = {
   map?: Map.Map;
@@ -177,8 +178,8 @@ export default class Game extends Context<Player.GamePlayer> {
   update(): Actions.PerformResult {
     const sortedActions = this.getSortedActions();
 
-    const { messages: completeMessages, log: completeLog }: Actions.PerformResult = _.reduce(sortedActions,
-      ({ messages, log }: Actions.PerformResult, action) => {
+    const { messages: completeMessages, log: performanceLog }: Actions.PerformResult = _.reduce(sortedActions,
+      ({ messages, log }: Actions.PerformResult, action: Actions.Action) => {
         const component = Actions.getComponentByKey(action.key);
 
         const { messages: newMessages, log: newLog } = component.perform(action, this, log);
@@ -189,12 +190,14 @@ export default class Game extends Context<Player.GamePlayer> {
         };
       }, { messages: [], log: [] });
 
+    const updateLog = []; //this.players.map(player => updateAnimal(this, player.character));
+
     this.turnNumber++;
 
     // clear all the `nextActions`
     this.players.forEach(player => player.character.nextAction = null);
 
-    return { messages: completeMessages, log: completeLog };
+    return { messages: completeMessages, log: performanceLog.concat(updateLog) };
   }
 
   getAllAnimals(): Animal[] {
