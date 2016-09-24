@@ -14,7 +14,6 @@ import { Seed, SeededRNG } from '../rng';
 import { Chance } from 'chance';
 import * as Inventory from '../game/inventory';
 import { reveal } from '../game/map/characterMap';
-//import { updateAnimal } from '../game/animal';
 
 export type GameConfig = {
   map?: Map.Map;
@@ -190,7 +189,7 @@ export default class Game extends Context<Player.GamePlayer> {
         };
       }, { messages: [], log: [] });
 
-    const updateLog = []; //this.players.map(player => updateAnimal(this, player.character));
+    const updateLog = this.players.map(player => Character.updateCharacter(this, player.character));
 
     this.turnNumber++;
 

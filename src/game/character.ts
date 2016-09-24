@@ -17,6 +17,12 @@ export interface Character extends Animal {
   goldAmount: number;
   player: GamePlayer;
   map: CharacterMap;
+  effects: {
+    isPoisoned: boolean,
+    isImmortal: boolean,
+    isAddicted: boolean,
+    isRested: boolean
+  };
 }
 
 export interface PrimordialCharacter {
@@ -310,7 +316,13 @@ export function createCharacter(
     stats: characterClass.startingStats,
     inventory: characterClass.startingInventory,
     nextAction: null,
-    map: createCharacterMap(game.map)
+    map: createCharacterMap(game.map),
+    effects: {
+      isAddicted: false,
+      isImmortal: false,
+      isPoisoned: false,
+      isRested: false
+    }
   };
 }
 
@@ -434,4 +446,93 @@ export function canCraftDifficult(c: Character): boolean {
     agility: 20,
     strength: 30
   });
+}
+
+export interface Effect {
+  statChange: Stats;
+}
+
+export type EffectState = 'Initial' | 'Final';
+
+export interface EffectWithInitialChange extends Effect {
+  initialChange: Stats;
+  state: EffectState;
+}
+
+export interface PermanentEffect extends Effect {
+  turnReactivation: {
+    maximum: number;
+    current: number;
+  };
+}
+
+export interface TemporaryEffect extends Effect {
+  turnsUntilRemoved: number;
+}
+
+export const POISONED: Effect = {
+  statChange: {
+    health: -5,
+    agility: -1,
+    intelligence: 0,
+    strength: -1
+  }
+};
+
+export const IMMORTAL: Effect = {
+  statChange: {
+    health: Infinity,
+    agility: Infinity,
+    intelligence: Infinity,
+    strength: Infinity
+  }
+};
+
+export const ADDICTED: PermanentEffect = {
+  statChange: {
+    health: 0,
+    agility: -1,
+    intelligence: -1,
+    strength: -5
+  },
+  turnReactivation: {
+    maximum: 10,
+    current: 10
+  }
+};
+
+export const RESTED: TemporaryEffect & EffectWithInitialChange = {
+  statChange: {
+    health: 0,
+    intelligence: 0,
+    agility: 0,
+    strength: 0
+  },
+  initialChange: {
+    health: 10,
+    strength: 10,
+    agility: 10,
+    intelligence: 10
+  },
+  turnsUntilRemoved: 10,
+  state: 'Initial'
+};
+
+// TODO: TIRED, HUNGRY, others?
+
+export function activeEffects(character: Character): string[] {
+  return _.keys(character.effects).filter(key => Boolean(character.effects[key]));
+}
+
+export function anyActiveEffects(character: Character): boolean {
+  return activeEffects(character).length > 0;
+}
+
+export function updateCharacter(game: Game, character: Character): string {
+  if (anyActiveEffects(character)) {
+    // TODO
+    return `${ character.player.name } has effects [TODO]`;
+  } else {
+    return `${ character.player.name } has no effects`;
+  }
 }
