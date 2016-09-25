@@ -21,7 +21,8 @@ export interface Character extends Animal {
     isPoisoned: boolean,
     isImmortal: boolean,
     isAddicted: boolean,
-    isRested: boolean
+    isTired: boolean,
+    isHungry: boolean
   };
 }
 
@@ -321,7 +322,8 @@ export function createCharacter(
       isAddicted: false,
       isImmortal: false,
       isPoisoned: false,
-      isRested: false
+      isHungry: false,
+      isTired: false
     }
   };
 }
@@ -450,13 +452,7 @@ export function canCraftDifficult(c: Character): boolean {
 
 export interface Effect {
   statChange: Stats;
-}
-
-export type EffectState = 'Initial' | 'Final';
-
-export interface EffectWithInitialChange extends Effect {
-  initialChange: Stats;
-  state: EffectState;
+  // isActive: (character: Character) => boolean;
 }
 
 export interface PermanentEffect extends Effect {
@@ -501,24 +497,27 @@ export const ADDICTED: PermanentEffect = {
   }
 };
 
-export const RESTED: TemporaryEffect & EffectWithInitialChange = {
+export const TIRED: Effect = {
   statChange: {
-    health: 0,
-    intelligence: 0,
-    agility: 0,
-    strength: 0
-  },
-  initialChange: {
-    health: 10,
-    strength: 10,
-    agility: 10,
-    intelligence: 10
-  },
-  turnsUntilRemoved: 10,
-  state: 'Initial'
+    agility: -1,
+    intelligence: -1,
+    strength: -1,
+    health: 0
+  }
 };
 
-// TODO: TIRED, HUNGRY, others?
+export const HUNGRY: Effect = {
+  statChange: {
+    agility: -1,
+    intelligence: -1,
+    strength: -1,
+    health: 0
+  }
+};
+
+// XXX: maybe have a(n) (in)sanity effect?
+// e.g. no communication for a while leads to reduced intelligence?
+// XXX: stamina stat: the rate at which characters become hungry, tired, etc.
 
 export function activeEffects(character: Character): string[] {
   return _.keys(character.effects).filter(key => Boolean(character.effects[key]));
@@ -530,7 +529,6 @@ export function anyActiveEffects(character: Character): boolean {
 
 export function updateCharacter(game: Game, character: Character): string {
   if (anyActiveEffects(character)) {
-    // TODO
     return `${ character.player.name } has effects [TODO]`;
   } else {
     return `${ character.player.name } has no effects`;
