@@ -17,13 +17,7 @@ export interface Character extends Animal {
   goldAmount: number;
   player: GamePlayer;
   map: CharacterMap;
-  effects: {
-    isPoisoned: boolean,
-    isImmortal: boolean,
-    isAddicted: boolean,
-    isTired: boolean,
-    isHungry: boolean
-  };
+  effects: CharacterEffects;
 }
 
 export interface PrimordialCharacter {
@@ -287,7 +281,7 @@ export const MODIFIER_NAMES = _.keys(createEmptyModifiers()).sort() as ModifierN
 export const MAX_NUM_MODIFIERS = MODIFIER_NAMES.length;
 
 export function getActiveModifierNames(modifiers: Modifiers): ModifierName[] {
-  return MODIFIER_NAMES.filter(name => Boolean(modifiers[name]));
+  return MODIFIER_NAMES.filter(name => Boolean(modifiers[ name ]));
 }
 
 export function createCharacter(
@@ -319,11 +313,25 @@ export function createCharacter(
     nextAction: null,
     map: createCharacterMap(game.map),
     effects: {
-      isAddicted: false,
-      isImmortal: false,
-      isPoisoned: false,
-      isHungry: false,
-      isTired: false
+      poison: {
+        isActive: false
+      },
+      immortality: {
+        isActive: false
+      },
+      addiction: {
+        isActive: false,
+        current: ADDICTED.meter.current,
+        maximum: ADDICTED.meter.maximum
+      },
+      exhaustion: {
+        current: EXHAUSTED.meter.current,
+        maximum: EXHAUSTED.meter.maximum
+      },
+      hunger: {
+        current: HUNGRY.meter.current,
+        maximum: HUNGRY.meter.maximum
+      }
     }
   };
 }
@@ -450,20 +458,31 @@ export function canCraftDifficult(c: Character): boolean {
   });
 }
 
+export interface Toggle {
+  isActive: boolean;
+}
+
+export interface Meter {
+  current: number;
+  maximum: number;
+}
+
+export interface CharacterEffects {
+  poison: Toggle;
+  immortality: Toggle;
+  addiction: Toggle & Meter;
+  exhaustion: Meter;
+  hunger: Meter;
+};
+
 export interface Effect {
   statChange: Stats;
-  // isActive: (character: Character) => boolean;
 }
 
-export interface PermanentEffect extends Effect {
-  turnReactivation: {
-    maximum: number;
-    current: number;
-  };
-}
+export interface ToggledEffect extends Toggle, Effect { };
 
-export interface TemporaryEffect extends Effect {
-  turnsUntilRemoved: number;
+export interface MeteredEffect extends Effect {
+  meter: Meter;
 }
 
 export const POISONED: Effect = {
@@ -484,34 +503,43 @@ export const IMMORTAL: Effect = {
   }
 };
 
-export const ADDICTED: PermanentEffect = {
+export const ADDICTED: MeteredEffect & ToggledEffect = {
   statChange: {
     health: 0,
     agility: -1,
     intelligence: -1,
     strength: -5
   },
-  turnReactivation: {
+  meter: {
     maximum: 10,
-    current: 10
-  }
+    current: 10,
+  },
+  isActive: false
 };
 
-export const TIRED: Effect = {
+export const EXHAUSTED: MeteredEffect = {
   statChange: {
     agility: -1,
     intelligence: -1,
     strength: -1,
     health: 0
+  },
+  meter: {
+    maximum: 50,
+    current: 50,
   }
 };
 
-export const HUNGRY: Effect = {
+export const HUNGRY: MeteredEffect = {
   statChange: {
     agility: -1,
     intelligence: -1,
     strength: -1,
     health: 0
+  },
+  meter: {
+    maximum: 30,
+    current: 30,
   }
 };
 
@@ -519,18 +547,26 @@ export const HUNGRY: Effect = {
 // e.g. no communication for a while leads to reduced intelligence?
 // XXX: stamina stat: the rate at which characters become hungry, tired, etc.
 
-export function activeEffects(character: Character): string[] {
-  return _.keys(character.effects).filter(key => Boolean(character.effects[key]));
-}
-
-export function anyActiveEffects(character: Character): boolean {
-  return activeEffects(character).length > 0;
+export function anyActiveEffects(effects: CharacterEffects): boolean {
+  if (effects.addiction.isActive && effects.addiction.current <= 0) {
+    return true;
+  } else if (effects.exhaustion.current <= 0) {
+    return true;
+  } else if (effects.hunger.current <= 0) {
+    return true;
+  } else if (effects.immortality.isActive) {
+    return true;
+  } else if (effects.poison.isActive) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 export function updateCharacter(game: Game, character: Character): string {
-  if (anyActiveEffects(character)) {
-    return `${ character.player.name } has effects [TODO]`;
+  if (anyActiveEffects(character.effects)) {
+    return `${character.player.name} has effects [TODO]`;
   } else {
-    return `${ character.player.name } has no effects`;
+    return `${character.player.name} has no effects`;
   }
 }
