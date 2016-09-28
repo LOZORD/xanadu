@@ -1,6 +1,6 @@
 import { Animal } from './animal';
 import { createInventory, hasItem, Inventory } from './inventory';
-import { meetsRequirements, Stats } from './stats';
+import { meetsRequirements, Stats, changeStats } from './stats';
 import { GamePlayer } from './player';
 import Game from '../context/game';
 import { Position } from './map/cell';
@@ -485,6 +485,14 @@ export interface MeteredEffect extends Effect {
   meter: Meter;
 }
 
+export function meterIsActive(meter: Meter): boolean {
+  return meter.current <= 0;
+}
+
+export function toggleIsActive(toggle: Toggle): boolean {
+  return toggle.isActive;
+}
+
 export const POISONED: Effect = {
   statChange: {
     health: -5,
@@ -563,10 +571,68 @@ export function anyActiveEffects(effects: CharacterEffects): boolean {
   }
 }
 
+export function updateEffectMeters(character: Character): void {
+  const action = character.nextAction;
+
+  // if any of the keys were 'Rest' or 'Ingest', `performing` them would
+  // set the meters back to their maximum
+
+  // if the "second condition" (the meter one) is true, then the character is
+  // currently under that effect and there is no need to drop the meter < 0
+
+  if (action.key !== 'Rest' && !meterIsActive(character.effects.exhaustion)) {
+    character.effects.exhaustion.current -= 1;
+  }
+
+  if (action.key !== 'Ingest' && !meterIsActive(character.effects.hunger)) {
+    character.effects.hunger.current -= 1;
+  }
+
+  const addictedButNotInWithdrawal = toggleIsActive(character.effects.addiction) &&
+    !meterIsActive(character.effects.addiction);
+
+  if (action.key !== 'Ingest' && addictedButNotInWithdrawal) {
+    character.effects.addiction.current -= 1;
+  }
+}
+
 export function updateCharacter(game: Game, character: Character): string {
+  const name = character.player.name;
+
+  updateEffectMeters(character);
+
   if (anyActiveEffects(character.effects)) {
-    return `${character.player.name} has effects [TODO]`;
+    if (toggleIsActive(character.effects.immortality)) {
+      return `${name} is immortal -- no other effects matter`;
+    }
+
+    const log = [];
+
+    if (meterIsActive(character.effects.exhaustion)) {
+      changeStats(character.stats, EXHAUSTED.statChange);
+      log.push(`${name} is exhausted`);
+    }
+
+    if (meterIsActive(character.effects.hunger)) {
+      changeStats(character.stats, HUNGRY.statChange);
+      log.push(`${name} is hungry`);
+    }
+
+    if (toggleIsActive(character.effects.poison)) {
+      changeStats(character.stats, POISONED.statChange);
+      log.push(`${name} is poisoned`);
+    }
+
+    const inWithdrawal = toggleIsActive(character.effects.addiction) &&
+    meterIsActive(character.effects.addiction);
+
+    if (inWithdrawal) {
+      changeStats(character.stats, ADDICTED.statChange);
+      log.push(`${name} is in withdrawal`);
+    }
+
+    return log.join('\n');
   } else {
-    return `${character.player.name} has no effects`;
+    return `${name} has no effects`;
   }
 }

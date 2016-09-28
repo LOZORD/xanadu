@@ -21,7 +21,7 @@ export type ValidationResult =  {
   error?: string
 };
 
-export type ComponentKey = 'Move' | 'Pass';
+export type ComponentKey = 'Move' | 'Pass' | 'Ingest' | 'Rest';
 
 export type PerformResult = {
   log: string[];
