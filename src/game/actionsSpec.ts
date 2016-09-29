@@ -133,4 +133,10 @@ describe('Actions', () => {
       expect(ret).to.be.null;
     });
   });
+  describe('RestAction', () => {
+    it('should be implemented and tested!');
+  });
+  describe('IngestAction', () => {
+    it('should be implemented and tested!');
+  });
 });

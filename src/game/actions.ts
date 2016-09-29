@@ -1,5 +1,5 @@
 import { Animal } from './animal';
-import { Character, isPlayerCharacter } from './character';
+import { Character, isPlayerCharacter, meterIsActive } from './character';
 import * as Map from './map/map';
 import * as Cell from './map/cell';
 import Game from '../context/game';
@@ -9,6 +9,7 @@ import * as Messaging from './messaging';
 import describeRoom from './map/describeRoom';
 import { reveal } from './map/characterMap';
 import * as Inventory from './inventory';
+import * as Ingestible from './items/ingestible';
 
 export interface Action {
   actor: Animal;
@@ -23,6 +24,7 @@ export type ValidationResult =  {
 
 export type ComponentKey = 'Move' | 'Pass' | 'Ingest' | 'Rest';
 
+// TODO rename to PerformanceResult
 export type PerformResult = {
   log: string[];
   messages: Messaging.Message[];
@@ -42,8 +44,13 @@ export interface MoveAction extends Action {
   offsetCol: number;
 }
 
-// nothing special about a pass action...
+export interface IngestAction extends Action {
+  item: Ingestible.Ingestible;
+}
+
+// nothing special about pass or rest actions
 export type PassAction = Action;
+export type RestAction = Action;
 
 export const MOVE_COMPONENT: ActionParserComponent<MoveAction> = {
   pattern: /^go (north|south|east|west)$/i,
@@ -170,13 +177,84 @@ export const PASS_COMPONENT: ActionParserComponent<PassAction> = {
   componentKey: 'Pass'
 };
 
+export const REST_COMPONENT: ActionParserComponent<RestAction> = {
+  pattern: /^rest$/i,
+  parse(text: string, actor: Animal, timestamp: number) {
+    return {
+      actor,
+      timestamp,
+      key: 'Rest'
+    };
+  },
+  validate(restAction: RestAction, game: Game): ValidationResult {
+    const actor = restAction.actor;
+    if (isPlayerCharacter(actor)) {
+      const currCell = Map.getCell(game.map, actor);
+
+      if (Cell.isRoom(currCell)) {
+        if (currCell.hasCamp) {
+          return { isValid: true };
+        } else {
+          return {
+            isValid: false,
+            error: 'Cannot rest without camp setup!'
+          };
+        }
+      } else {
+        throw new Error('Expected player to be in room!');
+      }
+    } else {
+      return { isValid: true };
+    }
+  },
+  perform(restAction: RestAction, game: Game, log: string[]): PerformResult {
+    const messages = [];
+    const actor = restAction.actor;
+
+    // TODO: update the actors's stats
+
+    if (isPlayerCharacter(actor)) {
+      const wasExhausted = meterIsActive(actor.effects.exhaustion);
+      actor.effects.exhaustion.current = actor.effects.exhaustion.maximum;
+
+      if (wasExhausted) {
+        messages.push('You rested at the camp.');
+      } else {
+        messages.push('You rested at the camp and no longer feel exhausted.');
+      }
+    }
+
+    return {
+      log,
+      messages
+    };
+  },
+  componentKey: 'Rest'
+};
+
+export const INGEST_COMPONENT: ActionParserComponent<IngestAction> = {
+  pattern: new RegExp(`^(eat|consume|ingest|use|drink) (${Ingestible.names.join('|')})$`, 'i'),
+  parse(text: string, actor: Animal, timestamp: number): IngestAction {
+    return null; // TODO
+  },
+  validate(ingestAction: IngestAction, game: Game): ValidationResult {
+    return null; // TODO
+  },
+  perform(ingestAction: IngestAction, game: Game, log: string[]): PerformResult {
+    return null; // TODO
+  },
+  componentKey: 'Ingest'
+};
+
 export interface ActionParserComponentMap<A extends Action> {
   [ componentKey: string ]: ActionParserComponent<A>;
 };
 
 export const PARSERS: ActionParserComponentMap<Action> = {
   'Move': MOVE_COMPONENT,
-  'Pass': PASS_COMPONENT
+  'Pass': PASS_COMPONENT,
+  'Rest': REST_COMPONENT,
+  'Ingest': INGEST_COMPONENT
 };
 
 export function parseAction(text: string, actor: Animal, timestamp: number): Action {

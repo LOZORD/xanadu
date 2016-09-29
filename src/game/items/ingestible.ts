@@ -11,7 +11,12 @@ export type MedicineName = 'Morphine' | 'Opium' | 'Medical Kit' | 'Poison Antido
 
 export type Name = FoodName | DrinkName | MedicineName;
 
+export const names = [ 'Raw Meat', 'Cooked Meat', 'Stew', 'Honeydew',
+  'Cave Leaf', 'Nightshade', 'Dark Poppy', 'Water', 'Alph Water', 'Alcohol',
+  'Morphine', 'Opium', 'Medical Kit', 'Poison Antidote' ].sort();
+
 // TODO: Use Maybe type for addiction relief?
+// XXX: consider renaming `Ingestible` to `Consumable`?
 export interface Ingestible extends Item {
   addictionRelief: number; // the number of turns that the ingestible relieves addiction effects
   isPoisoned: boolean;

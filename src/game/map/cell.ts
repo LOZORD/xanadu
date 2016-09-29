@@ -28,6 +28,7 @@ export type Barrier = PermanentBarrier | ExcavatableBarrier;
 
 interface AbstractRoom extends AbstractCell {
   items: ItemStack<Item>[];
+  hasCamp: boolean;
 };
 
 export interface SimpleRoom extends AbstractRoom {
@@ -90,11 +91,11 @@ fromRepresentation(cr: CellRepresentation, { row, col }: Position, opts: FromRep
     case '%':
       return { row, col, representation: '%', health: opts.health };
     case '_':
-      return { row, col, representation: '_', items: opts.items };
+      return { row, col, representation: '_', items: opts.items, hasCamp: false };
     case 'X':
-      return { row, col, representation: 'X', items: opts.items };
+      return { row, col, representation: 'X', items: opts.items, hasCamp: false };
     case '^':
-      return { row, col, representation: '^', items: opts.items };
+      return { row, col, representation: '^', items: opts.items, hasCamp: false };
     case '?':
       return { row, col, representation: '?' };
     default:
