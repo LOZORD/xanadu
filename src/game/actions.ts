@@ -45,7 +45,7 @@ export interface MoveAction extends Action {
 }
 
 export interface IngestAction extends Action {
-  item: Ingestible.Ingestible;
+  itemName: Ingestible.Name;
 }
 
 // nothing special about pass or rest actions
@@ -235,12 +235,46 @@ export const REST_COMPONENT: ActionParserComponent<RestAction> = {
 export const INGEST_COMPONENT: ActionParserComponent<IngestAction> = {
   pattern: new RegExp(`^(eat|consume|ingest|use|drink) (${Ingestible.names.join('|')})$`, 'i'),
   parse(text: string, actor: Animal, timestamp: number): IngestAction {
-    return null; // TODO
+    const matches = text.match(this.pattern);
+
+    if (!matches) {
+      return null;
+    } else {
+      const ingestibleInput = matches[2].toLowerCase();
+
+      if (Ingestible.stringIsAnIngestibleName(ingestibleInput)) {
+        return {
+          actor,
+          timestamp,
+          itemName: (ingestibleInput as Ingestible.Name),
+          key: 'Ingest'
+        };
+      } else {
+        return null;
+      }
+    }
   },
   validate(ingestAction: IngestAction, game: Game): ValidationResult {
-    return null; // TODO
+    const inventory = ingestAction.actor.inventory;
+
+    if (Inventory.hasItem(inventory, ingestAction.itemName)) {
+      return {
+        isValid: true
+      };
+    } else {
+      return {
+        isValid: false,
+        error: `Missing ${ ingestAction.itemName } in inventory!`
+      };
+    }
   },
   perform(ingestAction: IngestAction, game: Game, log: string[]): PerformResult {
+    // first remove a single item from the item stack in the inventory
+
+    // then apply the item's stats to the actor
+
+    // then update any effects on the actor
+
     return null; // TODO
   },
   componentKey: 'Ingest'

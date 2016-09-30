@@ -15,6 +15,10 @@ export const names = [ 'Raw Meat', 'Cooked Meat', 'Stew', 'Honeydew',
   'Cave Leaf', 'Nightshade', 'Dark Poppy', 'Water', 'Alph Water', 'Alcohol',
   'Morphine', 'Opium', 'Medical Kit', 'Poison Antidote' ].sort();
 
+export function stringIsAnIngestibleName(str: string): str is Name {
+  return names.map(name => name.toLowerCase()).indexOf(str.toLowerCase()) >= 0;
+}
+
 // TODO: Use Maybe type for addiction relief?
 // XXX: consider renaming `Ingestible` to `Consumable`?
 export interface Ingestible extends Item {
