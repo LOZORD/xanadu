@@ -201,8 +201,7 @@ export function addMessage(viewMessage: ViewMessage, $: JQueryCreator): JQueryCr
   const $messageInput = $('#main-input');
 
   $messageOutput.append($newMessage);
-  // FIXME: the scrolling is broken
-  $messageOutput.parent().scrollTop($messageOutput.parent().height());
+  $messageOutput.parent().animate({scrollTop: $messageOutput.height()}, 150);
 
   $messageInput.focus();
 
