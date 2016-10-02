@@ -211,7 +211,6 @@ body {
 #roster #roster-data div.row {
   margin-bottom: 1em;
   font-size: 1.25em;
-  word-wrap: break-word;
 }
 
 #roster #roster-data div.row.me {
