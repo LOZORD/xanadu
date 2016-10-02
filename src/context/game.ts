@@ -189,7 +189,7 @@ export default class Game extends Context<Player.GamePlayer> {
         };
       }, { messages: [], log: [] });
 
-    const updateLog = this.players.map(player => Character.updateCharacter(this, player.character));
+    const updateLog = this.players.map(player => Character.updateCharacter(player.character));
 
     this.turnNumber++;
 
