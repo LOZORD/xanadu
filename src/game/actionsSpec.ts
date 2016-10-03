@@ -19,9 +19,6 @@ describe('Actions', () => {
       });
     });
   });
-  describe.skip('Base Action', () => {
-    it('should be tested!');
-  });
   describe('MoveAction', () => {
     // remember: we are using the test map!
     before(function () {
@@ -137,6 +134,22 @@ describe('Actions', () => {
     it('should be implemented and tested!');
   });
   describe('IngestAction', () => {
-    it('should be implemented and tested!');
+    beforeEach(function () {
+      this.player = Player.createPlayer('007', 'James_Bond', 'Playing');
+      this.game = new Game(8, [ this.player ]);
+      this.player = (this.game as Game).getPlayer('007');
+      this.player.character = Character.createCharacter(
+        this.game, this.player
+      );
+    });
+    describe('parse', function () {
+      it('should be tested!');
+    });
+    describe('validate', function () {
+      it('should be tested!');
+    });
+    describe('perform', function () {
+      it('should be tested!');
+    });
   });
 });

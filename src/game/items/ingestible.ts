@@ -23,10 +23,19 @@ export function stringIsAnIngestibleName(str: string): str is Name {
 // XXX: consider renaming `Ingestible` to `Consumable`?
 export interface Ingestible extends Item {
   addictionRelief: number; // the number of turns that the ingestible relieves addiction effects
+  hungerRelief: number; // similar for hunger
+  exhaustionRelief: number; // similar for exhaustion
   isPoisoned: boolean;
   isAddictive: boolean;
   givesImmortality: boolean;
+  curesPoisoning: boolean;
   stats: PartialStats;
+}
+
+export function itemIsIngestible(item: Item): item is Ingestible {
+  return [ 'addictionRelief', 'hungerRelief', 'exhaustionRelief', 'isPoisoned',
+    'isAddictive', 'givesImmortality', 'stats' ].every(
+    (prop) => item.hasOwnProperty(prop));
 }
 
 export function poison(ingestible: Ingestible): Ingestible {
@@ -50,7 +59,10 @@ export const RAW_MEAT: Food = {
   stats: {
     health: 10,
     strength: 10
-  }
+  },
+  hungerRelief: 10,
+  exhaustionRelief: 0,
+  curesPoisoning: false
 };
 
 export const COOKED_MEAT: Food = {
@@ -63,7 +75,10 @@ export const COOKED_MEAT: Food = {
     health: 20,
     strength: 20,
     intelligence: 20
-  }
+  },
+  hungerRelief: 25,
+  exhaustionRelief: 0,
+  curesPoisoning: false
 };
 
 export const STEW: Food = {
@@ -77,7 +92,10 @@ export const STEW: Food = {
     strength: 50,
     intelligence: 50,
     agility: 50
-  }
+  },
+  hungerRelief: 50,
+  exhaustionRelief: 0,
+  curesPoisoning: false
 };
 
 export const HONEYDEW: Food = {
@@ -91,7 +109,10 @@ export const HONEYDEW: Food = {
     strength: 50,
     intelligence: 50,
     agility: 50
-  }
+  },
+  hungerRelief: 100,
+  exhaustionRelief: 100,
+  curesPoisoning: true
 };
 
 export const CAVE_LEAF: Food = {
@@ -100,7 +121,10 @@ export const CAVE_LEAF: Food = {
   isAddictive: false,
   isPoisoned: false,
   givesImmortality: false,
-  stats: {}
+  stats: {},
+  hungerRelief: 5,
+  exhaustionRelief: 5,
+  curesPoisoning: false
 };
 
 export const NIGHTSHADE: Food = {
@@ -109,7 +133,10 @@ export const NIGHTSHADE: Food = {
   isAddictive: false,
   isPoisoned: true,
   givesImmortality: false,
-  stats: {}
+  stats: {},
+  hungerRelief: 5,
+  exhaustionRelief: 5,
+  curesPoisoning: false
 };
 
 export const DARK_POPPY: Food = {
@@ -118,7 +145,10 @@ export const DARK_POPPY: Food = {
   isAddictive: true,
   isPoisoned: false,
   givesImmortality: false,
-  stats: {}
+  stats: {},
+  hungerRelief: 5,
+  exhaustionRelief: 10,
+  curesPoisoning: false
 };
 
 export interface Drink extends Ingestible {
@@ -134,7 +164,10 @@ export const WATER: Drink = {
   stats: {
     strength: 10,
     agility: 10
-  }
+  },
+  hungerRelief: 0,
+  exhaustionRelief: 5,
+  curesPoisoning: false
 };
 
 export const ALPH_WATER: Ingestible = {
@@ -146,7 +179,10 @@ export const ALPH_WATER: Ingestible = {
   stats: {
     strength: 10,
     agility: 10
-  }
+  },
+  hungerRelief: 0,
+  exhaustionRelief: 100,
+  curesPoisoning: true
 };
 
 export const ALCOHOL: Ingestible = {
@@ -160,7 +196,10 @@ export const ALCOHOL: Ingestible = {
     strength: 20,
     intelligence: -10,
     agility: -10
-  }
+  },
+  hungerRelief: 10,
+  exhaustionRelief: 10,
+  curesPoisoning: false
 };
 
 export interface Medicine extends Ingestible {
@@ -174,8 +213,14 @@ export const MORPHINE: Medicine = {
   isAddictive: true,
   givesImmortality: false,
   stats: {
-    // TODO
-  }
+    health: 30,
+    strength: 10,
+    agility: -10,
+    intelligence: -5
+  },
+  hungerRelief: 0,
+  exhaustionRelief: 15,
+  curesPoisoning: false
 };
 
 export const OPIUM: Medicine = {
@@ -185,8 +230,14 @@ export const OPIUM: Medicine = {
   isAddictive: true,
   givesImmortality: false,
   stats: {
-    // TODO
-  }
+    health: 15,
+    strength: -10,
+    agility: -15,
+    intelligence: -10
+  },
+  hungerRelief: 0,
+  exhaustionRelief: 5,
+  curesPoisoning: false
 };
 
 export const MEDICAL_KIT: Medicine = {
@@ -196,17 +247,29 @@ export const MEDICAL_KIT: Medicine = {
   isAddictive: false,
   givesImmortality: false,
   stats: {
-    // TODO
-  }
+    health: 100,
+    strength: 100,
+    agility: 100,
+    intelligence: 100
+  },
+  hungerRelief: 5,
+  exhaustionRelief: 25,
+  curesPoisoning: true
 };
 
 export const POISON_ANTIDOTE: Medicine = {
   name: 'Poison Antidote',
-  addictionRelief: 3,
+  addictionRelief: 5,
   isPoisoned: false,
   isAddictive: false,
   givesImmortality: false,
   stats: {
-    // TODO
-  }
+    health: 5,
+    strength: 5,
+    agility: 5,
+    intelligence: 5
+  },
+  hungerRelief: 0,
+  exhaustionRelief: 15,
+  curesPoisoning: true
 };

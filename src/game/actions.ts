@@ -1,5 +1,5 @@
 import { Animal } from './animal';
-import { Character, isPlayerCharacter, meterIsActive } from './character';
+import * as Character from './character';
 import * as Map from './map/map';
 import * as Cell from './map/cell';
 import Game from '../context/game';
@@ -10,6 +10,7 @@ import describeRoom from './map/describeRoom';
 import { reveal } from './map/characterMap';
 import * as Inventory from './inventory';
 import * as Ingestible from './items/ingestible';
+import * as Stats from './stats';
 
 export interface Action {
   actor: Animal;
@@ -17,7 +18,7 @@ export interface Action {
   key: ComponentKey;
 };
 
-export type ValidationResult =  {
+export type ValidationResult = {
   isValid: boolean,
   error?: string
 };
@@ -122,8 +123,8 @@ export const MOVE_COMPONENT: ActionParserComponent<MoveAction> = {
 
     const messages = [];
 
-    if (isPlayerCharacter(move.actor)) {
-      const player = (move.actor as Character).player;
+    if (Character.isPlayerCharacter(move.actor)) {
+      const player = (move.actor as Character.Character).player;
 
       log.push(`${player.name} from ${JSON.stringify(oldPos)} to ${JSON.stringify(newPos)}`);
 
@@ -163,10 +164,10 @@ export const PASS_COMPONENT: ActionParserComponent<PassAction> = {
 
     const messages = [];
 
-    if (isPlayerCharacter(passAction.actor)) {
-      const player = (passAction.actor as Character).player;
+    if (Character.isPlayerCharacter(passAction.actor)) {
+      const player = (passAction.actor as Character.Character).player;
 
-      messages.push(Messaging.createGameMessage('You performed no action.', [player]));
+      messages.push(Messaging.createGameMessage('You performed no action.', [ player ]));
     }
 
     return {
@@ -188,7 +189,7 @@ export const REST_COMPONENT: ActionParserComponent<RestAction> = {
   },
   validate(restAction: RestAction, game: Game): ValidationResult {
     const actor = restAction.actor;
-    if (isPlayerCharacter(actor)) {
+    if (Character.isPlayerCharacter(actor)) {
       const currCell = Map.getCell(game.map, actor);
 
       if (Cell.isRoom(currCell)) {
@@ -213,8 +214,8 @@ export const REST_COMPONENT: ActionParserComponent<RestAction> = {
 
     // TODO: update the actors's stats
 
-    if (isPlayerCharacter(actor)) {
-      const wasExhausted = meterIsActive(actor.effects.exhaustion);
+    if (Character.isPlayerCharacter(actor)) {
+      const wasExhausted = Character.meterIsActive(actor.effects.exhaustion);
       actor.effects.exhaustion.current = actor.effects.exhaustion.maximum;
 
       if (wasExhausted) {
@@ -233,14 +234,14 @@ export const REST_COMPONENT: ActionParserComponent<RestAction> = {
 };
 
 export const INGEST_COMPONENT: ActionParserComponent<IngestAction> = {
-  pattern: new RegExp(`^(eat|consume|ingest|use|drink) (${Ingestible.names.join('|')})$`, 'i'),
+  pattern: new RegExp(`^(eat|consume|ingest|use|drink|quaff) (${Ingestible.names.join('|')})$`, 'i'),
   parse(text: string, actor: Animal, timestamp: number): IngestAction {
     const matches = text.match(this.pattern);
 
     if (!matches) {
       return null;
     } else {
-      const ingestibleInput = matches[2].toLowerCase();
+      const ingestibleInput = matches[ 2 ].toLowerCase();
 
       if (Ingestible.stringIsAnIngestibleName(ingestibleInput)) {
         return {
@@ -264,18 +265,74 @@ export const INGEST_COMPONENT: ActionParserComponent<IngestAction> = {
     } else {
       return {
         isValid: false,
-        error: `Missing ${ ingestAction.itemName } in inventory!`
+        error: `Missing ${ingestAction.itemName} in inventory!`
       };
     }
   },
   perform(ingestAction: IngestAction, game: Game, log: string[]): PerformResult {
+    const messages = [];
+
     // first remove a single item from the item stack in the inventory
+    const removalReturn = Inventory.removeFromInventory(
+      ingestAction.actor.inventory, ingestAction.itemName, 1
+    );
 
-    // then apply the item's stats to the actor
+    ingestAction.actor.inventory = removalReturn.inventory;
 
-    // then update any effects on the actor
+    const itemStack = removalReturn.itemStack;
 
-    return null; // TODO
+    const item = itemStack.item;
+
+    if (Ingestible.itemIsIngestible(item)) {
+      // then apply the item's stats to the actor
+      Stats.changeStats(ingestAction.actor.stats, item.stats);
+
+      const actor = ingestAction.actor;
+
+      if (Character.isPlayerCharacter(actor)) {
+      // then update any effects on the character
+        if (item.curesPoisoning && actor.effects.poison.isActive) {
+          actor.effects.poison.isActive = false;
+          messages.push('You have been cured of poisoning!');
+          log.push(`${actor.player.name} poison removed`);
+        }
+
+        if (item.isPoisoned) {
+          actor.effects.poison.isActive = true;
+          messages.push('You have been poisoned!');
+          log.push(`${actor.player.name} was poisoned`);
+        }
+
+        if (item.isAddictive) {
+          const characterBecomesAddicted = game.rng.pickone([true, false]);
+
+          if (characterBecomesAddicted) {
+            actor.effects.addiction.isActive = true;
+            messages.push('You have become addicted!');
+            log.push(`${actor.player.name} became addicted`);
+          }
+        }
+
+        if (item.givesImmortality) {
+          actor.effects.immortality.isActive = true;
+        }
+
+        actor.effects.addiction.current = Character.updateMeterCurrentValue(
+          actor.effects.addiction, item.addictionRelief
+        );
+
+        actor.effects.exhaustion.current = Character.updateMeterCurrentValue(
+          actor.effects.exhaustion, item.exhaustionRelief
+        );
+
+        actor.effects.hunger.current = Character.updateMeterCurrentValue(
+          actor.effects.hunger, item.hungerRelief
+        );
+      }
+      return null;
+    } else {
+      throw new Error(`Tried to ingest an item that is not ingestible: '${item.name}'`);
+    }
   },
   componentKey: 'Ingest'
 };

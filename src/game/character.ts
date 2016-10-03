@@ -285,7 +285,7 @@ export function getActiveModifierNames(modifiers: Modifiers): ModifierName[] {
 }
 
 export function createCharacter(
-  game: Game, player: GamePlayer, pos: Position,
+  game: Game, player: GamePlayer, pos: Position = game.map.startingPosition,
   className: CharacterClassName = 'None', allegiance: Allegiance = 'None',
   modifiers: Modifiers = createEmptyModifiers()
 ): Character {
@@ -493,6 +493,10 @@ export function toggleIsActive(toggle: Toggle): boolean {
   return toggle.isActive;
 }
 
+export function updateMeterCurrentValue(meter: Meter, amount: number): number {
+  return _.clamp(meter.current + amount, 0, meter.maximum);
+}
+
 export const POISONED: Effect = {
   statChange: {
     health: -5,
@@ -556,15 +560,15 @@ export const HUNGRY: MeteredEffect = {
 // XXX: stamina stat: the rate at which characters become hungry, tired, etc.
 
 export function anyActiveEffects(effects: CharacterEffects): boolean {
-  if (effects.addiction.isActive && effects.addiction.current <= 0) {
+  if (toggleIsActive(effects.addiction) && meterIsActive(effects.addiction)) {
     return true;
-  } else if (effects.exhaustion.current <= 0) {
+  } else if (meterIsActive(effects.exhaustion)) {
     return true;
-  } else if (effects.hunger.current <= 0) {
+  } else if (meterIsActive(effects.hunger)) {
     return true;
-  } else if (effects.immortality.isActive) {
+  } else if (toggleIsActive(effects.immortality)) {
     return true;
-  } else if (effects.poison.isActive) {
+  } else if (toggleIsActive(effects.poison)) {
     return true;
   } else {
     return false;
@@ -577,26 +581,20 @@ export function updateEffectMeters(character: Character): void {
   // if any of the keys were 'Rest' or 'Ingest', `performing` them would
   // set the meters back to their maximum
 
-  // if the "second condition" (the meter one) is true, then the character is
-  // currently under that effect and there is no need to drop the meter < 0
-
-  if (action.key !== 'Rest' && !meterIsActive(character.effects.exhaustion)) {
-    character.effects.exhaustion.current -= 1;
+  if (action.key !== 'Rest') {
+    character.effects.exhaustion.current = _.max([ character.effects.exhaustion.current - 1, 0 ]);
   }
 
-  if (action.key !== 'Ingest' && !meterIsActive(character.effects.hunger)) {
-    character.effects.hunger.current -= 1;
+  if (action.key !== 'Ingest') {
+    character.effects.hunger.current = _.max([ character.effects.hunger.current - 1, 0 ]);
   }
 
-  const addictedButNotInWithdrawal = toggleIsActive(character.effects.addiction) &&
-    !meterIsActive(character.effects.addiction);
-
-  if (action.key !== 'Ingest' && addictedButNotInWithdrawal) {
-    character.effects.addiction.current -= 1;
+  if (action.key !== 'Ingest' && toggleIsActive(character.effects.addiction)) {
+    character.effects.addiction.current = _.max([ character.effects.addiction.current - 1, 0 ]);
   }
 }
 
-export function updateCharacter(game: Game, character: Character): string {
+export function updateCharacter(character: Character): string {
   const name = character.player.name;
 
   updateEffectMeters(character);
@@ -624,7 +622,7 @@ export function updateCharacter(game: Game, character: Character): string {
     }
 
     const inWithdrawal = toggleIsActive(character.effects.addiction) &&
-    meterIsActive(character.effects.addiction);
+      meterIsActive(character.effects.addiction);
 
     if (inWithdrawal) {
       changeStats(character.stats, ADDICTED.statChange);
@@ -633,6 +631,6 @@ export function updateCharacter(game: Game, character: Character): string {
 
     return log.join('\n');
   } else {
-    return `${name} has no effects`;
+    return `${name} has no active effects`;
   }
 }

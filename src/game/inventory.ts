@@ -1,6 +1,7 @@
 import * as _ from 'lodash';
 import { Item, ItemStack, ItemStackJSON, changeStackAmount, createItemStack, stackIsEmpty } from './items/item';
 import { ItemName } from './items/itemName';
+import { createItem } from './items/itemCreator';
 
 export interface Inventory {
   itemStacks: ItemStack<Item>[];
@@ -40,19 +41,19 @@ export function hasItem(inventory: Inventory, itemName: ItemName): boolean {
 }
 
 export function updateInventory(
-  inventory: Inventory, item: Item, amount: number, maxAmount = amount
+  inventory: Inventory, itemName: ItemName, amount: number, maxAmount = amount
 ): Inventory {
   let newStack;
 
-  if (hasItem(inventory, item.name)) {
-    const itemStack = getItem(inventory, item.name);
+  if (hasItem(inventory, itemName)) {
+    const itemStack = getItem(inventory, itemName);
 
     newStack = _.cloneDeep(itemStack);
 
     changeStackAmount(newStack, amount);
   } else {
     if (!inventoryIsFull(inventory) && amount > 0) {
-      newStack = createItemStack(item, amount, maxAmount);
+      newStack = createItemStack(createItem(itemName), amount, maxAmount);
     } else {
       return inventory;
     }
@@ -64,6 +65,35 @@ export function updateInventory(
     itemStacks: newItemStacks,
     size: inventory.size
   };
+}
+
+export function removeFromInventory(inventory: Inventory, itemName: ItemName, amount: number): {
+  inventory: Inventory, itemStack: ItemStack<Item>
+} {
+
+  if (hasItem(inventory, itemName)) {
+    const retrievedItemStack = getItem(inventory, itemName);
+    const newInventory = updateInventory(inventory, itemName, -amount);
+    return {
+      inventory: newInventory,
+      itemStack: createItemStack(retrievedItemStack.item, amount, retrievedItemStack.maxStackAmount)
+    };
+  }
+}
+
+export function addToInventory(inventory: Inventory, itemName: ItemName, amount: number, maxAmount: number): Inventory {
+  return updateInventory(inventory, itemName, amount, maxAmount);
+}
+
+export function stackMap<I extends Item>(inventory: Inventory, itemName: ItemName, f: (item: Item) => Item): Inventory {
+  const itemStack = getItem(inventory, itemName);
+
+  if (itemStack) {
+    itemStack.item = f(itemStack.item);
+    return inventory;
+  } else {
+    return null;
+  }
 }
 
 // TODO: put other Item_JSON types in parens:
