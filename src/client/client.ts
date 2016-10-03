@@ -452,7 +452,7 @@ export function updateRoster(rosterData: PlayerRosterJSON[], $: JQueryCreator): 
             ${ rosterEntry.state}
           </div>
           <div class='col-xs-2'>
-            ${ classNameToString(rosterEntry.characterClass)}
+            ${ classNameToString(rosterEntry.characterClass).substring(0,3).toUpperCase()}
           </div>
           <div class='col-xs-2'>
             ${ allegianceToString(rosterEntry.allegiance)}
