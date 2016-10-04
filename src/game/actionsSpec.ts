@@ -4,6 +4,7 @@ import * as Actions from './actions';
 import Game from '../context/game';
 import * as Player from './player';
 import * as Character from './character';
+import * as Inventory from './inventory';
 
 describe('Actions', () => {
   describe('isParsableAction', () => {
@@ -131,7 +132,20 @@ describe('Actions', () => {
     });
   });
   describe('RestAction', () => {
-    it('should be implemented and tested!');
+    describe('parse', function () {
+      it('should be tested!');
+    });
+    describe('validate', function () {
+      context('when the player is at a camp', function () {
+        it('should validate positively');
+      });
+      context('when the player is NOT at a camp', function () {
+        it('should validate negatively');
+      });
+    });
+    describe('perform', function () {
+      it('should be tested!');
+    });
   });
   describe('IngestAction', () => {
     beforeEach(function () {
@@ -141,15 +155,60 @@ describe('Actions', () => {
       this.player.character = Character.createCharacter(
         this.game, this.player
       );
+
+      this.player.character.inventory = Inventory.addToInventory(
+        this.player.character.inventory, 'Stew', 3, 5
+      );
     });
     describe('parse', function () {
-      it('should be tested!');
+      context('when given a valid input', function () {
+        it('should return a correctly parsed action', function () {
+          const parse = Actions.INGEST_COMPONENT.parse('drink water', this.player.character, Date.now());
+
+          expect(parse.itemName).to.equal('Water');
+        });
+      });
+      context('when given a non-ingestible', function () {
+        it('should return null', function () {
+          const parse = Actions.INGEST_COMPONENT.parse('quaff pickaxe', this.player.character, Date.now());
+
+          expect(parse).to.be.null;
+        });
+      });
     });
     describe('validate', function () {
-      it('should be tested!');
+      context('when the requested ingestible is in the player\'s inventory', function () {
+        it('should validate positively', function () {
+          const parse = Actions.INGEST_COMPONENT.parse('consume stew', this.player.character, Date.now());
+
+          const validation = Actions.INGEST_COMPONENT.validate(parse, this.game);
+
+          expect(validation.isValid).to.be.true;
+        });
+      });
+      context('when the requested ingestible is not in the player\'s inventory', function () {
+        it('should validate negatively', function () {
+          const parse = Actions.INGEST_COMPONENT.parse('eat raw meat', this.player.character, Date.now());
+
+          const validation = Actions.INGEST_COMPONENT.validate(parse, this.game);
+
+          expect(validation.isValid).to.be.false;
+          expect(validation.error).to.equal('Missing Raw Meat in inventory!');
+        });
+      });
     });
     describe('perform', function () {
-      it('should be tested!');
+      it('should remove the ingestible from the inventory');
+      it('should apply the ingestible\'s stat change to the actor');
+      it('should poison the actor if the ingestible is poisoned');
+      it('should cure the actor\'s poisoning');
+      it('should repoison if it is a "poisoned cure"');
+      it('should have a chance of getting the player addicted if addictive');
+      it('should give immortality if applicable');
+      it('should update the addiction meter');
+      it('should update the exhaustion meter');
+      it('should update the hunger meter');
+      it('should throw an error if the item chosen is not ingestible');
     });
   });
 });

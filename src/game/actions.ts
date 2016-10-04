@@ -247,7 +247,7 @@ export const INGEST_COMPONENT: ActionParserComponent<IngestAction> = {
         return {
           actor,
           timestamp,
-          itemName: (ingestibleInput as Ingestible.Name),
+          itemName: Ingestible.stringToIngestibleName(ingestibleInput),
           key: 'Ingest'
         };
       } else {
@@ -290,7 +290,7 @@ export const INGEST_COMPONENT: ActionParserComponent<IngestAction> = {
       const actor = ingestAction.actor;
 
       if (Character.isPlayerCharacter(actor)) {
-      // then update any effects on the character
+        // then update any effects on the character
         if (item.curesPoisoning && actor.effects.poison.isActive) {
           actor.effects.poison.isActive = false;
           messages.push('You have been cured of poisoning!');
@@ -304,7 +304,7 @@ export const INGEST_COMPONENT: ActionParserComponent<IngestAction> = {
         }
 
         if (item.isAddictive) {
-          const characterBecomesAddicted = game.rng.pickone([true, false]);
+          const characterBecomesAddicted = game.rng.pickone([ true, false ]);
 
           if (characterBecomesAddicted) {
             actor.effects.addiction.isActive = true;
