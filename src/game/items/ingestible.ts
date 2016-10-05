@@ -7,13 +7,14 @@ export type FoodName = 'Raw Meat' | 'Cooked Meat' | 'Stew' | 'Honeydew' |
 
 export type DrinkName = 'Water' | 'Alph Water' | 'Alcohol';
 
-export type MedicineName = 'Morphine' | 'Opium' | 'Medical Kit' | 'Poison Antidote';
+export type MedicineName = 'Morphine' | 'Opium' | 'Medical Kit' |
+'Poison Antidote' | 'Poison';
 
 export type Name = FoodName | DrinkName | MedicineName;
 
 export const names = [ 'Raw Meat', 'Cooked Meat', 'Stew', 'Honeydew',
   'Cave Leaf', 'Nightshade', 'Dark Poppy', 'Water', 'Alph Water', 'Alcohol',
-  'Morphine', 'Opium', 'Medical Kit', 'Poison Antidote' ].sort();
+  'Morphine', 'Opium', 'Medical Kit', 'Poison Antidote', 'Poison' ].sort();
 
 export function stringIsAnIngestibleName(str: string): str is Name {
   return Boolean(stringToIngestibleName(str));
@@ -277,4 +278,21 @@ export const POISON_ANTIDOTE: Medicine = {
   hungerRelief: 0,
   exhaustionRelief: 15,
   curesPoisoning: true
+};
+
+export const POISON: Medicine = {
+  name: 'Poison',
+  addictionRelief: 0,
+  isPoisoned: true,
+  isAddictive: false,
+  givesImmortality: false,
+  stats: {
+    health: 0,
+    strength: 0,
+    agility: 0,
+    intelligence: 0
+  },
+  hungerRelief: 0,
+  exhaustionRelief: 0,
+  curesPoisoning: false
 };

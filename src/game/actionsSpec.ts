@@ -5,6 +5,8 @@ import Game from '../context/game';
 import * as Player from './player';
 import * as Character from './character';
 import * as Inventory from './inventory';
+import * as Stats from './stats';
+import * as Ingestible from './items/ingestible';
 
 describe('Actions', () => {
   describe('isParsableAction', () => {
@@ -198,11 +200,87 @@ describe('Actions', () => {
       });
     });
     describe('perform', function () {
-      it('should remove the ingestible from the inventory');
-      it('should apply the ingestible\'s stat change to the actor');
-      it('should poison the actor if the ingestible is poisoned');
-      it('should cure the actor\'s poisoning');
-      it('should repoison if it is a "poisoned cure"');
+      beforeEach(function () {
+        // another item...
+        this.player.character.inventory = Inventory.addToInventory(
+          this.player.character.inventory, 'Alcohol', 2, 5
+        );
+
+        // something poisonous...
+        this.player.character.inventory = Inventory.addToInventory(
+          this.player.character.inventory, 'Nightshade', 2, 5
+        );
+
+        // something that cures poisoning...
+        this.player.character.inventory = Inventory.addToInventory(
+          this.player.character.inventory, 'Poison Antidote', 2, 5
+        );
+      });
+      it('should remove an ingestible stack element from the inventory', function () {
+        const origStewStackSize = Inventory.getItem(this.player.character.inventory, 'Stew').stackAmount;
+
+        const action = Actions.INGEST_COMPONENT.parse('eat stew', this.player.character, Date.now());
+
+        Actions.INGEST_COMPONENT.perform(action, this.game, []);
+
+        const newStewStackSize = Inventory.getItem(this.player.character.inventory, 'Stew').stackAmount;
+
+        expect(newStewStackSize).to.equal(origStewStackSize - 1);
+      });
+      it('should apply the ingestible\'s stat change to the actor', function () {
+        const origStats = _.cloneDeep((this.player.character as Character.Character).stats);
+
+        const alcoholStats = _.cloneDeep(Ingestible.ALCOHOL.stats);
+
+        const action = Actions.INGEST_COMPONENT.parse('drink Alcohol', this.player.character, Date.now());
+
+        Actions.INGEST_COMPONENT.perform(action, this.game, []);
+
+        const newStats = _.cloneDeep((this.player.character as Character.Character).stats);
+
+        expect(newStats).to.eql(Stats.changeStats(origStats, alcoholStats));
+      });
+      it('should poison the actor if the ingestible is poisoned', function () {
+        expect(
+          Character.toggleIsActive((this.player.character as Character.Character).effects.poison)
+        ).to.be.false;
+
+        const action = Actions.INGEST_COMPONENT.parse('eat Nightshade', this.player.character, Date.now());
+
+        Actions.INGEST_COMPONENT.perform(action, this.game, []);
+
+        expect(
+          Character.toggleIsActive((this.player.character as Character.Character).effects.poison)
+        ).to.be.true;
+      });
+      it('should cure the actor\'s poisoning if applicable', function () {
+        // force the player to be poisoned
+        this.player.character.effects.poison.isActive = true;
+
+        const action = Actions.INGEST_COMPONENT.parse('ingest poison Antidote', this.player.character, Date.now());
+
+        Actions.INGEST_COMPONENT.perform(action, this.game, []);
+
+        expect(
+          Character.toggleIsActive((this.player.character as Character.Character).effects.poison)
+        ).to.be.false;
+      });
+      it('should repoison if it is a "poisoned cure"', function () {
+        // poison the cure
+        const antidote = Inventory.getItem(
+          this.player.character.inventory, 'Poison Antidote'
+        ).item as Ingestible.Ingestible;
+
+        antidote.isPoisoned = true;
+
+        const action = Actions.INGEST_COMPONENT.parse('drink poison antidote', this.player.character, Date.now());
+
+        Actions.INGEST_COMPONENT.perform(action, this.game, []);
+
+        expect(
+          Character.toggleIsActive((this.player.character as Character.Character).effects.poison)
+        ).to.be.true;
+      });
       it('should have a chance of getting the player addicted if addictive');
       it('should give immortality if applicable');
       it('should update the addiction meter');

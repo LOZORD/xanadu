@@ -31,6 +31,7 @@ const NAME_TO_ITEM = {
   'Opium': Ingestible.OPIUM,
   'Medical Kit': Ingestible.MEDICAL_KIT,
   'Poison Antidote': Ingestible.POISON_ANTIDOTE,
+  'Poison': Ingestible.POISON,
   'Camp Supplies': CampSupplies.CAMP_SUPPLIES
 };
 
