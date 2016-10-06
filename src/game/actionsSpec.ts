@@ -215,6 +215,16 @@ describe('Actions', () => {
         this.player.character.inventory = Inventory.addToInventory(
           this.player.character.inventory, 'Poison Antidote', 2, 5
         );
+
+        // something addictive
+        this.player.character.inventory = Inventory.addToInventory(
+          this.player.character.inventory, 'Morphine', 2, 5
+        );
+
+        // something that gives immortality
+        this.player.character.inventory = Inventory.addToInventory(
+          this.player.character.inventory, 'Honeydew', 2, 5
+        );
       });
       it('should remove an ingestible stack element from the inventory', function () {
         const origStewStackSize = Inventory.getItem(this.player.character.inventory, 'Stew').stackAmount;
@@ -281,11 +291,66 @@ describe('Actions', () => {
           Character.toggleIsActive((this.player.character as Character.Character).effects.poison)
         ).to.be.true;
       });
-      it('should have a chance of getting the player addicted if addictive');
-      it('should give immortality if applicable');
-      it('should update the addiction meter');
-      it('should update the exhaustion meter');
-      it('should update the hunger meter');
+      it('should have a chance of getting the player addicted if addictive', function () {
+        // force the addiction to occur (man, that sounds depressing...)
+        (this.game as Game).rng.pickone = (_list) => true;
+
+        const action = Actions.INGEST_COMPONENT.parse('consume morphine', this.player.character, Date.now());
+
+        Actions.INGEST_COMPONENT.perform(action, this.game, []);
+
+        expect(
+          Character.toggleIsActive((this.player.character as Character.Character).effects.addiction)
+        ).to.be.true;
+      });
+      it('should give immortality if applicable', function () {
+        const action = Actions.INGEST_COMPONENT.parse('eat honeydew', this.player.character, Date.now());
+
+        Actions.INGEST_COMPONENT.perform(action, this.game, []);
+
+        expect(
+          Character.toggleIsActive((this.player.character as Character.Character).effects.immortality)
+        ).to.be.true;
+      });
+      it('should update the addiction meter', function () {
+        const origAddiction = (this.player.character as Character.Character).effects.addiction.current -= 5;
+
+        const action = Actions.INGEST_COMPONENT.parse('ingest morphine', this.player.character, Date.now());
+
+        Actions.INGEST_COMPONENT.perform(action, this.game, []);
+
+        const newAddiction = (this.player.character as Character.Character).effects.addiction.current;
+
+        expect(newAddiction).to.be.greaterThan(origAddiction);
+
+        expect(newAddiction).to.be.at.most((this.player.character as Character.Character).effects.addiction.maximum);
+      });
+      it('should update the exhaustion meter', function () {
+        const origExhaustion = this.player.character.effects.exhaustion.current -= 5;
+
+        const action = Actions.INGEST_COMPONENT.parse('ingest morphine', this.player.character, Date.now());
+
+        Actions.INGEST_COMPONENT.perform(action, this.game, []);
+
+        const newExhaustion = this.player.character.effects.exhaustion.current;
+
+        expect(newExhaustion).to.be.greaterThan(origExhaustion);
+
+        expect(newExhaustion).to.be.at.most(this.player.character.effects.exhaustion.maximum);
+      });
+      it('should update the hunger meter', function () {
+        const origHunger = this.player.character.effects.hunger.current -= 5;
+
+        const action = Actions.INGEST_COMPONENT.parse('EAT STEW', this.player.character, Date.now());
+
+        Actions.INGEST_COMPONENT.perform(action, this.game, []);
+
+        const newHunger = this.player.character.effects.hunger.current;
+
+        expect(newHunger).to.be.greaterThan(origHunger);
+
+        expect(newHunger).to.be.at.most(this.player.character.effects.hunger.maximum);
+      });
       it('should throw an error if the item chosen is not ingestible');
     });
   });

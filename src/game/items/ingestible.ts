@@ -109,7 +109,7 @@ export const HONEYDEW: Food = {
   addictionRelief: 0,
   isAddictive: false,
   isPoisoned: false,
-  givesImmortality: false,
+  givesImmortality: true,
   stats: {
     health: 50,
     strength: 50,
