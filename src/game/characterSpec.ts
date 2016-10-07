@@ -38,14 +38,30 @@ describe('Character', function () {
   });
   describe('updateEffectMeters', function () {
     beforeEach(function () {
-      this.player = Player.createPlayer('007', 'James_Bond', 'Ready');
+      this.player = Player.createPlayer('404', 'Missingno', 'Ready');
 
       this.game = new Game(8, [ this.player ]);
 
-      this.player = (this.game as Game).getPlayer('007');
+      this.player = (this.game as Game).getPlayer('404');
 
       this.player.character = Character.createCharacter(this.game, this.player);
     });
-    it('should decrement the exhaustion meter if the player is not resting');
+    it('should decrement the exhaustion meter if the player is not resting', function() {
+      const origExhaustion = (this.player.character as Character.Character).effects.exhaustion.current;
+
+      (this.game as Game).handleMessage({
+        content: 'go south',
+        player: this.player,
+        timestamp: Date.now()
+      });
+
+      expect(this.game.isReadyForUpdate()).to.be.true;
+
+      this.game.update();
+
+      const newExhaustion = (this.player.character as Character.Character).effects.exhaustion.current;
+
+      expect(newExhaustion).to.be.lessThan(origExhaustion);
+    });
   });
 });
