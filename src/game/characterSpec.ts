@@ -46,22 +46,32 @@ describe('Character', function () {
 
       this.player.character = Character.createCharacter(this.game, this.player);
     });
-    it('should decrement the exhaustion meter if the player is not resting', function() {
-      const origExhaustion = (this.player.character as Character.Character).effects.exhaustion.current;
+    context('when the player is not resting', function () {
+      it('should decrement the exhaustion meter if the player is not resting', function () {
+        const origExhaustion = (this.player.character as Character.Character).effects.exhaustion.current;
 
-      (this.game as Game).handleMessage({
-        content: 'go south',
-        player: this.player,
-        timestamp: Date.now()
+        (this.game as Game).handleMessage({
+          content: 'go south',
+          player: this.player,
+          timestamp: Date.now()
+        });
+
+        expect(this.game.isReadyForUpdate()).to.be.true;
+
+        this.game.update();
+
+        const newExhaustion = (this.player.character as Character.Character).effects.exhaustion.current;
+
+        expect(newExhaustion).to.be.lessThan(origExhaustion);
       });
-
-      expect(this.game.isReadyForUpdate()).to.be.true;
-
-      this.game.update();
-
-      const newExhaustion = (this.player.character as Character.Character).effects.exhaustion.current;
-
-      expect(newExhaustion).to.be.lessThan(origExhaustion);
     });
+    // context('when the player did not ingest something', function() {
+    // });
+    // it('should update the addiction meter if
+    // the character is addicted and did not ingest something that relieves addiction', function () {
+    //   (this.player.character as Character.Character).effects.addiction.isActive = true;
+    // });
+    // it('should not update the addiction meter if the character is addicted');
+    // it('should not update the hunger meter if the player ingested food');
   });
 });
