@@ -134,8 +134,15 @@ describe('Actions', () => {
     });
   });
   describe('RestAction', () => {
+    before(function () {
+      this.player = Player.createPlayer('darth', 'Darth_Vader', 'Playing');
+      this.game = new Game(8, [ this.player ]);
+    });
     describe('parse', function () {
-      it('should be tested!');
+      it('should return a RestAction', function () {
+        const restAction = Actions.parseAction('rest', this.player.character, Date.now());
+        expect(restAction).to.be.ok;
+      });
     });
     describe('validate', function () {
       context('when the player is at a camp', function () {

@@ -50,8 +50,12 @@ export interface IngestAction extends Action {
 }
 
 // nothing special about pass or rest actions
-export type PassAction = Action;
-export type RestAction = Action;
+export interface PassAction extends Action {};
+export interface RestAction extends Action {};
+
+export function isActionTypeOf<A extends Action>(action: Action, component: ActionParserComponent<A>): action is A {
+  return action.key === component.componentKey;
+}
 
 export const MOVE_COMPONENT: ActionParserComponent<MoveAction> = {
   pattern: /^go (north|south|east|west)$/i,
@@ -329,7 +333,7 @@ export const INGEST_COMPONENT: ActionParserComponent<IngestAction> = {
           actor.effects.hunger, item.hungerRelief
         );
       }
-      return null;
+      return { log, messages };
     } else {
       throw new Error(`Tried to ingest an item that is not ingestible: '${item.name}'`);
     }

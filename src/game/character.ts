@@ -9,6 +9,7 @@ import { CharacterMap, createCharacterMap } from './map/characterMap';
 import { createItem } from './items/itemCreator';
 import * as ItemName from './items/itemName';
 import * as _ from 'lodash';
+import * as Actions from './actions';
 
 export interface Character extends Animal {
   characterClass: CharacterClass;
@@ -494,7 +495,9 @@ export function toggleIsActive(toggle: Toggle): boolean {
 }
 
 export function updateMeterCurrentValue(meter: Meter, amount: number): number {
-  return _.clamp(meter.current + amount, 0, meter.maximum);
+  const newCurrentVal = _.clamp(meter.current + amount, 0, meter.maximum);
+  meter.current = newCurrentVal;
+  return newCurrentVal;
 }
 
 export const POISONED: Effect = {
@@ -581,16 +584,14 @@ export function updateEffectMeters(character: Character): void {
   // if any of the keys were 'Rest' or 'Ingest', `performing` them would
   // set the meters back to their maximum
 
-  if (action.key !== 'Rest') {
-    character.effects.exhaustion.current = _.max([ character.effects.exhaustion.current - 1, 0 ]);
-  }
-
-  if (action.key !== 'Ingest') {
-    character.effects.hunger.current = _.max([ character.effects.hunger.current - 1, 0 ]);
-  }
-
-  if (action.key !== 'Ingest' && toggleIsActive(character.effects.addiction)) {
-    character.effects.addiction.current = _.max([ character.effects.addiction.current - 1, 0 ]);
+  if (!action) {
+    throw new Error('Tried to update character with no action!');
+  } else if (Actions.isActionTypeOf(action, Actions.REST_COMPONENT)) {
+    // TODO
+  } else if (Actions.isActionTypeOf(action, Actions.INGEST_COMPONENT)) {
+    // TODO
+  } else {
+    updateMeterCurrentValue(character.effects.exhaustion, -1);
   }
 }
 
