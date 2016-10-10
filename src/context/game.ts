@@ -33,6 +33,7 @@ export default class Game extends Context<Player.GamePlayer> {
   beasts: Animal[];
   minNumModifiers: number;
   maxNumModifiers: number;
+  seed: number;
 
   constructor(maxPlayers: number, players: Player.Player[], gameConfig: GameConfig = { seed: Date.now() }) {
     super();
@@ -40,7 +41,8 @@ export default class Game extends Context<Player.GamePlayer> {
     this.maxPlayers = maxPlayers;
 
     this.map = gameConfig.map ? gameConfig.map : TEST_PARSE_RESULT;
-    this.rng = Chance(gameConfig.seed);
+    this.seed = gameConfig.seed;
+    this.rng = Chance(this.seed);
 
     if (gameConfig.numModifiers) {
       this.minNumModifiers = gameConfig.numModifiers.minimum;

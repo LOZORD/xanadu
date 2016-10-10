@@ -5,12 +5,12 @@ import { createItem } from './items/itemCreator';
 
 export interface Inventory {
   itemStacks: ItemStack<Item>[];
-  size: number;
+  maximumCapacity: number;
 }
 
 export function createInventory(itemStacks: ItemStack<Item>[], size: number): Inventory {
   return {
-    size,
+    maximumCapacity: size,
     itemStacks: removeEmptyStacks(_.take(itemStacks, size))
   };
 }
@@ -20,7 +20,7 @@ export function inventoryIsEmpty(inventory: Inventory): boolean {
 }
 
 export function inventoryIsFull(inventory: Inventory): boolean {
-  return inventory.itemStacks.length === inventory.size;
+  return inventory.itemStacks.length === inventory.maximumCapacity;
 }
 
 export function getItem(inventory: Inventory, itemName: ItemName): ItemStack<Item> {
@@ -52,10 +52,18 @@ export function updateInventory(
 
     changeStackAmount(newStack, amount);
   } else {
-    if (!inventoryIsFull(inventory) && amount > 0) {
+    const isFull = inventoryIsFull(inventory);
+    if (!isFull && amount > 0) {
       newStack = createItemStack(createItem(itemName), amount, maxAmount);
+    } else if (isFull && amount > 0) {
+      throw new Error(
+        'Attempted to add a non-present item to a full inventory!'
+      );
     } else {
-      return inventory;
+      // amount <= 0
+      throw new Error(
+        'Attempted to update an inventory with a non-present item with a non-positive amount!'
+      );
     }
   }
 
@@ -63,7 +71,7 @@ export function updateInventory(
 
   return {
     itemStacks: newItemStacks,
-    size: inventory.size
+    maximumCapacity: inventory.maximumCapacity
   };
 }
 
@@ -78,6 +86,8 @@ export function removeFromInventory(inventory: Inventory, itemName: ItemName, am
       inventory: newInventory,
       itemStack: createItemStack(retrievedItemStack.item, amount, retrievedItemStack.maxStackAmount)
     };
+  } else {
+    throw new Error(`Attempted to remove non-present "${itemName}" from inventory!`);
   }
 }
 

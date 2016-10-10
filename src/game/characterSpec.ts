@@ -72,25 +72,6 @@ describe('Character', function () {
         expect(newExhaustion).to.eql(origExhaustion);
       });
     });
-    context('when the player did NOT rest', function () {
-      it('should decrease the exhaustion meter', function () {
-        const origExhaustion = (this.player.character as Character.Character).effects.exhaustion.current;
-
-        (this.game as Game).handleMessage({
-          content: 'go south',
-          player: this.player,
-          timestamp: Date.now()
-        });
-
-        expect(this.game.isReadyForUpdate()).to.be.true;
-
-        this.game.update();
-
-        const newExhaustion = (this.player.character as Character.Character).effects.exhaustion.current;
-
-        expect(newExhaustion).to.be.lessThan(origExhaustion);
-      });
-    });
     context('when the player ingested something that relieves hunger', function () {
       it('should not decrease their hunger meter', function () {
         (this.player.character as Character.Character).inventory = Inventory.addToInventory(
@@ -113,13 +94,96 @@ describe('Character', function () {
       });
     });
     context('when the player ingested something that relieves exhaustion', function () {
-      it('should not decrease their exhaustion meter');
+      it('should not decrease their exhaustion meter', function() {
+        (this.player.character as Character.Character).inventory = Inventory.addToInventory(
+          this.player.character.inventory, 'Cave Leaf', 1, 5
+        );
+
+        const origExhaustion = this.player.character.effects.exhaustion.current;
+
+        (this.game as Game).handleMessage({
+          content: 'eat cave leaf',
+          player: this.player,
+          timestamp: Date.now()
+        });
+
+        this.game.update();
+
+        const newExhaustion = this.player.character.effects.exhaustion.current;
+
+        expect(newExhaustion).to.eql(origExhaustion);
+      });
     });
     context('when the player is addicted and ingested something that relieves addiction', function () {
-      it('should not decrease their addiction meter');
+      it('should not decrease their addiction meter', function() {
+        (this.player.character as Character.Character).inventory = Inventory.addToInventory(
+          this.player.character.inventory, 'Cave Leaf', 1, 5
+        );
+
+        this.player.character.effects.addiction.isActive = true;
+
+        const origAddiction = this.player.character.effects.addiction.current;
+
+        (this.game as Game).handleMessage({
+          content: 'eat cave leaf',
+          player: this.player,
+          timestamp: Date.now()
+        });
+
+        this.game.update();
+
+        const newAddiction = this.player.character.effects.addiction.current;
+
+        expect(newAddiction).to.eql(origAddiction);
+      });
     });
     context('when the player did not ingest or rest', function () {
-      it('should decrease their meters');
+      function getMeters(character: Character.Character) {
+        return [
+          character.effects.addiction.current,
+          character.effects.exhaustion.current,
+          character.effects.hunger.current,
+        ];
+      }
+      it('should decrease their meters', function() {
+        const [a0, e0, h0] = getMeters(this.player.character);
+
+        this.game.handleMessage({
+          content: 'pass',
+          player: this.player,
+          timestamp: Date.now()
+        });
+
+        this.game.update();
+
+        const [a1, e1, h1] = getMeters(this.player.character);
+
+        expect(a1).to.eql(a0); // not addicted
+        expect(e1).to.be.lessThan(e0);
+        expect(h1).to.be.lessThan(h0);
+
+        this.player.character.effects.addiction.isActive = true;
+
+        this.game.handleMessage({
+          content: 'pass',
+          player: this.player,
+          timestamp: Date.now()
+        });
+
+        this.game.update();
+
+        const [a2, e2, h2] = getMeters(this.player.character);
+
+        expect(a2).to.be.lessThan(a1); // now addicted
+        expect(e2).to.be.lessThan(e1);
+        expect(h2).to.be.lessThan(h1);
+      });
+    });
+    context('when the player has no action', function() {
+      it('should throw an error', function() {
+        const badUpdate = () => Character.updateEffectMeters(this.player.character);
+        expect(badUpdate).to.throw(Error);
+      });
     });
   });
 });

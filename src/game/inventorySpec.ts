@@ -4,11 +4,11 @@ import { createItemStack } from './items/item';
 import { createItem } from './items/itemCreator';
 
 describe('Inventory', () => {
-  describe('createInvetory', () => {
+  describe('createInventory', () => {
     context('with arguments', () => {
       it('should use the arguments', () => {
         const i = Inventory.createInventory([ createItemStack(createItem('Stew'), 1) ], 1);
-        expect(i.size).to.equal(1);
+        expect(i.maximumCapacity).to.equal(1);
         expect(i.itemStacks).to.eql([ createItemStack(createItem('Stew'), 1) ]);
         expect(Inventory.inventoryIsFull(i)).to.be.true;
         expect(Inventory.hasItem(i, 'Stew')).to.be.true;
@@ -58,7 +58,7 @@ describe('Inventory', () => {
       });
     });
   });
-  describe('updateInvetory', () => {
+  describe('updateInventory', () => {
     context('when the item is already present in the inventory', () => {
       it('should update the current amount', () => {
         const i1 = Inventory.createInventory([ createItemStack(createItem('Stew'), 1, 5) ], 5);
@@ -79,21 +79,19 @@ describe('Inventory', () => {
         expect(Inventory.hasItem(i2, 'Stew')).to.be.true;
         expect(Inventory.getItem(i2, 'Stew').stackAmount).to.equal(5);
       });
-      it('should return the inventory if amount is non-positive', () => {
+      it('should throw an error if amount is non-positive', () => {
         const i1 = Inventory.createInventory([], 5);
-        const i2 = Inventory.updateInventory(i1, 'Stew', -1234);
-        // no modification
-        expect(i2.itemStacks).to.eql(i1.itemStacks);
+        const nonPosUpdate = () => Inventory.updateInventory(i1, 'Stew', -1234);
+        expect(nonPosUpdate).to.throw(Error);
       });
-      it('should return the inventory if the inventory is full', () => {
+      it('should throw an error if the inventory is full', () => {
         const i1 = Inventory.createInventory([ createItemStack(createItem('Stew'), 2, 5) ], 1);
         expect(Inventory.inventoryIsFull(i1)).to.be.true;
-        const i2 = Inventory.updateInventory(i1, 'Rifle', 1);
-        expect(i2.itemStacks).to.eql(i1.itemStacks);
-        expect(Inventory.hasItem(i2, 'Rifle')).to.be.false;
+        const fullUpdate = () => Inventory.updateInventory(i1, 'Rifle', 1);
+        expect(fullUpdate).to.throw(Error);
       });
     });
-    it('should not modify the argument invetory');
+    it('should not modify the argument inventory');
   });
   describe('toJSON', () => {
     it('should return the correct result');

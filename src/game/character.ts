@@ -591,7 +591,13 @@ export function updateEffectMeters(character: Character): void {
   } else if (Actions.isActionTypeOf(action, Actions.INGEST_COMPONENT)) {
     // TODO
   } else {
+    if (toggleIsActive(character.effects.addiction)) {
+      updateMeterCurrentValue(character.effects.addiction, -1);
+    }
+
     updateMeterCurrentValue(character.effects.exhaustion, -1);
+
+    updateMeterCurrentValue(character.effects.hunger, -1);
   }
 }
 

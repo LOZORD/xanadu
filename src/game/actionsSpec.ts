@@ -8,21 +8,21 @@ import * as Inventory from './inventory';
 import * as Stats from './stats';
 import * as Ingestible from './items/ingestible';
 
-describe('Actions', () => {
-  describe('isParsableAction', () => {
-    context('when given a valid action command', () => {
-      it('should return true', () => {
+describe('Actions', function () {
+  describe('isParsableAction', function () {
+    context('when given a valid action command', function () {
+      it('should return true', function () {
         expect(Actions.isParsableAction('go south')).to.be.true;
       });
     });
-    context('when given an invalid action command', () => {
-      it('should return false', () => {
+    context('when given an invalid action command', function () {
+      it('should return false', function () {
         // sadly false
         expect(Actions.isParsableAction('listen to 2112')).to.be.false;
       });
     });
   });
-  describe('MoveAction', () => {
+  describe('MoveAction', function () {
     // remember: we are using the test map!
     before(function () {
       this.game = new Game(8, []);
@@ -30,7 +30,7 @@ describe('Actions', () => {
       this.player.character = Character.createCharacter(this.game, this.player, this.game.map.startingPosition, 'None');
       this.game.players.push(this.player);
     });
-    describe('parse', () => {
+    describe('parse', function () {
       it('parsing should return a MoveAction', function () {
         // all locations are based off of starting position (1,1)
         const locations = {
@@ -61,8 +61,8 @@ describe('Actions', () => {
         });
       });
     });
-    describe('validate', () => {
-      context('when the move is valid', () => {
+    describe('validate', function () {
+      context('when the move is valid', function () {
         it('should have `isValid` = `true`', function () {
           const action = Actions.MOVE_COMPONENT.parse('go south', this.player.character, Date.now());
           const { isValid } = Actions.MOVE_COMPONENT.validate(action, this.game);
@@ -106,7 +106,7 @@ describe('Actions', () => {
       });
     });
   });
-  describe('PassAction', () => {
+  describe('PassAction', function () {
     before(function () {
       this.game = new Game(8, []);
       this.player = Player.createPlayer('007', 'James_Bond', 'Playing');
@@ -114,26 +114,26 @@ describe('Actions', () => {
       this.game.players.push(this.player);
     });
 
-    describe('parse', () => {
+    describe('parse', function () {
       it('parsing should return a PassAction', function () {
         const passAction = Actions.parseAction('pass', this.player.character, Date.now()) as Actions.PassAction;
         expect(passAction).to.be.ok;
       });
     });
-    describe('validate', () => {
+    describe('validate', function () {
       it('should return true', function () {
         const passAction = Actions.parseAction('pass', this.player.character, Date.now()) as Actions.PassAction;
         expect(Actions.PASS_COMPONENT.validate(passAction, this.game).isValid).to.be.true;
       });
     });
   });
-  describe('Unknown Inputs', () => {
+  describe('Unknown Inputs', function () {
     it('should return null', function () {
       const ret = Actions.parseAction('foobarbaz123', null, Date.now());
       expect(ret).to.be.null;
     });
   });
-  describe('RestAction', () => {
+  describe('RestAction', function () {
     before(function () {
       this.player = Player.createPlayer('darth', 'Darth_Vader', 'Playing');
       this.game = new Game(8, [ this.player ]);
@@ -156,14 +156,16 @@ describe('Actions', () => {
       it('should be tested!');
     });
   });
-  describe('IngestAction', () => {
+  describe('IngestAction', function () {
     beforeEach(function () {
       this.player = Player.createPlayer('007', 'James_Bond', 'Playing');
+
       this.game = new Game(8, [ this.player ]);
+
       this.player = (this.game as Game).getPlayer('007');
-      this.player.character = Character.createCharacter(
-        this.game, this.player
-      );
+
+      // make the player's character's inventory big enough for the testing items
+      (this.player.character as Character.Character).inventory.maximumCapacity = 100;
 
       this.player.character.inventory = Inventory.addToInventory(
         this.player.character.inventory, 'Stew', 3, 5
