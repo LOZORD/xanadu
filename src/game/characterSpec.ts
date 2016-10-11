@@ -3,6 +3,8 @@ import * as Character from './character';
 import * as Player from './player';
 import Game from '../context/game';
 import * as Inventory from './inventory';
+import { cloneDeep } from 'lodash';
+import { changeStats } from './stats';
 
 describe('Character', function () {
   describe('updateCharacter', function () {
@@ -36,6 +38,59 @@ describe('Character', function () {
         expect(log).to.include('James_Bond has no active effects');
       });
     });
+    context('when the character is exhausted', function () {
+      before(function () {
+        this.origStats = cloneDeep(this.player.character.stats);
+        (this.player.character as Character.Character).effects.exhaustion.current = 0;
+
+        (this.player.character as Character.Character).nextAction = {
+          actor: this.player.character,
+          timestamp: Date.now(),
+          key: 'Pass'
+        };
+
+        this.log = Character.updateCharacter(this.player.character);
+      });
+      it('should apply the negative exhaustion stat change', function () {
+        expect(this.player.character.stats).to.eql(
+          changeStats(this.origStats, Character.EXHAUSTED.statChange)
+        );
+      });
+      it('should give the proper log message', function () {
+        expect(this.log).to.contain('James_Bond is exhausted');
+      });
+    });
+    context('when the character is hungry', function () {
+      before(function () {
+        this.origStats = cloneDeep(this.player.character.stats);
+        (this.player.character as Character.Character).effects.hunger.current = 0;
+
+        (this.player.character as Character.Character).nextAction = {
+          actor: this.player.character,
+          timestamp: Date.now(),
+          key: 'Pass'
+        };
+
+        this.log = Character.updateCharacter(this.player.character);
+      });
+      it('should apply the negative hunger stat change', function () {
+        expect(this.player.character.stats).to.eql(
+          changeStats(this.origStats, Character.HUNGRY.statChange)
+        );
+      });
+      it('should give the proper log message', function () {
+        expect(this.log).to.contain('James_Bond is hungry');
+      });
+    });
+    context('when the character is poisoned', function () {
+      it('should be tested!');
+    });
+    context('when the character is immortal', function () {
+      it('should be tested!');
+    });
+    context('when the character is addicted', function () {
+      it('should be tested');
+    });
   });
   describe('updateEffectMeters', function () {
     beforeEach(function () {
@@ -47,7 +102,7 @@ describe('Character', function () {
 
       this.player.character = Character.createCharacter(this.game, this.player);
     });
-    context('when the player doesn\'t have an action', function() {
+    context('when the player doesn\'t have an action', function () {
       it('should throw an error');
     });
     context('when the player rested', function () {
@@ -94,7 +149,7 @@ describe('Character', function () {
       });
     });
     context('when the player ingested something that relieves exhaustion', function () {
-      it('should not decrease their exhaustion meter', function() {
+      it('should not decrease their exhaustion meter', function () {
         (this.player.character as Character.Character).inventory = Inventory.addToInventory(
           this.player.character.inventory, 'Cave Leaf', 1, 5
         );
@@ -115,7 +170,7 @@ describe('Character', function () {
       });
     });
     context('when the player is addicted and ingested something that relieves addiction', function () {
-      it('should not decrease their addiction meter', function() {
+      it('should not decrease their addiction meter', function () {
         (this.player.character as Character.Character).inventory = Inventory.addToInventory(
           this.player.character.inventory, 'Cave Leaf', 1, 5
         );
@@ -145,8 +200,8 @@ describe('Character', function () {
           character.effects.hunger.current,
         ];
       }
-      it('should decrease their meters', function() {
-        const [a0, e0, h0] = getMeters(this.player.character);
+      it('should decrease their meters', function () {
+        const [ a0, e0, h0 ] = getMeters(this.player.character);
 
         this.game.handleMessage({
           content: 'pass',
@@ -156,7 +211,7 @@ describe('Character', function () {
 
         this.game.update();
 
-        const [a1, e1, h1] = getMeters(this.player.character);
+        const [ a1, e1, h1 ] = getMeters(this.player.character);
 
         expect(a1).to.eql(a0); // not addicted
         expect(e1).to.be.lessThan(e0);
@@ -172,15 +227,15 @@ describe('Character', function () {
 
         this.game.update();
 
-        const [a2, e2, h2] = getMeters(this.player.character);
+        const [ a2, e2, h2 ] = getMeters(this.player.character);
 
         expect(a2).to.be.lessThan(a1); // now addicted
         expect(e2).to.be.lessThan(e1);
         expect(h2).to.be.lessThan(h1);
       });
     });
-    context('when the player has no action', function() {
-      it('should throw an error', function() {
+    context('when the player has no action', function () {
+      it('should throw an error', function () {
         const badUpdate = () => Character.updateEffectMeters(this.player.character);
         expect(badUpdate).to.throw(Error);
       });
