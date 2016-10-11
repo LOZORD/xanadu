@@ -1,6 +1,8 @@
+![MIT License](https://ucarecdn.com/71946d9b-adad-4d6e-9130-0a480ddcc553/)
+
 The MIT License (MIT)
 
-Copyright (c) 2016 Leo Rudberg
+Copyright © 2016 Leo Rudberg
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
