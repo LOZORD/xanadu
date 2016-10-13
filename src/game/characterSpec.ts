@@ -83,13 +83,53 @@ describe('Character', function () {
       });
     });
     context('when the character is poisoned', function () {
-      it('should be tested!');
+      before(function () {
+        this.origStats = cloneDeep(this.player.character.stats);
+        (this.player.character as Character.Character).effects.poison.isActive = true;
+
+        (this.player.character as Character.Character).nextAction = {
+          actor: this.player.character,
+          timestamp: Date.now(),
+          key: 'Pass'
+        };
+
+        this.log = Character.updateCharacter(this.player.character);
+      });
+      it('should apply the poisoned stat change', function () {
+        expect(this.player.character.stats).to.eql(
+          changeStats(this.origStats, Character.POISONED.statChange)
+        );
+      });
+      it('should give the proper log message', function () {
+        expect(this.log).to.contain('James_Bond is poisoned');
+      });
     });
     context('when the character is immortal', function () {
       it('should be tested!');
     });
     context('when the character is addicted', function () {
-      it('should be tested');
+      before(function () {
+        this.origStats = cloneDeep(this.player.character.stats);
+
+        this.player.character.effects.addiction.isActive = true;
+        this.player.character.effects.addiction.current = 0;
+
+        this.player.character.nextAction = {
+          actor: this.player.character,
+          timestamp: Date.now(),
+          key: 'Pass'
+        };
+
+        this.log = Character.updateCharacter(this.player.character);
+      });
+      it('should apply the addicted stat change', function () {
+        expect(this.player.character.stats).to.eql(
+          changeStats(this.origStats, Character.ADDICTED.statChange)
+        );
+      });
+      it('should give the proper log message', function () {
+        expect(this.log).to.contain('James_Bond is in withdrawal');
+      });
     });
   });
   describe('updateEffectMeters', function () {
