@@ -114,7 +114,7 @@ export type PlayerDetailsJSON = {
 export function playerDetails(player: GamePlayer): PlayerDetailsJSON {
   const ret: PlayerDetailsJSON = {
     stats: {
-      maximum: player.character.characterClass.startingStats,
+      maximum: Character.CLASS_STARTING_STATS[player.character.characterClass.className],
       current: player.character.stats
     },
     gold: player.character.goldAmount,

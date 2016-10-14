@@ -195,7 +195,9 @@ export const CLASS_PRIMORDIAL_INVENTORY_STACKS: CLASS_DICTIONARY<PrimordialStack
 export const DEFAULT_INVENTORY_SIZE = 10;
 
 export function createClassInventory(className: CharacterClassName): Inventory {
-  const primordialStacks = CLASS_PRIMORDIAL_INVENTORY_STACKS[ className ] as PrimordialStack[];
+  const primordialStacks = _.cloneDeep<PrimordialStack[]>(
+    CLASS_PRIMORDIAL_INVENTORY_STACKS[ className ]
+  );
 
   const stacks = primordialStacks.map(primordialStack => {
     const newItem = createItem(primordialStack.name);
@@ -225,8 +227,8 @@ export const CLASS_STARTING_GOLD: CLASS_DICTIONARY<number> = {
 export function createCharacterClass(className: CharacterClassName): CharacterClass {
   return {
     className: className,
-    startingStats: CLASS_STARTING_STATS[ className ],
-    startingGold: CLASS_STARTING_GOLD[ className ],
+    startingStats: _.cloneDeep<Stats>(CLASS_STARTING_STATS[ className ]),
+    startingGold: _.cloneDeep<number>(CLASS_STARTING_GOLD[ className ]),
     startingInventory: createClassInventory(className)
   };
 }
@@ -586,6 +588,8 @@ export function updateEffectMeters(character: Character): void {
 
   if (!action) {
     throw new Error('Tried to update character with no action!');
+  } else if (toggleIsActive(character.effects.immortality)) {
+    return;
   } else if (Actions.isActionTypeOf(action, Actions.REST_COMPONENT)) {
     // TODO
   } else if (Actions.isActionTypeOf(action, Actions.INGEST_COMPONENT)) {

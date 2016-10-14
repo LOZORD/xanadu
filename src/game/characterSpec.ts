@@ -105,7 +105,29 @@ describe('Character', function () {
       });
     });
     context('when the character is immortal', function () {
-      it('should be tested!');
+      before(function () {
+        this.origStats = cloneDeep(this.player.character.stats);
+        this.player.character.effects.immortality.isActive = true;
+        this.player.character.effects.exhaustion.current = 0;
+        this.player.character.effects.hunger.current = 0;
+        this.player.character.effects.poison.isActive = true;
+        this.player.character.effects.addiction.isActive = true;
+        this.player.character.effects.addiction.current = 0;
+
+        (this.player.character as Character.Character).nextAction = {
+          actor: this.player.character,
+          timestamp: Date.now(),
+          key: 'Pass'
+        };
+
+        this.log = Character.updateCharacter(this.player.character);
+      });
+      it('should not modify the character\'s stats', function () {
+        expect(this.player.character.stats).to.eql(this.origStats);
+      });
+      it('should give the proper log message', function () {
+        expect(this.log).to.contain('James_Bond is immortal');
+      });
     });
     context('when the character is addicted', function () {
       before(function () {
@@ -279,6 +301,55 @@ describe('Character', function () {
         const badUpdate = () => Character.updateEffectMeters(this.player.character);
         expect(badUpdate).to.throw(Error);
       });
+    });
+    context('when the character is immortal', function () {
+      beforeEach(function () {
+        this.player.character.effects.immortality.isActive = true;
+        this.origStats = cloneDeep(this.player.character.stats);
+        (this.game as Game).handleMessage({
+          content: 'pass',
+          player: this.player,
+          timestamp: Date.now()
+        });
+      });
+      it('should not change the stats', function () {
+        expect(this.player.character.stats).to.eql(this.origStats);
+      });
+    });
+  });
+  describe('createCharacter', function () {
+    before(function () {
+      const p1 = Player.createPlayer('1', 'Alice', 'Preparing');
+      const p2 = Player.createPlayer('2', 'Bob', 'Preparing');
+
+      this.game = new Game(8, [ p1, p2 ]);
+
+      const gp1 = (this.game as Game).getPlayer('1');
+      const gp2 = (this.game as Game).getPlayer('2');
+
+      gp1.character = Character.createCharacter(this.game, gp1, this.game.startingPosition, 'Shaman');
+      gp2.character = Character.createCharacter(this.game, gp2, this.game.startingPosition, 'Shaman');
+    });
+    it('should create distinct characters', function () {
+      const origHealth = (this.game as Game).getPlayer('1').character.stats.health;
+
+      (this.game as Game).getPlayer('1').character.stats.health -= 5;
+
+      expect(Character.CLASS_STARTING_STATS.Shaman.health).to.eql(origHealth);
+
+      const h1 = (this.game as Game).getPlayer('1').character.stats.health;
+
+      const h2 = (this.game as Game).getPlayer('2').character.stats.health;
+
+      expect(h1).to.be.lessThan(h2);
+
+      const bob = (this.game as Game).getPlayerByName('Bob');
+
+      const {inventory: newInv} = Inventory.removeFromInventory(bob.character.inventory, 'Knife', 2);
+
+      expect(Inventory.hasItem(newInv, 'Knife')).to.be.false;
+
+      expect(Inventory.hasItem(this.game.getPlayer('1').character.inventory, 'Knife')).to.be.true;
     });
   });
 });
