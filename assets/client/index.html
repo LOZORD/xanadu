@@ -1,34 +1,34 @@
 <!DOCTYPE html>
 <html lang='en'>
 
-  <head>
-    <meta charset='utf-8'>
-    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>XANADU GAME CLIENT</title>
-    <!-- CSS STYLING -->
-    <link rel='stylesheet' type='text/css' href='/bootstrap/css/bootstrap.min.css'>
-    <link href="https://fonts.googleapis.com/css?family=Nova+Mono" rel="stylesheet">
-    <link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32" />
-    <link rel="icon" type="image/png" href="favicon-16x16.png" sizes="16x16" />
-    <!--<link href="https://fonts.googleapis.com/css?family=UnifrakturCook:700" rel="stylesheet">-->
-    <link rel='stylesheet' type='text/css' href='styles/main.css'>
-    <!-- JS IMPORTS -->
-    <script src='/jquery/jquery.min.js'></script>
-    <script src='/bootstrap/js/bootstrap.min.js'></script>
-    <script src='/socket.io/socket.io.js'></script>
-    <script type='text/javascript' src='/scripts/client.js'></script>
-  </head>
+	<head>
+		<meta charset='utf-8'>
+		<meta http-equiv='X-UA-Compatible' content='IE=edge'>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>XANADU GAME CLIENT</title>
+		<!-- CSS STYLING -->
+		<link rel='stylesheet' type='text/css' href='/bootstrap/css/bootstrap.min.css'>
+		<link href="https://fonts.googleapis.com/css?family=Nova+Mono" rel="stylesheet">
+		<link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32" />
+		<link rel="icon" type="image/png" href="favicon-16x16.png" sizes="16x16" />
+		<!--<link href="https://fonts.googleapis.com/css?family=UnifrakturCook:700" rel="stylesheet">-->
+		<link rel='stylesheet' type='text/css' href='styles/main.css'>
+		<!-- JS IMPORTS -->
+		<script src='/jquery/jquery.min.js'></script>
+		<script src='/bootstrap/js/bootstrap.min.js'></script>
+		<script src='/socket.io/socket.io.js'></script>
+		<script type='text/javascript' src='/scripts/client.js'></script>
+	</head>
 
-  <body>
-    <div class='container' id='parent-container'>
-      <div class='row'>
-        <div class='col-xs-6 container' id='left-half'>
-          <div class='' id='messaging-container'>
-            <div id='messages-wrapper'>
-              <ul id='messages'>
-                <li>
-                  <pre id='logo'>
+	<body>
+		<div class='container' id='parent-container'>
+			<div class='row'>
+				<div class='col-xs-6 container' id='left-half'>
+					<div class='' id='messaging-container'>
+						<div id='messages-wrapper'>
+							<ul id='messages'>
+								<li>
+									<pre id='logo'>
              ..                                            ..
    .H88x.  :~)88:                                        dF
   x888888X ~:8888                u.    u.               '88bu.         x.    .
@@ -42,115 +42,158 @@ X888  X88888x.x"  9888  9888   "*88*" 8888" 9888  9888  .888N..888   "8888Y 8888
 X88% : '%8888"    "888*""888"    ""   'Y"   "888*""888"  `"888*""     `Y"   'YP
  "*=~    `""       ^Y"   ^Y'                 ^Y"   ^Y'      ""
                 </pre>
-                </li>
-                <li>
-                  <pre>By <a href='https://github.com/LOZORD/xanadu/graphs/contributors' target='_blank'>LOZORD et al</a> in 2016. First time playing? Read the <a href='https://github.com/LOZORD/xanadu/wiki' target='_blank'>Guide</a>!</pre>
-                </li>
-              </ul>
-            </div>
-            <div id='form-wrapper'>
-              <form action='' id='main-form'>
-                <input id='main-input' autocomplete='off'>
-              </form>
-            </div>
-          </div>
-        </div>
-        <div class='col-xs-6 container' id='right-half'>
-          <div id='player-info'>
-            <h1 id='player-info-name'>player name</h1>
-            <h2 id='player-info-class'>class name</h2>
-          </div>
-          <div id='tab-container'>
-            <ul id='tab-navs' class='nav nav-tabs nav-justified' role='tablist'>
-              <li role='presentation' class='active' id='roster-tab'>
-                <a href='#roster' aria-controls='roster' role='tab' data-toggle='tab'>
+								</li>
+								<li>
+									<pre>By <a href='https://github.com/LOZORD/xanadu/graphs/contributors' target='_blank'>LOZORD et al</a> in 2016. First time playing? Read the <a href='https://github.com/LOZORD/xanadu/wiki' target='_blank'>Guide</a>!</pre>
+								</li>
+							</ul>
+						</div>
+						<div id='form-wrapper'>
+							<form action='' id='main-form'>
+								<input id='main-input' autocomplete='off'>
+							</form>
+						</div>
+					</div>
+				</div>
+				<div class='col-xs-6 container' id='right-half'>
+					<div id='player-info'>
+						<h1 id='player-info-name'>player name</h1>
+						<h2 id='player-info-class'>class name</h2>
+					</div>
+					<div id='tab-container'>
+						<ul id='tab-navs' class='nav nav-tabs nav-justified' role='tablist'>
+							<li role='presentation' class='active' id='roster-tab'>
+								<a href='#roster' aria-controls='roster' role='tab' data-toggle='tab'>
                   Roster
                 </a>
-              </li>
-              <li role='presentation' id='game-info-tab'>
-                <a href='#game-info' aria-controls='game-info' role='tab' data-toggle='tab'>
+							</li>
+							<li role='presentation' id='game-info-tab'>
+								<a href='#game-info' aria-controls='game-info' role='tab' data-toggle='tab'>
                   Game Information
                 </a>
-              </li>
-            </ul>
-            <div class='tab-content container-fluid'>
-              <div role='tabpanel' class='tab-pane active' id='roster'>
-                <div id='roster-header'>
-                  <div class='row'>
-                    <div class='col-xs-4'><h4>Name</h4></div>
-                    <div class='col-xs-2'><h4>State</h4></div>
-                    <div class='col-xs-2'><h4>Class</h4></div>
-                    <div class='col-xs-2'><h4>Allegiance</h4></div>
-                    <div class='col-xs-2'><h4># Mdfrs</h4></div>
-                  </div>
-                </div>
-                <div id='roster-data'></div>
-              </div>
-              <div role='tabpanel' class='tab-pane' id='game-info'>
-                <div id='details-wrapper'>
-                  <pre id='details'></pre>
-                  <div class='row' id='details-stats'>
-                    <div class='col-xs-3' id='details-health'>
-                      <h3>HLT</h3>
-                      <span id='health-current'></span>/<span id='health-max'></span>
-                    </div>
-                    <div class='col-xs-3' id='details-agility'>
-                      <h3>AGL</h3>
-                      <span id='agility-current'></span>/<span id='agility-max'></span>
-                    </div>
-                    <div class='col-xs-3' id='details-intelligence'>
-                      <h3>INT</h3>
-                      <span id='intelligence-current'></span>/<span id='intelligence-max'></span>
-                    </div>
-                    <div class='col-xs-3' id='details-strength'>
-                      <h3>STR</h3>
-                      <span id='strength-current'></span>/<span id='strength-max'></span>
-                    </div>
-                  </div>
-                  <div class='row' id='modifier-and-effect-stats'>
-                    <div class='col-xs-6'>
-                      <h3>Modifiers</h3>
-                      <ul id='modifier-stats-list'>
-                        <li><strong>Some Modifier</strong>: x/y</li>
-                        <li><strong>Some Modifier</strong>: x/y</li>
-                        <li><strong>Some Modifier</strong>: x/y</li>
-                      </ul>
-                    </div>
-                    <div class='col-xs-6'>
-                      <h3>Effects</h3>
-                      <ul id='effect-stats-list'>
-                        <li>Some effect here</li>
-                        <li>Another effect</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-                <hr>
-                <div id='inventory-wrapper'>
-                  <h3>Inventory</h3>
-                  <div class='row' id='gold-row'>
-                    <div class='col-xs-3'>
-                      <h4>Gold: </h4>
-                    </div>
-                    <div class='col-xs-9'>
-                      <h4 id='gold-amount'>gold here</h4>
-                    </div>
-                  </div>
-                  <div class='row'>
-                    <div class='col-xs-12 container' id='items-wrapper'></div>
-                  </div>
-                </div>
-                <hr>
-                <div id='map-wrapper'>
-                  <h3>Map</h3>
-                  <pre id='player-map'></pre>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </body>
+							</li>
+						</ul>
+						<div class='tab-content container-fluid'>
+							<div role='tabpanel' class='tab-pane active' id='roster'>
+								<div id='roster-header'>
+									<div class='row'>
+										<div class='col-xs-4'>
+											<h4>Name</h4>
+										</div>
+										<div class='col-xs-2'>
+											<h4>State</h4>
+										</div>
+										<div class='col-xs-2'>
+											<h4>Class</h4>
+										</div>
+										<div class='col-xs-2'>
+											<h4>Allegiance</h4>
+										</div>
+										<div class='col-xs-2'>
+											<h4># Mdfrs</h4>
+										</div>
+									</div>
+								</div>
+								<div id='roster-data'></div>
+							</div>
+							<div role='tabpanel' class='tab-pane' id='game-info'>
+								<div id='details-wrapper'>
+									<pre id='details'></pre>
+									<div class='row' id='details-stats'>
+										<div class='col-xs-3' id='details-health'>
+											<h3>HLT</h3>
+											<span id='health-current'></span>/<span id='health-max'></span>
+										</div>
+										<div class='col-xs-3' id='details-agility'>
+											<h3>AGL</h3>
+											<span id='agility-current'></span>/<span id='agility-max'></span>
+										</div>
+										<div class='col-xs-3' id='details-intelligence'>
+											<h3>INT</h3>
+											<span id='intelligence-current'></span>/<span id='intelligence-max'></span>
+										</div>
+										<div class='col-xs-3' id='details-strength'>
+											<h3>STR</h3>
+											<span id='strength-current'></span>/<span id='strength-max'></span>
+										</div>
+									</div>
+									<div class='row' id='modifier-and-effect-stats'>
+										<div class='col-xs-6'>
+											<h3>Modifiers</h3>
+											<ul id='modifier-stats-list'>
+												<li><strong>Some Modifier</strong>: x/y</li>
+												<li><strong>Some Modifier</strong>: x/y</li>
+												<li><strong>Some Modifier</strong>: x/y</li>
+											</ul>
+										</div>
+										<div class='col-xs-6'>
+											<h3>Effects</h3>
+											<div id='effect-data'>
+												<div id='effect-addiction-box'>
+													<div id='effect-addiction-bar' class='progress'>
+														<div class='progress-bar' role='progressbar'>
+															Addiction
+														</div>
+													</div>
+												</div>
+												<div id='effect-exhaustion-box'>
+													<div id='effect-exhaustion-bar' class='progress'>
+														<div class='progress-bar' role='progressbar'>
+															Exhaustion
+														</div>
+													</div>
+												</div>
+												<div id='effect-hunger-box'>
+													<div id='effect-hunger-bar' class='progress'>
+														<div class='progress-bar' role='progressbar'>
+															Hunger
+														</div>
+													</div>
+												</div>
+												<div id='effect-poison-box'>
+													<div id='effect-poison-bar' class='progress'>
+														<div class='progress-bar' role='progressbar'>
+															Poison
+														</div>
+													</div>
+												</div>
+												<div id='effect-immortality-box'>
+													<div id='effect-immortality-bar' class='progress'>
+														<div class='progress-bar' role='progressbar'>
+															Immortality
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<hr>
+								<div id='inventory-wrapper'>
+									<h3>Inventory</h3>
+									<div class='row' id='gold-row'>
+										<div class='col-xs-3'>
+											<h4>Gold: </h4>
+										</div>
+										<div class='col-xs-9'>
+											<h4 id='gold-amount'>gold here</h4>
+										</div>
+									</div>
+									<div class='row'>
+										<div class='col-xs-12 container' id='items-wrapper'></div>
+									</div>
+								</div>
+								<hr>
+								<div id='map-wrapper'>
+									<h3>Map</h3>
+									<pre id='player-map'></pre>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
 
 </html>

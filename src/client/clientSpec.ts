@@ -157,6 +157,28 @@ describe('Client', () => {
         map: {
           currentPosition: TEST_PARSE_RESULT.startingPosition,
           grid: mapToRepresentations(TEST_PARSE_RESULT)
+        },
+        modifiers: [],
+        effects: {
+          addiction: {
+            isActive: false,
+            maximum: 50,
+            current: 50
+          },
+          exhaustion: {
+            maximum: 50,
+            current: 50
+          },
+          poison: {
+            isActive: false
+          },
+          immortality: {
+            isActive: false
+          },
+          hunger: {
+            current: 50,
+            maximum: 50
+          }
         }
       };
 
@@ -214,11 +236,107 @@ describe('Client', () => {
       it('should be implemented and tested!');
     });
     describe('Effects', function () {
-      it('should be implemented and tested!');
+      context('when the character is immortal', function () {
+        before(function () {
+          const newDetails: PlayerDetailsJSON = _.cloneDeep(this.TEST_DETAILS);
+
+          newDetails.effects.immortality.isActive = true;
+
+          this.immortalUpdatePromise = this.createPostUpdatePromise(newDetails);
+
+          return this.immortalUpdatePromise;
+        });
+        after(function (done) {
+          this.revertToOriginalTestDetails(done);
+        });
+        it('should show the immortality meter', function () {
+          return this.immortalUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
+            expect(elemIsVisible($selectors.effects.$immortalityBox)).to.be.true;
+            expect(
+              $selectors.effects.$immortalityBox.find('.progress-bar').width()
+            ).to.eql(100);
+            return $selectors;
+          });
+        });
+        it('should max the intransient meters', function () {
+          return this.immortalUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
+            const intransientMeters = [
+              $selectors.effects.$exhaustionBox, $selectors.effects.$hungerBox
+            ];
+
+            intransientMeters.forEach($elem => {
+              expect(elemIsVisible($elem)).to.be.true;
+              expect($elem.find('.progress-bar').width()).to.eql(100);
+            });
+
+            return $selectors;
+          });
+        });
+      });
+      context('when the character is addicted', function () {
+        before(function () {
+          this.newDetails = _.cloneDeep(this.TEST_DETAILS);
+
+          this.newDetails.effects.addiction.isActive = true;
+
+          this.addictedUpdatePromise = this.createPostUpdatePromise(this.newDetails);
+
+          return this.addictedUpdatePromise;
+        });
+        after(function (done) {
+          this.revertToOriginalTestDetails(done);
+        });
+        it('should show the addiction meter', function () {
+          return this.addictedUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
+            expect(elemIsVisible($selectors.effects.$addictionBox.find('.progress-bar'))).to.be.true;
+            return $selectors;
+          });
+        });
+        it('should have the correct amount for the addiction meter', function () {
+          return this.addictedUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
+            const expectedPercent =
+              100.0 *
+              this.newDetails.effects.addiction.current /
+              this.newDetails.effects.addiction.maximum;
+
+            expect($selectors.effects.$addictionBox.find('.progress-bar').width()).to.eql(expectedPercent);
+
+            return $selectors;
+          });
+        });
+      });
+      context('when the character is poisoned', function () {
+        before(function () {
+          this.newDetails = _.cloneDeep(this.TEST_DETAILS);
+
+          this.newDetails.effects.poison.isActive = true;
+
+          this.poisonedUpdatePromise = this.createPostUpdatePromise(this.newDetails);
+
+          return this.poisonedUpdatePromise;
+        });
+        after(function (done) {
+          this.revertToOriginalTestDetails(done);
+        });
+        it('should show the poison meter', function () {
+          return this.poisonedUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
+            expect(elemIsVisible($selectors.effects.$poisonBox.find('.progress-bar'))).to.be.true;
+
+            return $selectors;
+          });
+        });
+        it('should be set to full width (100%)', function () {
+          return this.poisonedUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
+            expect($selectors.effects.$poisonBox.find('.progress-bar').width()).to.eql(100.0);
+
+            return $selectors;
+          });
+        });
+      });
     });
     describe('Map', function () {
       context('when map data is present', function () {
-        it('should render the map', function() {
+        it('should render the map', function () {
           return this.testDetailsUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
 
             expect(elemIsVisible($selectors.$playerMap)).to.be.true;
@@ -229,7 +347,7 @@ describe('Client', () => {
             const expectedMap = mapToRepresentations(TEST_PARSE_RESULT) as string[][];
 
             // add the "current position" marker to the map
-            expectedMap[TEST_PARSE_RESULT.startingPosition.row][TEST_PARSE_RESULT.startingPosition.col] = '*';
+            expectedMap[ TEST_PARSE_RESULT.startingPosition.row ][ TEST_PARSE_RESULT.startingPosition.col ] = '*';
 
             const expectedText = expectedMap.map(row => row.join('')).join('');
 
@@ -240,14 +358,14 @@ describe('Client', () => {
         });
       });
       context('when map data is NOT present', function () {
-        before(function() {
+        before(function () {
           const detailsWithoutMap = _.extend({}, this.TEST_DETAILS, { map: null });
           this.hiddenMapPromise = this.createPostUpdatePromise(detailsWithoutMap);
         });
-        after(function(done) {
+        after(function (done) {
           this.revertToOriginalTestDetails(done);
         });
-        it('should hide the map', function() {
+        it('should hide the map', function () {
           return this.hiddenMapPromise.then(($selectors: Client.JQueryDetailSelectors) => {
             expect(elemIsHidden($selectors.$playerMap));
             expect(normalize($selectors.$playerMap.text())).to.equal('');

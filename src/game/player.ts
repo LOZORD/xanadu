@@ -101,8 +101,8 @@ export type PlayerDetailsJSON = {
     maximum: Stats; // Stats should be inherently 'JSON'
     current: Stats;
   }
-  // TODO: modifiers
-  // TODO: effects
+  modifiers: Character.ModifierName[],
+  effects: Character.CharacterEffects,
   map?: {
     currentPosition: Position,
     grid: CellRepresentation[][]
@@ -117,6 +117,8 @@ export function playerDetails(player: GamePlayer): PlayerDetailsJSON {
       maximum: Character.CLASS_STARTING_STATS[player.character.characterClass.className],
       current: player.character.stats
     },
+    modifiers: Character.getActiveModifierNames(player.character.modifiers),
+    effects: player.character.effects,
     gold: player.character.goldAmount,
     items: inventoryToJSON(player.character.inventory)
   };

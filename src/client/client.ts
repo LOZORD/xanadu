@@ -26,7 +26,13 @@ export type JQueryDetailSelectors = {
     $strength: JQuery;
   }
   $modifiers: JQuery;
-  $effects: JQuery;
+  effects: {
+    $addictionBox: JQuery;
+    $exhaustionBox: JQuery;
+    $hungerBox: JQuery;
+    $immortalityBox: JQuery;
+    $poisonBox: JQuery;
+  };
   $mapWrapper: JQuery;
   $playerMap: JQuery;
   $goldAmount: JQuery;
@@ -201,7 +207,7 @@ export function addMessage(viewMessage: ViewMessage, $: JQueryCreator): JQueryCr
   const $messageInput = $('#main-input');
 
   $messageOutput.append($newMessage);
-  $messageOutput.parent().animate({scrollTop: $messageOutput.height()}, 150);
+  $messageOutput.parent().animate({ scrollTop: $messageOutput.height() }, 150);
 
   $messageInput.focus();
 
@@ -223,7 +229,13 @@ export function createSelectors($: JQueryCreator): JQueryDetailSelectors {
       $strength: $('#strength-max')
     },
     $modifiers: $('#modifier-stats-list'),
-    $effects: $('#effect-stats-list'),
+    effects: {
+      $addictionBox: $('#effect-addiction-box'),
+      $exhaustionBox: $('#effect-exhaustion-box'),
+      $hungerBox: $('#effect-hunger-box'),
+      $immortalityBox: $('#effect-immortality-box'),
+      $poisonBox: $('#effect-poison-box')
+    },
     $mapWrapper: $('#map-wrapper'),
     $playerMap: $('#player-map'),
     $goldAmount: $('#gold-amount'),
@@ -319,21 +331,71 @@ export function updateDetails($selectors: JQueryDetailSelectors, data: PlayerDet
   }
   */
 
-  // TODO: effects
-  /*
-  if (data.effects) {
-    $('#effect-stats-list').empty();
-    data.effects.sort().forEach((effect) => {
-      $('#effect-stats-list').append(
-        `<li><strong>${ effect }</strong></li>`
-      );
+  // effects
+
+  const PROGRESS_BAR_CLASS = '.progress-bar';
+
+  // immortality
+  if (data.effects.immortality.isActive) {
+    updateProgressBar(
+      $selectors.effects.$immortalityBox.find(PROGRESS_BAR_CLASS), 1, 1, false
+    );
+
+    $selectors.effects.$immortalityBox.show();
+
+    [
+      $selectors.effects.$addictionBox,
+      $selectors.effects.$exhaustionBox,
+      $selectors.effects.$hungerBox
+    ].forEach($box => {
+      updateProgressBar($box.find(PROGRESS_BAR_CLASS), 1, 1, false);
     });
+
+    $selectors.effects.$addictionBox.hide();
+    $selectors.effects.$poisonBox.hide();
   } else {
-    $('#effect-stats-list')
-      .empty()
-      .html('<li>No active effects</li>');
+    $selectors.effects.$immortalityBox.hide();
+
+    // addiction
+    if (data.effects.addiction.isActive) {
+      updateProgressBar(
+        $selectors.effects.$addictionBox.find(PROGRESS_BAR_CLASS),
+        data.effects.addiction.current,
+        data.effects.addiction.maximum
+      );
+      $selectors.effects.$addictionBox.show();
+    } else {
+      $selectors.effects.$addictionBox.hide();
+    }
+
+    // exhaustion
+    updateProgressBar(
+      $selectors.effects.$exhaustionBox.find(PROGRESS_BAR_CLASS),
+      data.effects.exhaustion.current,
+      data.effects.exhaustion.maximum
+    );
+
+    // hunger
+    updateProgressBar(
+      $selectors.effects.$hungerBox.find(PROGRESS_BAR_CLASS),
+      data.effects.hunger.current,
+      data.effects.hunger.maximum
+    );
+
+    // poison
+    if (data.effects.poison.isActive) {
+      updateProgressBar(
+        $selectors.effects.$poisonBox.find(PROGRESS_BAR_CLASS), 1, 1
+      );
+
+      $selectors.effects.$poisonBox.show();
+    } else {
+      $selectors.effects.$poisonBox.hide();
+      updateProgressBar(
+        $selectors.effects.$poisonBox.find(PROGRESS_BAR_CLASS), 0, 1
+      );
+    }
   }
-  */
 
   // map
   if (data.map) {
@@ -389,6 +451,33 @@ export function updateDetails($selectors: JQueryDetailSelectors, data: PlayerDet
   }
 
   return $selectors;
+}
+
+export function updateProgressBar($bar: JQuery, current: number, maximum: number, colorize = true): void {
+  const percent = 100.0 * current / maximum;
+  const percStr = percent.toString() + '%';
+
+  let color: string;
+
+  if (colorize) {
+    if (percent > 75) {
+      color = 'var(--xanadu-green)';
+    } else if (percent > 50) {
+      color = 'var(--xanadu-yellow)';
+    } else if (percent > 25) {
+      color = 'var(--xanadu-orange)';
+    } else {
+      color = 'var(--xanadu-red)';
+    }
+  } else {
+    color = 'var(--xanadu-white)';
+  }
+
+  $bar.css({
+    'width': percStr,
+    'color': color,
+    'border-color': color
+  });
 }
 
 export function updatePlayerInfo({ playerName, className }: PlayerInfo, $: JQueryCreator): void {
@@ -452,7 +541,7 @@ export function updateRoster(rosterData: PlayerRosterJSON[], $: JQueryCreator): 
             ${ rosterEntry.state}
           </div>
           <div class='col-xs-2'>
-            ${ classNameToString(rosterEntry.characterClass).substring(0,3).toUpperCase()}
+            ${ classNameToString(rosterEntry.characterClass).substring(0, 3).toUpperCase()}
           </div>
           <div class='col-xs-2'>
             ${ allegianceToString(rosterEntry.allegiance)}

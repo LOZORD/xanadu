@@ -223,6 +223,16 @@ body {
   content: '>';
 }*/
 
+#effect-data div.progress {
+  background-color: var(--xanadu-black);
+}
+
+#effect-data div.progress-bar {
+  background-color: var(--xanadu-black);
+  border-bottom: 2px solid var(--xanadu-white);
+  color: var(--xanadu-white);
+}
+
 #player-map {
   overflow: scroll;
   background-color: var(--xanadu-black);
