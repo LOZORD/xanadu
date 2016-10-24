@@ -160,13 +160,13 @@ export default class Game extends Context<Player.GamePlayer> {
   getSortedActions(): Actions.Action[] {
     if (this.isReadyForUpdate()) {
 
-      function getAgility(action: Actions.Action): number {
+      const getAgility = (action: Actions.Action) => {
         return action.actor.stats.agility;
-      }
+      };
 
-      function getTimestamp(action: Actions.Action): number {
+      const getTimestamp = (action: Actions.Action) => {
         return action.timestamp;
-      }
+      };
 
       const playerActions = this.players.map(player => player.character.nextAction);
 
