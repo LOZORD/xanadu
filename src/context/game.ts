@@ -21,7 +21,7 @@ export type GameConfig = {
     minimum: number;
     maximum: number;
   };
-  seed?: Seed
+  seed: Seed
 };
 
 export default class Game extends Context<Player.GamePlayer> {
@@ -89,19 +89,33 @@ export default class Game extends Context<Player.GamePlayer> {
     } else if (_.startsWith(content, '/')) {
       const messageNameSpan = Messaging.spanMessagePlayerNames(content, this.players);
 
-      let toPlayers: Player.GamePlayer[];
+      const toPlayers: Player.GamePlayer[] = [];
 
       if (_.startsWith(content, '/s ')) {
-        toPlayers = [];
         this.getNearbyAnimals(player.character).forEach(animal => {
+          // do we even need to send a message?
           if (Character.isPlayerCharacter(animal)) {
-            if (animal.player !== player) {
-              toPlayers.push(animal.player);
+            // don't send a shout to the shouter!
+            if (animal.playerId !== player.id) {
+              const maybePlayer = this.getPlayer(animal.playerId);
+              if (maybePlayer) {
+                toPlayers.push(maybePlayer);
+              } else {
+                throw new Error(`Got a bad or missing id: ${ animal.playerId }`);
+              }
             }
           }
         });
       } else {
-        toPlayers = messageNameSpan.names.map(name => this.getPlayerByName(name));
+        messageNameSpan.names.forEach(name => {
+          const maybePlayer = this.getPlayerByName(name);
+
+          if (maybePlayer) {
+            toPlayers.push(maybePlayer);
+          } else {
+            // do nothing
+          }
+        });
       }
 
       const [ yesComm, noComm ] = _.partition(toPlayers, otherPlayer => Player.canCommunicate(player, otherPlayer));
@@ -170,7 +184,8 @@ export default class Game extends Context<Player.GamePlayer> {
 
       const playerActions = this.players.map(player => player.character.nextAction);
 
-      return _.orderBy(playerActions, [ getAgility, getTimestamp ], [ 'desc', 'asc' ]);
+      // if we've gotten here, NO player action is null
+      return _.orderBy(playerActions as Actions.Action[], [ getAgility, getTimestamp ], [ 'desc', 'asc' ]);
     } else {
       return [];
     }
@@ -222,39 +237,31 @@ export default class Game extends Context<Player.GamePlayer> {
     if (Player.isGamePlayer(player)) {
       return player;
     } else if (Player.isLobbyPlayer(player)) {
-      const newGamePlayer = {
-        id: player.id,
-        name: player.name,
-        state: 'Playing' as Player.PlayerState,
-        character: null
-      };
-
       const character = Character.createCharacter(
-        this, newGamePlayer, this.map.startingPosition,
+        this, player.id, this.map.startingPosition,
         player.primordialCharacter.className,
         player.primordialCharacter.allegiance,
         this.generateModifiers(player.primordialCharacter.numModifiers)
       );
 
-      newGamePlayer.character = character;
-
-      return newGamePlayer;
-    } else {
-      const newGamePlayer = {
+      return {
         id: player.id,
         name: player.name,
-        state: player.state,
-        character: null
+        state: 'Playing',
+        character: character
       };
-
+    } else {
       const character = Character.createCharacter(
-        this, newGamePlayer, this.map.startingPosition,
+        this, player.id, this.map.startingPosition,
         'None', 'None', Character.createEmptyModifiers()
       );
 
-      newGamePlayer.character = character;
-
-      return newGamePlayer;
+      return {
+        id: player.id,
+        name: player.name,
+        state: player.state,
+        character: character
+      };
     }
   }
 

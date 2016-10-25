@@ -21,11 +21,11 @@ export abstract class Context<P extends Player> {
   players: P[];
   maxPlayers: number;
 
-  getPlayer(id: string): P {
+  getPlayer(id: string): P | undefined {
     return _.find(this.players, (player) => player.id === id);
   }
 
-  getPlayerByName(name: string): P {
+  getPlayerByName(name: string): P | undefined {
     return _.find(this.players, (player) => player.name === name);
   }
 
@@ -47,14 +47,14 @@ export abstract class Context<P extends Player> {
     }
   }
 
-  removePlayer(id: string): P {
+  removePlayer(id: string): P | undefined {
     const removedPlayer = this.getPlayer(id);
     this.players = _.filter(this.players, p => p.id !== id);
     return removedPlayer;
   }
 
   updatePlayer(id: string, update: { state?: Player.PlayerState, name?: string }): void {
-    const player = _.find(this.players, p => p.id === id);
+    const player = this.getPlayer(id);
 
     if (!player) {
       throw new Error('Could not find player to update with id: ' + id);
