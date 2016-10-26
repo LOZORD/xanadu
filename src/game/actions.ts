@@ -33,7 +33,7 @@ export type PerformResult = {
 
 export interface ActionParserComponent<A extends Action> {
   pattern: RegExp;
-  parse: (text: string, actor: Animal, timestamp: number) => (A | null);
+  parse: (text: string, actor: Animal, timestamp: number) => A;
   validate: (action: A, gameContext: Game) => ValidationResult;
   perform: (action: A, game: Game, log: string[]) => PerformResult;
   componentKey: ComponentKey;
@@ -63,7 +63,7 @@ export const MOVE_COMPONENT: ActionParserComponent<MoveAction> = {
     const matches = text.match(this.pattern);
 
     if (!matches) {
-      return null;
+      throw new Error(`Unable to parse MoveAction: ${text}`);
     } else {
       const dir = matches[ 1 ].toLowerCase();
 
@@ -84,7 +84,7 @@ export const MOVE_COMPONENT: ActionParserComponent<MoveAction> = {
       } else if (dir === 'east') {
         ret.offsetCol = 1;
       } else {
-        return null;
+        throw new Error(`Unknown direction: ${dir}`);
       }
 
       return ret;
@@ -261,7 +261,7 @@ export const INGEST_COMPONENT: ActionParserComponent<IngestAction> = {
     const matches = text.match(this.pattern);
 
     if (!matches) {
-      return null;
+      throw new Error(`Could not parse IngestAction: ${text}`);
     } else {
       const ingestibleInput = matches[ 2 ].toLowerCase();
 
@@ -273,7 +273,7 @@ export const INGEST_COMPONENT: ActionParserComponent<IngestAction> = {
           key: 'Ingest'
         };
       } else {
-        return null;
+        throw new Error(`Attempted to ingest a non-ingestible: ${ingestibleInput}`);
       }
     }
   },
@@ -402,8 +402,14 @@ export function getComponentByText<A extends Action>(text: string): (ActionParse
   return _.find(PARSERS, comp => comp.pattern.test(text));
 }
 
-export function getComponentByKey<A extends Action>(key: ComponentKey): (ActionParserComponent<Action> | undefined) {
-  return PARSERS[ key ];
+export function getComponentByKey<A extends Action>(key: ComponentKey): ActionParserComponent<Action> {
+  const component = PARSERS[ key ];
+
+  if (component) {
+    return component;
+  } else {
+    throw new Error(`Could not retrieve component for key: ${key}`);
+  }
 }
 
 export function isParsableAction(text: string): boolean {

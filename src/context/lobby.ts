@@ -133,11 +133,11 @@ export function parsePrimordialCharacter(
 ): {
     log: string[], primordialCharacter: Character.PrimordialCharacter
   } {
-  const log = [];
+  const log: string[] = [];
   let primordialCharacter: Character.PrimordialCharacter = {
-    className: null,
-    allegiance: null,
-    numModifiers: null
+    className: 'None',
+    allegiance: 'None',
+    numModifiers: 0
   };
 
   if (splitReadyCommand[ 0 ].toLowerCase() !== 'ready') {
