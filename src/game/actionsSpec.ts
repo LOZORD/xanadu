@@ -129,7 +129,20 @@ describe('Actions', function () {
   });
   describe('Unknown Inputs', function () {
     it('should return null', function () {
-      const ret = Actions.parseAction('foobarbaz123', null, Date.now());
+      const someAnimal = {
+        stats: {
+          health: 0,
+          intelligence: 0,
+          strength: 0,
+          agility: 0
+        },
+        inventory: Inventory.createInventory([], 1),
+        nextAction: null,
+        row: -1,
+        col: -1
+      };
+
+      const ret = Actions.parseAction('foobarbaz123', someAnimal, Date.now());
       expect(ret).to.be.null;
     });
   });

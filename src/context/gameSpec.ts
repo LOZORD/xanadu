@@ -257,6 +257,10 @@ describe('Game', () => {
       const p1 = game.getPlayer('007');
       const p2 = game.getPlayer('008');
 
+      if (!p1 || !p2) {
+        throw new Error('Test players not present!');
+      }
+
       p1.character.nextAction = {
         timestamp: Date.now(),
         actor: p1.character,
@@ -307,7 +311,7 @@ describe('Game', () => {
       this.player2 = (this.game as Game).getPlayer('456');
       this.player3 = (this.game as Game).getPlayer('789');
 
-      (this.game as Game).getPlayer('123').character.stats = {
+      this.player1.character.stats = {
         health: 50,
         intelligence: 50,
         strength: 50,
@@ -345,7 +349,7 @@ describe('Game', () => {
       this.sortedActions = (this.game as Game).getSortedActions();
     });
     it('should sort first by player agility', function () {
-      expect(((this.sortedActions)[ 0 ].actor as Character.Character).player.id).to.eql(this.player1.id);
+      expect(((this.sortedActions)[ 0 ].actor as Character.Character).playerId).to.eql(this.player1.id);
     });
     it('should sort second by timestamp', function () {
       expect(this.sortedActions[ 1 ].actor.player.id).to.equal(this.player3.id);
@@ -361,12 +365,18 @@ describe('Game', () => {
         numModifiers: {
           maximum: Character.MAX_NUM_MODIFIERS,
           minimum: 0
-        }
+        },
+        seed: Date.now()
       });
     });
     context('when given a GamePlayer', function() {
       it('should return the player', function() {
         const gamePlayer = (this.game as Game).getPlayer('123');
+
+        if (!gamePlayer) {
+          throw new Error('Test player not present!');
+        }
+
         expect((this.game as Game).convertPlayer(gamePlayer)).to.eql(gamePlayer);
       });
     });
