@@ -193,10 +193,13 @@ describe('Actions', function () {
         });
       });
       context('when given a non-ingestible', function () {
-        it('should return null', function () {
-          const parse = Actions.INGEST_COMPONENT.parse('quaff pickaxe', this.player.character, Date.now());
+        it('should throw an error', function () {
+          const parse = () =>
+            Actions.INGEST_COMPONENT.parse(
+              'quaff pickaxe', this.player.character, Date.now()
+            );
 
-          expect(parse).to.be.null;
+          expect(parse).to.throw('Could not parse');
         });
       });
     });

@@ -352,8 +352,8 @@ describe('Game', () => {
       expect(((this.sortedActions)[ 0 ].actor as Character.Character).playerId).to.eql(this.player1.id);
     });
     it('should sort second by timestamp', function () {
-      expect(this.sortedActions[ 1 ].actor.player.id).to.equal(this.player3.id);
-      expect(this.sortedActions[ 2 ].actor.player.id).to.equal(this.player2.id);
+      expect(this.sortedActions[ 1 ].actor.playerId).to.equal(this.player3.id);
+      expect(this.sortedActions[ 2 ].actor.playerId).to.equal(this.player2.id);
     });
   });
 

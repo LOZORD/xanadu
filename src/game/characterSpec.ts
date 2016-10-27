@@ -33,7 +33,7 @@ describe('Character', function () {
         };
       });
       it('should return the proper log message', function () {
-        const log = Character.updateCharacter(this.player.character);
+        const log = Character.updateCharacter(this.player.character, 'James_Bond');
 
         expect(log).to.include('James_Bond has no active effects');
       });
@@ -49,7 +49,7 @@ describe('Character', function () {
           key: 'Pass'
         };
 
-        this.log = Character.updateCharacter(this.player.character);
+        this.log = Character.updateCharacter(this.player.character, 'James_Bond');
       });
       it('should apply the negative exhaustion stat change', function () {
         expect(this.player.character.stats).to.eql(
@@ -71,7 +71,7 @@ describe('Character', function () {
           key: 'Pass'
         };
 
-        this.log = Character.updateCharacter(this.player.character);
+        this.log = Character.updateCharacter(this.player.character, 'James_Bond');
       });
       it('should apply the negative hunger stat change', function () {
         expect(this.player.character.stats).to.eql(
@@ -93,7 +93,7 @@ describe('Character', function () {
           key: 'Pass'
         };
 
-        this.log = Character.updateCharacter(this.player.character);
+        this.log = Character.updateCharacter(this.player.character, 'James_Bond');
       });
       it('should apply the poisoned stat change', function () {
         expect(this.player.character.stats).to.eql(
@@ -120,7 +120,7 @@ describe('Character', function () {
           key: 'Pass'
         };
 
-        this.log = Character.updateCharacter(this.player.character);
+        this.log = Character.updateCharacter(this.player.character, 'James_Bond');
       });
       it('should not modify the character\'s stats', function () {
         expect(this.player.character.stats).to.eql(this.origStats);
@@ -142,7 +142,7 @@ describe('Character', function () {
           key: 'Pass'
         };
 
-        this.log = Character.updateCharacter(this.player.character);
+        this.log = Character.updateCharacter(this.player.character, 'James_Bond');
       });
       it('should apply the addicted stat change', function () {
         expect(this.player.character.stats).to.eql(
