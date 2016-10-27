@@ -15,12 +15,30 @@ export interface PartialStats {
 }
 
 export function partialStatsToCompleteStats(partial: PartialStats): Stats {
-  return {
-    health: _.isFinite(partial.health) ? partial.health : 0,
-    strength: _.isFinite(partial.strength) ? partial.strength : 0,
-    intelligence: _.isFinite(partial.intelligence) ? partial.intelligence : 0,
-    agility: _.isFinite(partial.agility) ? partial.agility : 0
+  const ret: Stats = {
+    health: 0,
+    strength: 0,
+    intelligence: 0,
+    agility: 0
   };
+
+  if (partial.health !== undefined && _.isFinite(partial.health)) {
+    ret.health = partial.health;
+  }
+
+  if (partial.intelligence !== undefined && _.isFinite(partial.intelligence)) {
+    ret.intelligence = partial.intelligence;
+  }
+
+  if (partial.strength !== undefined && _.isFinite(partial.strength)) {
+    ret.strength = partial.strength;
+  }
+
+  if (partial.agility !== undefined && _.isFinite(partial.agility)) {
+    ret.agility = partial.agility;
+  }
+
+  return ret;
 }
 
 export function changeStats(
