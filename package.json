@@ -9,12 +9,12 @@
     "bin": "dist"
   },
   "scripts": {
-    "lint": "node $(npm bin)/tslint src/**/*.ts",
-    "build": "node $(npm bin)/tsc",
+    "lint": "tslint src/**/*.ts",
+    "build": "tsc",
     "clean": "rm -rf dist/",
     "test:only": "node dist/test.js",
     "test:quick": "npm run build && npm run test:only",
-    "test:cover": "node $(npm bin)/istanbul cover 'dist/test.js' --include-all-sources --root 'dist' -x 'test.js' -x '**/*Spec.js'",
+    "test:cover": "istanbul cover dist/test.js --include-all-sources --root dist -x test.js -x **/*Spec.js",
     "test:full": "npm run clean && npm run lint && npm run build && npm run test:cover",
     "test": "npm run test:full",
     "launch": "node dist/main.js --with-defaults --port 3000",

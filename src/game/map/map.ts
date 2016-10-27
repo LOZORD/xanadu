@@ -1,4 +1,5 @@
 import { Position, Cell, isRoom, CellRepresentation } from './cell';
+import { EOL } from 'os';
 
 // TODO: use grid.ts
 
@@ -21,7 +22,7 @@ export function mapToRepresentations(map: Map): CellRepresentation[][] {
 }
 
 export function mapToString(map: Map): string {
-    return mapToRepresentations(map).map(row => row.join('')).join('\n');
+    return mapToRepresentations(map).map(row => row.join('')).join(EOL);
 }
 
 export function getCell(map: Map, { row, col }: Position): Cell {

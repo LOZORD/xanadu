@@ -1,7 +1,8 @@
 import * as _ from 'lodash';
 import { readFileSync } from 'fs';
 import * as path from 'path';
-import { Map, isWithinMap } from './map';
+import { EOL } from 'os';
+import { Map } from './map';
 import * as Cell from './cell';
 
 interface PrimordialMap {
@@ -11,7 +12,7 @@ interface PrimordialMap {
 
 export function gridRowsFromFile(fileName: string): PrimordialMap {
   const rawContents = readFileSync(fileName, 'utf8');
-  const lines = rawContents.trim().split('\n');
+  const lines = rawContents.trim().split(EOL);
   const firstLine = _.head(lines);
   const gridRows = _.tail(lines);
 

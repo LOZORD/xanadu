@@ -10,4 +10,3 @@ export interface CampSupplies extends Item {
 export const CAMP_SUPPLIES: CampSupplies = {
   name: 'Camp Supplies'
 };
-
