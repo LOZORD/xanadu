@@ -162,7 +162,7 @@ describe('Character', function () {
 
       this.player = (this.game as Game).getPlayer('404');
 
-      this.player.character = Character.createCharacter(this.game, this.player);
+      this.player.character = Character.createCharacter(this.game, this.player.id);
     });
     context('when the player doesn\'t have an action', function () {
       it('should throw an error');

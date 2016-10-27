@@ -131,7 +131,7 @@ export const MOVE_COMPONENT: ActionParserComponent<MoveAction> = {
       const player = game.getPlayer(move.actor.playerId);
 
       if (!player) {
-        throw new Error('Tried to move a non-present player!');
+        throw new Error(`Tried to move a non-present player! Id: ${move.actor.playerId}`);
       }
 
       log.push(`${player.name} from ${JSON.stringify(oldPos)} to ${JSON.stringify(newPos)}`);
@@ -178,7 +178,7 @@ export const PASS_COMPONENT: ActionParserComponent<PassAction> = {
       if (player) {
         messages.push(Messaging.createGameMessage('You performed no action.', [ player ]));
       } else {
-        throw new Error('A non-present player tried to perform a pass action!');
+        throw new Error(`A non-present player tried to perform a pass action! Id: ${passAction.actor.playerId}`);
       }
     }
 
@@ -233,7 +233,7 @@ export const REST_COMPONENT: ActionParserComponent<RestAction> = {
       const player = game.getPlayer(actor.playerId);
 
       if (!player) {
-        throw new Error('Tried to perform a RestAction with a non-present player!');
+        throw new Error(`Tried to perform a RestAction with a non-present player! Id: ${actor.playerId}`);
       }
 
       if (wasExhausted) {
@@ -316,7 +316,7 @@ export const INGEST_COMPONENT: ActionParserComponent<IngestAction> = {
         const player = game.getPlayer(actor.playerId);
 
         if (!player) {
-          throw new Error('Tried to perform an IngestAction with a non-present player!');
+          throw new Error(`Tried to perform an IngestAction with a non-present player! Id: ${actor.playerId}`);
         }
 
         if (item.curesPoisoning && actor.effects.poison.isActive) {
