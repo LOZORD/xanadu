@@ -247,7 +247,7 @@ describe('Lobby', () => {
   });
 
   describe('parsePrimordialCharacter', function () {
-    before(function () {
+    beforeEach(function () {
       const player: LobbyPlayer = {
         id: '007',
         name: 'James_Bond',
@@ -255,7 +255,7 @@ describe('Lobby', () => {
         primordialCharacter: {
           className: 'Excavator',
           allegiance: 'Eastern',
-          numModifiers: 0
+          numModifiers: 1
         }
       };
 
@@ -279,6 +279,18 @@ describe('Lobby', () => {
       ).primordialCharacter;
 
       expect(newPC).to.eql(primordialCharacter);
+    });
+    it('should set the number of modifiers to zero if reset', function () {
+      const command = 'ready m=0';
+
+      const { log, primordialCharacter } = parsePrimordialCharacter(
+        command.split(' '), (this.player as LobbyPlayer).primordialCharacter
+      );
+
+      expect(log).to.be.empty;
+      expect(primordialCharacter.className).to.eql('Excavator');
+      expect(primordialCharacter.allegiance).to.eql('Eastern');
+      expect(primordialCharacter.numModifiers).to.eql(0);
     });
   });
 });
