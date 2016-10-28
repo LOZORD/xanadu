@@ -18,13 +18,11 @@ Contributions welcome!
 Make sure you have
 - [Node](https://nodejs.org)
 - [npm](https://npmjs.com)
-- [Typings](https://github.com/typings/typings)
 
 Then, run the following commands in the terminal:
 
 ```bash
 $ npm install
-$ typings install
 $ npm run now
 ```
 
@@ -34,6 +32,8 @@ First, make sure the `--debug` flag is passed when starting the server:
 
 ```bash
 $ npm run launch -- --debug
+# or
+$ npm run launch:debug
 ```
 
 To access the `debug` page (in the browser), visit
