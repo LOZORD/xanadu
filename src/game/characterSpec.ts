@@ -33,7 +33,7 @@ describe('Character', function () {
         };
       });
       it('should return the proper log message', function () {
-        const log = Character.updateCharacter(this.player.character);
+        const log = Character.updateCharacter(this.player.character, 'James_Bond');
 
         expect(log).to.include('James_Bond has no active effects');
       });
@@ -49,7 +49,7 @@ describe('Character', function () {
           key: 'Pass'
         };
 
-        this.log = Character.updateCharacter(this.player.character);
+        this.log = Character.updateCharacter(this.player.character, 'James_Bond');
       });
       it('should apply the negative exhaustion stat change', function () {
         expect(this.player.character.stats).to.eql(
@@ -71,7 +71,7 @@ describe('Character', function () {
           key: 'Pass'
         };
 
-        this.log = Character.updateCharacter(this.player.character);
+        this.log = Character.updateCharacter(this.player.character, 'James_Bond');
       });
       it('should apply the negative hunger stat change', function () {
         expect(this.player.character.stats).to.eql(
@@ -93,7 +93,7 @@ describe('Character', function () {
           key: 'Pass'
         };
 
-        this.log = Character.updateCharacter(this.player.character);
+        this.log = Character.updateCharacter(this.player.character, 'James_Bond');
       });
       it('should apply the poisoned stat change', function () {
         expect(this.player.character.stats).to.eql(
@@ -120,7 +120,7 @@ describe('Character', function () {
           key: 'Pass'
         };
 
-        this.log = Character.updateCharacter(this.player.character);
+        this.log = Character.updateCharacter(this.player.character, 'James_Bond');
       });
       it('should not modify the character\'s stats', function () {
         expect(this.player.character.stats).to.eql(this.origStats);
@@ -142,7 +142,7 @@ describe('Character', function () {
           key: 'Pass'
         };
 
-        this.log = Character.updateCharacter(this.player.character);
+        this.log = Character.updateCharacter(this.player.character, 'James_Bond');
       });
       it('should apply the addicted stat change', function () {
         expect(this.player.character.stats).to.eql(
@@ -162,7 +162,7 @@ describe('Character', function () {
 
       this.player = (this.game as Game).getPlayer('404');
 
-      this.player.character = Character.createCharacter(this.game, this.player);
+      this.player.character = Character.createCharacter(this.game, this.player.id);
     });
     context('when the player doesn\'t have an action', function () {
       it('should throw an error');
@@ -327,29 +327,44 @@ describe('Character', function () {
       const gp1 = (this.game as Game).getPlayer('1');
       const gp2 = (this.game as Game).getPlayer('2');
 
-      gp1.character = Character.createCharacter(this.game, gp1, this.game.startingPosition, 'Shaman');
-      gp2.character = Character.createCharacter(this.game, gp2, this.game.startingPosition, 'Shaman');
+      if (gp1 && gp2) {
+        gp1.character = Character.createCharacter(this.game, gp1.id, this.game.startingPosition, 'Shaman');
+        gp2.character = Character.createCharacter(this.game, gp2.id, this.game.startingPosition, 'Shaman');
+      } else {
+        throw new Error('Test players are not present!');
+      }
     });
     it('should create distinct characters', function () {
-      const origHealth = (this.game as Game).getPlayer('1').character.stats.health;
+      const gp1 = (this.game as Game).getPlayer('1');
+      const gp2 = (this.game as Game).getPlayer('2');
 
-      (this.game as Game).getPlayer('1').character.stats.health -= 5;
+      if (gp1 && gp2) {
+        const origHealth = gp1.character.stats.health;
 
-      expect(Character.CLASS_STARTING_STATS.Shaman.health).to.eql(origHealth);
+        gp1.character.stats.health -= 5;
 
-      const h1 = (this.game as Game).getPlayer('1').character.stats.health;
+        expect(Character.CLASS_STARTING_STATS.Shaman.health).to.eql(origHealth);
 
-      const h2 = (this.game as Game).getPlayer('2').character.stats.health;
+        const h1 = gp1.character.stats.health;
 
-      expect(h1).to.be.lessThan(h2);
+        const h2 = gp2.character.stats.health;
 
-      const bob = (this.game as Game).getPlayerByName('Bob');
+        expect(h1).to.be.lessThan(h2);
 
-      const {inventory: newInv} = Inventory.removeFromInventory(bob.character.inventory, 'Knife', 2);
+        const bob = (this.game as Game).getPlayerByName('Bob');
 
-      expect(Inventory.hasItem(newInv, 'Knife')).to.be.false;
+        if (bob) {
+          const {inventory: newInv} = Inventory.removeFromInventory(bob.character.inventory, 'Knife', 2);
 
-      expect(Inventory.hasItem(this.game.getPlayer('1').character.inventory, 'Knife')).to.be.true;
+          expect(Inventory.hasItem(newInv, 'Knife')).to.be.false;
+
+          expect(Inventory.hasItem(gp1.character.inventory, 'Knife')).to.be.true;
+        } else {
+          throw new Error('Test player Bob is not present!');
+        }
+      } else {
+        throw new Error('Test players are not present!');
+      }
     });
   });
 });

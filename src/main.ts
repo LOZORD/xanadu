@@ -3,10 +3,10 @@ import { Promise } from 'es6-promise';
 import { Logger, createDefaultWinstonLogger } from './logger';
 
 export type CommandLineArgs = {
-  maxPlayers?: number,
+  maxPlayers: number,
   debug: boolean,
-  port?: number,
-  seed?: number
+  port: number,
+  seed: number
 };
 
 export function parseArgs(givenArgs: string[]): CommandLineArgs {

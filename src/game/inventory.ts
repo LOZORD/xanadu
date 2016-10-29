@@ -95,17 +95,6 @@ export function addToInventory(inventory: Inventory, itemName: ItemName, amount:
   return updateInventory(inventory, itemName, amount, maxAmount);
 }
 
-export function stackMap<I extends Item>(inventory: Inventory, itemName: ItemName, f: (item: Item) => Item): Inventory {
-  const itemStack = getItem(inventory, itemName);
-
-  if (itemStack) {
-    itemStack.item = f(itemStack.item);
-    return inventory;
-  } else {
-    return null;
-  }
-}
-
 // TODO: put other Item_JSON types in parens:
 export type InventoryJSON = (ItemStackJSON)[];
 

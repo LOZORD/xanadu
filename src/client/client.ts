@@ -266,22 +266,34 @@ export function processServerMessage(data: ServerMessaging.MessageJSON): ViewMes
       };
     }
     case 'Whisper': {
-      return {
-        content: `${data.from.name} whispered: ${data.message}`,
-        styleClasses: [ 'Whisper' ]
-      };
+      if (data.from) {
+        return {
+          content: `${data.from.name} whispered: ${data.message}`,
+          styleClasses: [ 'Whisper' ]
+        };
+      } else {
+        throw new Error('Got a Whisper message without a `from` field!');
+      }
     }
     case 'Talk': {
-      return {
-        content: `${data.from.name} said: ${data.message}`,
-        styleClasses: [ 'Talk' ]
-      };
+      if (data.from) {
+        return {
+          content: `${data.from.name} said: ${data.message}`,
+          styleClasses: [ 'Talk' ]
+        };
+      } else {
+        throw new Error('Got a Talk message without a `from` field!');
+      }
     }
     case 'Shout': {
-      return {
-        content: `${data.from.name} shouted: ${data.message}`,
-        styleClasses: [ 'Shout' ]
-      };
+      if (data.from) {
+        return {
+          content: `${data.from.name} shouted: ${data.message}`,
+          styleClasses: [ 'Shout' ]
+        };
+      } else {
+        throw new Error('Got a Shout message without a `from` field!');
+      }
     }
     default: {
       return {

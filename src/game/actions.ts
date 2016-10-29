@@ -50,8 +50,8 @@ export interface IngestAction extends Action {
 }
 
 // nothing special about pass or rest actions
-export interface PassAction extends Action {};
-export interface RestAction extends Action {};
+export interface PassAction extends Action { };
+export interface RestAction extends Action { };
 
 export function isActionTypeOf<A extends Action>(action: Action, component: ActionParserComponent<A>): action is A {
   return action.key === component.componentKey;
@@ -59,11 +59,11 @@ export function isActionTypeOf<A extends Action>(action: Action, component: Acti
 
 export const MOVE_COMPONENT: ActionParserComponent<MoveAction> = {
   pattern: /^go (north|south|east|west)$/i,
-  parse(text: string, actor: Animal, timestamp: number): MoveAction {
+  parse(text: string, actor: Animal, timestamp: number) {
     const matches = text.match(this.pattern);
 
     if (!matches) {
-      return null;
+      throw new Error(`Unable to parse MoveAction: ${text}`);
     } else {
       const dir = matches[ 1 ].toLowerCase();
 
@@ -84,7 +84,7 @@ export const MOVE_COMPONENT: ActionParserComponent<MoveAction> = {
       } else if (dir === 'east') {
         ret.offsetCol = 1;
       } else {
-        return null;
+        throw new Error(`Unknown direction: ${dir}`);
       }
 
       return ret;
@@ -125,10 +125,14 @@ export const MOVE_COMPONENT: ActionParserComponent<MoveAction> = {
 
     moveEntity(move.actor, newPos);
 
-    const messages = [];
+    const messages: Messaging.Message[] = [];
 
     if (Character.isPlayerCharacter(move.actor)) {
-      const player = (move.actor as Character.Character).player;
+      const player = game.getPlayer(move.actor.playerId);
+
+      if (!player) {
+        throw new Error(`Tried to move a non-present player! Id: ${move.actor.playerId}`);
+      }
 
       log.push(`${player.name} from ${JSON.stringify(oldPos)} to ${JSON.stringify(newPos)}`);
 
@@ -166,12 +170,16 @@ export const PASS_COMPONENT: ActionParserComponent<PassAction> = {
   perform(passAction: Action, game: Game, log: string[]): PerformResult {
     // pass (do nothing!)
 
-    const messages = [];
+    const messages: Messaging.Message[] = [];
 
     if (Character.isPlayerCharacter(passAction.actor)) {
-      const player = (passAction.actor as Character.Character).player;
+      const player = game.getPlayer(passAction.actor.playerId);
 
-      messages.push(Messaging.createGameMessage('You performed no action.', [ player ]));
+      if (player) {
+        messages.push(Messaging.createGameMessage('You performed no action.', [ player ]));
+      } else {
+        throw new Error(`A non-present player tried to perform a pass action! Id: ${passAction.actor.playerId}`);
+      }
     }
 
     return {
@@ -213,7 +221,7 @@ export const REST_COMPONENT: ActionParserComponent<RestAction> = {
     }
   },
   perform(restAction: RestAction, game: Game, log: string[]): PerformResult {
-    const messages = [];
+    const messages: Messaging.Message[] = [];
     const actor = restAction.actor;
 
     // TODO: update the actors's stats
@@ -222,10 +230,20 @@ export const REST_COMPONENT: ActionParserComponent<RestAction> = {
       const wasExhausted = Character.meterIsActive(actor.effects.exhaustion);
       actor.effects.exhaustion.current = actor.effects.exhaustion.maximum;
 
+      const player = game.getPlayer(actor.playerId);
+
+      if (!player) {
+        throw new Error(`Tried to perform a RestAction with a non-present player! Id: ${actor.playerId}`);
+      }
+
       if (wasExhausted) {
-        messages.push('You rested at the camp.');
+        messages.push(
+          Messaging.createGameMessage('You rested at the camp and no longer feel exhausted.', [ player ])
+        );
       } else {
-        messages.push('You rested at the camp and no longer feel exhausted.');
+        messages.push(
+          Messaging.createGameMessage('You rested at the camp.', [ player ])
+        );
       }
     }
 
@@ -239,11 +257,11 @@ export const REST_COMPONENT: ActionParserComponent<RestAction> = {
 
 export const INGEST_COMPONENT: ActionParserComponent<IngestAction> = {
   pattern: new RegExp(`^(eat|consume|ingest|use|drink|quaff) (${Ingestible.names.join('|')})$`, 'i'),
-  parse(text: string, actor: Animal, timestamp: number): IngestAction {
+  parse(text: string, actor: Animal, timestamp: number) {
     const matches = text.match(this.pattern);
 
     if (!matches) {
-      return null;
+      throw new Error(`Could not parse IngestAction: ${text}`);
     } else {
       const ingestibleInput = matches[ 2 ].toLowerCase();
 
@@ -255,7 +273,7 @@ export const INGEST_COMPONENT: ActionParserComponent<IngestAction> = {
           key: 'Ingest'
         };
       } else {
-        return null;
+        throw new Error(`Attempted to ingest a non-ingestible: ${ingestibleInput}`);
       }
     }
   },
@@ -274,7 +292,7 @@ export const INGEST_COMPONENT: ActionParserComponent<IngestAction> = {
     }
   },
   perform(ingestAction: IngestAction, game: Game, log: string[]): PerformResult {
-    const messages = [];
+    const messages: Messaging.Message[] = [];
 
     // first remove a single item from the item stack in the inventory
     const removalReturn = Inventory.removeFromInventory(
@@ -295,16 +313,30 @@ export const INGEST_COMPONENT: ActionParserComponent<IngestAction> = {
 
       if (Character.isPlayerCharacter(actor)) {
         // then update any effects on the character
+        const player = game.getPlayer(actor.playerId);
+
+        if (!player) {
+          throw new Error(`Tried to perform an IngestAction with a non-present player! Id: ${actor.playerId}`);
+        }
+
         if (item.curesPoisoning && actor.effects.poison.isActive) {
           actor.effects.poison.isActive = false;
-          messages.push('You have been cured of poisoning!');
-          log.push(`${actor.player.name} poison removed`);
+
+          messages.push(
+            Messaging.createGameMessage('You have been cured of poisoning!', [ player ]
+            ));
+
+          log.push(`${player.name} poison removed`);
         }
 
         if (item.isPoisoned) {
           actor.effects.poison.isActive = true;
-          messages.push('You have been poisoned!');
-          log.push(`${actor.player.name} was poisoned`);
+
+          messages.push(
+            Messaging.createGameMessage('You have been poisoned!', [ player ])
+          );
+
+          log.push(`${player.name} was poisoned`);
         }
 
         if (item.isAddictive) {
@@ -312,8 +344,12 @@ export const INGEST_COMPONENT: ActionParserComponent<IngestAction> = {
 
           if (characterBecomesAddicted) {
             actor.effects.addiction.isActive = true;
-            messages.push('You have become addicted!');
-            log.push(`${actor.player.name} became addicted`);
+
+            messages.push(
+              Messaging.createGameMessage('You have become addicted!', [ player ])
+            );
+
+            log.push(`${player.name} became addicted`);
           }
         }
 
@@ -352,7 +388,7 @@ export const PARSERS: ActionParserComponentMap<Action> = {
   'Ingest': INGEST_COMPONENT
 };
 
-export function parseAction(text: string, actor: Animal, timestamp: number): Action {
+export function parseAction(text: string, actor: Animal, timestamp: number): (Action | null) {
   const myComponent = getComponentByText(text);
 
   if (!myComponent) {
@@ -362,12 +398,18 @@ export function parseAction(text: string, actor: Animal, timestamp: number): Act
   return myComponent.parse(text, actor, timestamp);
 }
 
-export function getComponentByText<A extends Action>(text: string): ActionParserComponent<Action> {
+export function getComponentByText<A extends Action>(text: string): (ActionParserComponent<Action> | undefined) {
   return _.find(PARSERS, comp => comp.pattern.test(text));
 }
 
 export function getComponentByKey<A extends Action>(key: ComponentKey): ActionParserComponent<Action> {
-  return PARSERS[ key ];
+  const component = PARSERS[ key ];
+
+  if (component) {
+    return component;
+  } else {
+    throw new Error(`Could not retrieve component for key: ${key}`);
+  }
 }
 
 export function isParsableAction(text: string): boolean {

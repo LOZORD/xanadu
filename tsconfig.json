@@ -2,11 +2,13 @@
   "compilerOptions": {
     "target": "ES5",
     "module": "commonjs",
-    "moduleResolution": "classic",
+    "moduleResolution": "node",
     "outDir": "dist",
     "sourceMap": true,
     "allowJs": true,
-    "pretty": false
+    "pretty": false,
+    "strictNullChecks": true,
+    "traceResolution": false
   },
   "exclude": [
     "dist",

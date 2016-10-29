@@ -125,15 +125,7 @@ describe('Client', () => {
         content: 'Bob shouted: help!'
       });
     });
-    it('should default to `Unknown`', () => {
-      expect(Client.processServerMessage({
-        type: null,
-        message: 'blarg'
-      })).to.eql({
-        styleClasses: [ 'Unknown' ],
-        content: 'Unknown type for message: `blarg` (null)'
-      });
-    });
+    it('should default to `Unknown`');
   });
   describe('updateDetails', function () {
     before(function () {

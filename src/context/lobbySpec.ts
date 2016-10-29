@@ -10,7 +10,7 @@ describe('Lobby', () => {
 
   describe('isReadyForNextContext', () => {
     it('should return true iff all players are ready', () => {
-      const lobby = new Lobby(8, [{
+      const lobby = new Lobby(8, [ {
         name: 'Foo',
         id: 'foo',
         state: 'Ready'
@@ -31,7 +31,7 @@ describe('Lobby', () => {
   describe('handleMessage', () => {
     testContext('when the player is anonymous', () => {
       testContext('when the name given is valid', () => {
-        beforeEach(function() {
+        beforeEach(function () {
           this.lobby = new Lobby(8, []);
 
           this.lobby.addPlayer('007');
@@ -45,14 +45,14 @@ describe('Lobby', () => {
               timestamp: Date.now()
             });
         });
-        it('should make their first message their name', function() {
+        it('should make their first message their name', function () {
           expect(this.lobby.hasPlayerByName('James_Bond')).to.be.true;
           expect(this.jbPlayer.state).to.equal('Preparing');
         });
-        it('should broadcast their name', function() {
+        it('should broadcast their name', function () {
           const nameBroadcasted = _
             .some(this.messages as Messaging.Message[],
-              message => message.type === 'Game' && _.includes(message.content, 'James_Bond')
+            message => message.type === 'Game' && _.includes(message.content, 'James_Bond')
             );
 
           expect(nameBroadcasted).to.be.true;
@@ -66,11 +66,15 @@ describe('Lobby', () => {
 
           const p1 = lobby.getPlayer('007');
 
-          lobby.handleMessage({
-            player: p1,
-            content: 'James_Bond',
-            timestamp: Date.now()
-          });
+          if (p1) {
+            lobby.handleMessage({
+              player: p1,
+              content: 'James_Bond',
+              timestamp: Date.now()
+            });
+          } else {
+            throw new Error('Test player not present!');
+          }
 
           // now to work with invalid naming attempts
 
@@ -78,11 +82,16 @@ describe('Lobby', () => {
 
           const p2 = lobby.getPlayer('008');
 
-          const m2 = lobby.handleMessage({
-            player: p2,
-            content: 'James_Bond',
-            timestamp: Date.now()
-          });
+          let m2: Messaging.Message[];
+          if (p2) {
+            m2 = lobby.handleMessage({
+              player: p2,
+              content: 'James_Bond',
+              timestamp: Date.now()
+            });
+          } else {
+            throw new Error('Test player not present!');
+          }
 
           expect(p2.name).to.not.equal('James_Bond');
 
@@ -117,11 +126,15 @@ describe('Lobby', () => {
 
         const p1 = lobby.getPlayer('007');
 
-        lobby.handleMessage({
-          player: p1,
-          timestamp: Date.now(),
-          content: 'James_Bond'
-        });
+        if (p1) {
+          lobby.handleMessage({
+            player: p1,
+            timestamp: Date.now(),
+            content: 'James_Bond'
+          });
+        } else {
+          throw new Error('Test player not present!');
+        }
 
         lobby.handleMessage({
           content: 'Shaken, not stirred',
@@ -146,7 +159,7 @@ describe('Lobby', () => {
       });
     });
     testContext('when the player is ready', () => {
-      before(function() {
+      before(function () {
         this.lobby = new Lobby(8, [
           { id: '123', name: 'Alice', state: 'Preparing' },
           { id: '456', name: 'Bob', state: 'Ready' }
@@ -154,7 +167,7 @@ describe('Lobby', () => {
       });
       it('should default to (global/broadcasted) talk messages');
       it('should send whisper messages');
-      it('should be able to reconfigure their primordial character', function() {
+      it('should be able to reconfigure their primordial character', function () {
         this.player2 = (this.lobby as Lobby).getPlayerByName('Bob');
         (this.lobby as Lobby).handleMessage({
           player: this.player2,
@@ -174,27 +187,33 @@ describe('Lobby', () => {
         expect(this.player2.primordialCharacter.className).to.equal('Doctor');
         expect(this.player2.primordialCharacter.allegiance).to.equal('Eastern');
       });
-      it('should report any unknown character options', function() {
+      it('should report any unknown character options', function () {
         const player = (this.lobby as Lobby).getPlayerByName('Alice');
 
+        let responses: Messaging.Message[];
+
         // re-ready player1
-        const responses = (this.lobby as Lobby).handleMessage({
-          player,
-          timestamp: Date.now(),
-          content: 'ReAdY a=_FOO c=_BAR m=_BAZ z=_QUUX'
-        });
+        if (player) {
+          responses = (this.lobby as Lobby).handleMessage({
+            player,
+            timestamp: Date.now(),
+            content: 'ReAdY a=_FOO c=_BAR m=_BAZ z=_QUUX'
+          });
+        } else {
+          throw new Error('Test player not present!');
+        }
 
         const gameMsgs = responses.filter(
-          msg => msg.type === 'Game' && msg.to[0].name === 'Alice');
+          msg => msg.type === 'Game' && msg.to[ 0 ].name === 'Alice');
 
         expect(gameMsgs).to.have.lengthOf(1);
 
-        const theMessage = gameMsgs[0];
+        const theMessage = gameMsgs[ 0 ];
 
-        ['Unrecognized key', 'Bad number of modifiers',
-        'Unrecognized allegiance', 'Unrecognized character class'].forEach((str) => {
-          expect(theMessage.content).to.include(str);
-        });
+        [ 'Unrecognized key', 'Bad number of modifiers',
+          'Unrecognized allegiance', 'Unrecognized character class' ].forEach((str) => {
+            expect(theMessage.content).to.include(str);
+          });
       });
     });
     testContext('when the player is in another state', () => {
@@ -204,6 +223,10 @@ describe('Lobby', () => {
         lobby.addPlayer('007');
 
         const p1 = lobby.getPlayer('007');
+
+        if (!p1) {
+          throw new Error('Test player not present!');
+        }
 
         // should never happen :^)
         p1.state = 'Dead';
@@ -218,13 +241,13 @@ describe('Lobby', () => {
 
         expect(m1.length).to.equal(1);
 
-        expect(m1[0].type).to.equal('Echo');
+        expect(m1[ 0 ].type).to.equal('Echo');
       });
     });
   });
 
-  describe('parsePrimordialCharacter', function() {
-    before(function() {
+  describe('parsePrimordialCharacter', function () {
+    beforeEach(function () {
       const player: LobbyPlayer = {
         id: '007',
         name: 'James_Bond',
@@ -232,7 +255,7 @@ describe('Lobby', () => {
         primordialCharacter: {
           className: 'Excavator',
           allegiance: 'Eastern',
-          numModifiers: 0
+          numModifiers: 1
         }
       };
 
@@ -252,10 +275,22 @@ describe('Lobby', () => {
 
       // this should do nothing
       let newPC = parsePrimordialCharacter(
-        ['ready'], primordialCharacter
+        [ 'ready' ], primordialCharacter
       ).primordialCharacter;
 
       expect(newPC).to.eql(primordialCharacter);
+    });
+    it('should set the number of modifiers to zero if reset', function () {
+      const command = 'ready m=0';
+
+      const { log, primordialCharacter } = parsePrimordialCharacter(
+        command.split(' '), (this.player as LobbyPlayer).primordialCharacter
+      );
+
+      expect(log).to.be.empty;
+      expect(primordialCharacter.className).to.eql('Excavator');
+      expect(primordialCharacter.allegiance).to.eql('Eastern');
+      expect(primordialCharacter.numModifiers).to.eql(0);
     });
   });
 });

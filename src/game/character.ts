@@ -1,7 +1,6 @@
 import { Animal } from './animal';
 import { createInventory, hasItem, Inventory } from './inventory';
 import { meetsRequirements, Stats, changeStats } from './stats';
-import { GamePlayer } from './player';
 import Game from '../context/game';
 import { Position } from './map/cell';
 import * as Item from './items/item';
@@ -16,7 +15,7 @@ export interface Character extends Animal {
   allegiance: Allegiance;
   modifiers: Modifiers;
   goldAmount: number;
-  player: GamePlayer;
+  playerId: string;
   map: CharacterMap;
   effects: CharacterEffects;
 }
@@ -28,7 +27,7 @@ export interface PrimordialCharacter {
 };
 
 export function isPlayerCharacter(actor: Animal): actor is Character {
-  return Boolean((actor as Character).player);
+  return Boolean((actor as Character).playerId);
 }
 
 export interface CharacterClass {
@@ -288,7 +287,7 @@ export function getActiveModifierNames(modifiers: Modifiers): ModifierName[] {
 }
 
 export function createCharacter(
-  game: Game, player: GamePlayer, pos: Position = game.map.startingPosition,
+  game: Game, playerId: string, pos: Position = game.map.startingPosition,
   className: CharacterClassName = 'None', allegiance: Allegiance = 'None',
   modifiers: Modifiers = createEmptyModifiers()
 ): Character {
@@ -304,7 +303,7 @@ export function createCharacter(
   const characterClass = createCharacterClass(className);
 
   return {
-    player,
+    playerId,
     characterClass,
     modifiers,
     row: pos.row,
@@ -605,9 +604,7 @@ export function updateEffectMeters(character: Character): void {
   }
 }
 
-export function updateCharacter(character: Character): string {
-  const name = character.player.name;
-
+export function updateCharacter(character: Character, name = character.playerId): string {
   updateEffectMeters(character);
 
   if (anyActiveEffects(character.effects)) {
@@ -615,7 +612,7 @@ export function updateCharacter(character: Character): string {
       return `${name} is immortal -- no other effects matter`;
     }
 
-    const log = [];
+    const log: string[] = [];
 
     if (meterIsActive(character.effects.exhaustion)) {
       changeStats(character.stats, EXHAUSTED.statChange);
