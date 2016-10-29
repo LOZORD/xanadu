@@ -20,7 +20,7 @@
     "launch": "node dist/main.js --with-defaults --port 3000",
     "launch:debug": "node dist/main.js --with-defaults --port 3000 --debug",
     "now": "npm run test:full && npm run launch",
-	"preinstall": "david"
+    "preinstall": "david"
   },
   "repository": {
     "type": "git",
