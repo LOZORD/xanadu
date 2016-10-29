@@ -50,14 +50,14 @@
     "chance": "^1.0.4",
     "es6-promise": "^4.0.5",
     "express": "^4.13.4",
-    "jquery": "^3.1.1",
+    "jquery": "^2.2.0",
     "lodash": "^4.1.0",
     "socket.io": "^1.4.5",
     "winston": "^2.2.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
-	"david": "^9.0.0",
+    "david": "^9.0.0",
     "istanbul": "^0.4.4",
     "jsdom": "^9.4.1",
     "mocha": "^3.1.2",
