@@ -133,11 +133,11 @@ export function parsePrimordialCharacter(
 ): {
     log: string[], primordialCharacter: Character.PrimordialCharacter
   } {
-  const log = [];
+  const log: string[] = [];
   let primordialCharacter: Character.PrimordialCharacter = {
-    className: null,
-    allegiance: null,
-    numModifiers: null
+    className: 'None',
+    allegiance: 'None',
+    numModifiers: 0
   };
 
   if (splitReadyCommand[ 0 ].toLowerCase() !== 'ready') {
@@ -145,7 +145,7 @@ export function parsePrimordialCharacter(
   }
 
   const configComponents = splitReadyCommand.filter(component => _.includes(component, '='));
-
+  let updatedNumModifiers = false;
   configComponents.forEach(component => {
     const [ key, value ] = component.split('=');
 
@@ -153,7 +153,7 @@ export function parsePrimordialCharacter(
 
     switch (lKey[ 0 ]) {
       case 'c': {
-        if (_.isNull(primordialCharacter.className)) {
+        if (primordialCharacter.className === 'None') {
           const chosenCharacterClass = _.find(Character.CHARACTER_CLASS_NAMES, (name) => {
             return Helpers.isApproximateString(value, name);
           });
@@ -168,7 +168,7 @@ export function parsePrimordialCharacter(
         break;
       }
       case 'a': {
-        if (_.isNull(primordialCharacter.allegiance)) {
+        if (primordialCharacter.allegiance === 'None') {
           const chosenAllegiance = _.find(Character.ALLEGIANCES, (allegiance) => {
             return Helpers.isApproximateString(value, allegiance);
           });
@@ -183,7 +183,8 @@ export function parsePrimordialCharacter(
         break;
       }
       case 'm': {
-        if (_.isNull(primordialCharacter.numModifiers)) {
+        updatedNumModifiers = true;
+        if (primordialCharacter.numModifiers === 0) {
           const chosenNumModifiers = _.parseInt(value, 10);
 
           if (_.isFinite(chosenNumModifiers) && chosenNumModifiers >= 0) {
@@ -204,19 +205,23 @@ export function parsePrimordialCharacter(
 
   let numModifiers: number;
 
-  if (primordialCharacter.numModifiers && isFinite(primordialCharacter.numModifiers)) {
+  if (updatedNumModifiers && isFinite(primordialCharacter.numModifiers)) {
     numModifiers = primordialCharacter.numModifiers;
   } else {
     numModifiers = previousPrimordialCharacter.numModifiers;
   }
 
-  numModifiers = _.clamp(numModifiers, 0, Character.MAX_NUM_MODIFIERS);
+  primordialCharacter.numModifiers = _.clamp(
+    numModifiers, 0, Character.MAX_NUM_MODIFIERS
+  );
 
-  primordialCharacter = {
-    numModifiers,
-    className: primordialCharacter.className || previousPrimordialCharacter.className,
-    allegiance: primordialCharacter.allegiance || previousPrimordialCharacter.allegiance
-  };
+  if (primordialCharacter.className === 'None') {
+    primordialCharacter.className = previousPrimordialCharacter.className;
+  }
+
+  if (primordialCharacter.allegiance === 'None') {
+    primordialCharacter.allegiance = previousPrimordialCharacter.allegiance;
+  }
 
   return { log, primordialCharacter };
 };

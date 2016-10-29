@@ -5,5 +5,4 @@ node_js:
 
 install:
   - npm install
-  - node $(npm bin)/typings install
 

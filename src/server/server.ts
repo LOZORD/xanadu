@@ -21,7 +21,7 @@ export default class Server {
   currentContext: Context<Player.Player>;
   sockets: SocketIO.Socket[];
   gameNS: SocketIO.Namespace;
-  debugNS: SocketIO.Namespace;
+  debugNS?: SocketIO.Namespace;
   seed: Seed;
   maxPlayers: number;
   logger: Logger;
@@ -36,8 +36,6 @@ export default class Server {
 
     if (debug) {
       this.debugNS = this.io.of('/debug');
-    } else {
-      this.debugNS = null;
     }
 
     this.seed = seed;
@@ -108,20 +106,22 @@ export default class Server {
 
   createDebugServer() {
     this.logger.log('debug', 'Launching the debug server...');
-    this.debugNS.on('connection', (socket) => {
-      socket.on('get', () => {
-        let dataToSend: any = {};
-        dataToSend.playerData =
-          this.currentContext.players.map((player) => Player.debugDetails(player));
+    if (this.debugNS) {
+      this.debugNS.on('connection', (socket) => {
+        socket.on('get', () => {
+          let dataToSend: any = {};
+          dataToSend.playerData =
+            this.currentContext.players.map((player) => Player.debugDetails(player));
 
-        if (this.currentContext instanceof Game) {
-          dataToSend.gameMap = Map.mapToString((this.currentContext as Game).map);
-          dataToSend.turnNumber = (this.currentContext as Game).turnNumber;
-        }
+          if (this.currentContext instanceof Game) {
+            dataToSend.gameMap = Map.mapToString((this.currentContext as Game).map);
+            dataToSend.turnNumber = (this.currentContext as Game).turnNumber;
+          }
 
-        socket.emit('debug-update', JSON.stringify(dataToSend, null, 2));
+          socket.emit('debug-update', JSON.stringify(dataToSend, null, 2));
+        });
       });
-    });
+    }
   }
 
   handleConnection(socket: SocketIO.Socket) {
@@ -203,9 +203,8 @@ export default class Server {
 
     // when people disconnect
     socket.on('disconnect', () => {
-      if (this.currentContext.hasPlayer(socket.id)) {
-        const removedPlayer = this.removePlayer(socket.id);
-
+      const removedPlayer = this.removePlayer(socket.id);
+      if (removedPlayer) {
         this.logger.log('info', `\tPlayer ${removedPlayer.id + '--' + removedPlayer.name} disconnected`);
 
         if (!Player.isAnon(removedPlayer)) {
@@ -240,7 +239,7 @@ export default class Server {
     this.currentContext.addPlayer(socketId);
   }
 
-  removePlayer(socketId: string): Player.Player {
+  removePlayer(socketId: string): Player.Player | undefined {
     return this.currentContext.removePlayer(socketId);
   }
 

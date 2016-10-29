@@ -6,5 +6,5 @@ import { Stats } from './stats';
 export interface Animal extends MoveableEntity {
   stats: Stats;
   inventory: Inventory;
-  nextAction: Action;
+  nextAction: Action | null;
 }

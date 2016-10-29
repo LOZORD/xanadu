@@ -10,7 +10,7 @@ import * as _ from 'lodash';
 export type MessageType = 'Game' | 'Echo' | 'Whisper' | 'Talk' | 'Shout';
 
 export interface Message {
-  from: Player;
+  from: Player | null;
   to: Player[];
   content: string;
   type: MessageType;
@@ -21,7 +21,7 @@ export interface Message {
 
 export type messageFunc = (to: Player[]) => Message;
 
-export function createMessage(from: Player, content: string, type: MessageType): messageFunc {
+export function createMessage(from: Player | null, content: string, type: MessageType): messageFunc {
   return function (to: Player[]): Message {
     return {
       from,
