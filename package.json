@@ -19,7 +19,8 @@
     "test": "npm run test:full",
     "launch": "node dist/main.js --with-defaults --port 3000",
     "launch:debug": "node dist/main.js --with-defaults --port 3000 --debug",
-    "now": "npm run test:full && npm run launch"
+    "now": "npm run test:full && npm run launch",
+	"preinstall": "david"
   },
   "repository": {
     "type": "git",
@@ -47,20 +48,21 @@
   "dependencies": {
     "bootstrap": "^3.3.6",
     "chance": "^1.0.4",
-    "es6-promise": "^3.2.1",
+    "es6-promise": "^4.0.5",
     "express": "^4.13.4",
-    "jquery": "^2.2.0",
+    "jquery": "^3.1.1",
     "lodash": "^4.1.0",
     "socket.io": "^1.4.5",
     "winston": "^2.2.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
+	"david": "^9.0.0",
     "istanbul": "^0.4.4",
     "jsdom": "^9.4.1",
-    "mocha": "^2.5.3",
+    "mocha": "^3.1.2",
     "tslint": "^3.13.0",
-    "typescript": "^1.8.10",
+    "typescript": "^2.0.6",
     "typings": "^1.3.1"
   }
 }
