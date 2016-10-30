@@ -130,8 +130,12 @@ export default class Server {
     }
   }
 
+  // when people connect...
   handleConnection(socket: SocketIO.Socket) {
-    // when people connect...
+    socket.emit('debug', {
+      isDebugActive: Boolean(this.gameNS)
+    });
+
     if (this.currentContext.isAcceptingPlayers()) {
       this.acceptSocket(socket);
     } else {

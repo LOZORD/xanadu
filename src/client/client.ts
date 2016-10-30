@@ -62,15 +62,15 @@ export class ClientLogger implements Logger {
   readonly levels: LogLevel[] = [ 'error', 'warn', 'info', 'debug' ];
   constructor(console: Console, level: LogLevel = 'info') {
     this.console = console;
-    this.level = 'info';
+    this.level = level;
   }
 
   log(level: LogLevel, ...args) {
     const currLevelInd = this.levels.indexOf(this.level);
     const argLevelInd = this.levels.indexOf(level);
 
-    if (argLevelInd >= currLevelInd) {
-      this.console.log.apply(null, [level].concat(args));
+    if (argLevelInd <= currLevelInd) {
+      this.console.log(level, ...args);
     } else {
       // do nothing
     }
@@ -200,6 +200,12 @@ export function assignClientSocketListeners(socket: SocketIOClient.Socket, $: JQ
     logger.log('debug', 'Got roster: ', data);
 
     updateRoster(data, $);
+  });
+
+  socket.on('debug', (data) => {
+    if (data.isDebugActive) {
+      logger.level = 'debug';
+    }
   });
 }
 
