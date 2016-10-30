@@ -69,8 +69,8 @@ export class ClientLogger implements Logger {
     const currLevelInd = this.levels.indexOf(this.level);
     const argLevelInd = this.levels.indexOf(level);
 
-    if (argLevelInd >= currLevelInd) {
-      this.console.log.apply(null, [level].concat(args));
+    if (argLevelInd <= currLevelInd) {
+      this.console.log(level, ...args);
     } else {
       // do nothing
     }
