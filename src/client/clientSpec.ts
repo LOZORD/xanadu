@@ -7,6 +7,7 @@ import { PlayerDetailsJSON } from '../game/player';
 import * as _ from 'lodash';
 import { TEST_PARSE_RESULT } from '../game/map/parseGrid';
 import { mapToRepresentations } from '../game/map/map';
+import * as Logger from '../logger';
 
 describe('Client', () => {
   function normalize(rawText: string): string {
@@ -553,6 +554,44 @@ describe('Client', () => {
           });
         });
       });
+    });
+  });
+  describe('ClientLogger', function () {
+    beforeEach(function () {
+      this.fakeConsole = {
+        _logData: [],
+        log(...args) {
+          this._logData.push(args);
+        }
+      };
+      this.clientLogger = new Client.ClientLogger(this.fakeConsole);
+    });
+    it('should have the correct matching log levels', function () {
+      const cl = this.clientLogger as Client.ClientLogger;
+
+      expect(cl.levels).to.eql(Logger.logLevels);
+    });
+    it('should behave like Winston', function () {
+      const cl = this.clientLogger as Client.ClientLogger;
+
+      expect(cl.level).to.eql('info');
+
+      cl.log('debug', 'Foo bar baz');
+
+      // since debug < info, do not log
+      expect(this.fakeConsole._logData).to.be.empty;
+
+      cl.log('warn', 'quux');
+
+      // since warn > info, log
+      expect(this.fakeConsole._logData[ 0 ]).to.eql([ 'warn', 'quux' ]);
+
+      cl.level = 'debug';
+
+      cl.log('debug', 'yolo');
+
+      // since debug = debug, log
+      expect(this.fakeConsole._logData[ 1 ]).to.eql([ 'debug', 'yolo' ]);
     });
   });
 });
