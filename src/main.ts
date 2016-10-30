@@ -102,7 +102,7 @@ if (isBeingRun()) {
   serverPromise.then((server: Server) => {
     server.logger.log('info', `XANADU SERVER LISTENING ON PORT: ${server.address.port}`);
   }, (error: Error) => {
-    winston.error(error.message);
+    winston.log('error', error.message);
     process.exit(1);
   });
 
