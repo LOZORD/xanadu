@@ -18,7 +18,7 @@ Contributions welcome!
 
 ### ... in development mode
 Make sure you have
-- [Node](https://nodejs.org)
+- [Node.js](https://nodejs.org)
 - [npm](https://npmjs.com)
 
 Then, run the following commands in the terminal:
