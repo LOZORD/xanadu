@@ -1,6 +1,7 @@
 import * as _ from 'lodash';
 import * as Path from 'path';
 import * as Http from 'http';
+import { ListenOptions }from 'net';
 import * as Express from 'express';
 import * as SocketIO from 'socket.io';
 import Context from '../context/context';
@@ -44,14 +45,15 @@ export default class Server {
     this.currentContext = this.createEmptyLobby();
   }
 
-  start(port: number): Promise<Server> {
+  // default the hostname to localhost (127.0.0.1)
+  start(port: number, hostname = '127.0.0.1'): Promise<Server> {
     this.logger.log('debug', 'Starting server at ', (new Date()).toString());
     return new Promise<Server>((resolve, reject) => {
       if (this.debugNS) {
         this.createDebugServer();
       }
 
-      this.createServer(port);
+      this.createServer(port, hostname);
 
       resolve(this);
     });
@@ -80,7 +82,7 @@ export default class Server {
     return this.httpServer.address();
   }
 
-  createServer(port: number) {
+  createServer(port: number, hostname: string) {
     const NODE_MODULES = Path.join(__dirname, '..', '..', 'node_modules');
     const PATHS = {
       CLIENT_ASSETS: Path.join(__dirname, '..', '..', 'assets', 'client'),
@@ -95,7 +97,9 @@ export default class Server {
     this.expressApp.use('/jquery', Express.static(PATHS.JQUERY));
     this.expressApp.use('/bootstrap', Express.static(PATHS.BOOTSTRAP));
 
-    this.httpServer.listen(port, () => {
+    const opts: ListenOptions = { port, host: hostname };
+
+    this.httpServer.listen(opts, () => {
       this.logger.log('debug', `Server is listening on port: ${this.address.port}`);
     });
 
