@@ -367,10 +367,9 @@ describe('Client', () => {
       });
     });
     describe('Gold', function () {
-      it('should appear in the view', function (done) {
+      it('should appear in the view', function () {
         return this.testDetailsUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
           expect(getText($selectors, '#gold-row')).to.equal('Gold: 7890');
-          done();
           return $selectors;
         });
       });
