@@ -1,6 +1,5 @@
 import { parseArgs, startServer } from './main';
 import { expect } from 'chai';
-import * as _ from 'lodash';
 import { createDefaultWinstonLogger } from './logger';
 
 describe('Main (Game Runner)', () => {
@@ -11,7 +10,8 @@ describe('Main (Game Runner)', () => {
           maxPlayers: 8,
           debug: false,
           port: 0,
-          seed: 1234
+          seed: 1234,
+          allowRemoteConnections: false
         });
       });
       it('should be "incomplete" without `--with-defaults`', () => {
@@ -19,7 +19,8 @@ describe('Main (Game Runner)', () => {
           maxPlayers: NaN,
           debug: false,
           port: NaN,
-          seed: NaN
+          seed: NaN,
+          allowRemoteConnections: false
         });
       });
     });
@@ -54,6 +55,11 @@ describe('Main (Game Runner)', () => {
     context('with `seed` provided', () => {
       it('should use the seed number', () => {
         expect(parseArgs([ '--seed', '7007' ]).seed).to.equal(7007);
+      });
+    });
+    context('with `allowRemoteConnections` provided', () => {
+      it('should have allowRemoteConnections as true', () => {
+        expect(parseArgs([ '--allowRemoteConnections' ]).allowRemoteConnections).to.be.true;
       });
     });
   });
@@ -104,6 +110,9 @@ describe('Main (Game Runner)', () => {
     // the default args from `parseArgs` using `--with-defaults` are valid
     context('when the given args are valid', () => {
       it('should create and start a server');
+      // TODO: is it bad to allow remote connections during testing?
+      it('should allow remote connections if arg is given');
+      it('should use localhost by default');
     });
   });
 });
