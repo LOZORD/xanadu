@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import * as Path from 'path';
 import * as Http from 'http';
-import { ListenOptions }from 'net';
+import { ListenOptions } from 'net';
 import * as Express from 'express';
 import * as SocketIO from 'socket.io';
 import Context from '../context/context';
@@ -26,6 +26,8 @@ export default class Server {
   seed: Seed;
   maxPlayers: number;
   logger: Logger;
+  readonly LOCALHOST_ADDRESS = '127.0.0.1';
+  readonly REMOTE_CONNECTION_ADDRESS = '0.0.0.0';
   constructor(maxPlayers: number, seed: Seed, debug: boolean, logger: Logger) {
     this.maxPlayers = maxPlayers;
     this.expressApp = Express();
@@ -45,8 +47,8 @@ export default class Server {
     this.currentContext = this.createEmptyLobby();
   }
 
-  // default the hostname to localhost (127.0.0.1)
-  start(port: number, hostname = '127.0.0.1'): Promise<Server> {
+  // default the hostname to localhost
+  start(port: number, hostname = this.LOCALHOST_ADDRESS): Promise<Server> {
     this.logger.log('debug', 'Starting server at ', (new Date()).toString());
     return new Promise<Server>((resolve, reject) => {
       if (this.debugNS) {
