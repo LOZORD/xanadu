@@ -122,4 +122,15 @@ describe('Server', () => {
       });
     });
   });
+  describe('start', function () {
+    it('should use the localhost hostname by default', function () {
+      return (this.serverPromise as Promise<Server>).then(server => {
+        expect(server.address.address).to.eql(server.LOCALHOST_ADDRESS);
+        return server;
+      });
+    });
+    // TODO: is it bad to test with 0.0.0.0?
+    // should another address be used instead?
+    it('should use the hostname argument if it is given');
+  });
 });

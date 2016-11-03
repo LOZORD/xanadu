@@ -6,7 +6,8 @@ export type CommandLineArgs = {
   maxPlayers: number,
   debug: boolean,
   port: number,
-  seed: number
+  seed: number,
+  allowRemoteConnections: boolean
 };
 
 export function parseArgs(givenArgs: string[]): CommandLineArgs {
@@ -14,7 +15,8 @@ export function parseArgs(givenArgs: string[]): CommandLineArgs {
     maxPlayers: NaN,
     debug: false,
     port: NaN,
-    seed: NaN
+    seed: NaN,
+    allowRemoteConnections: false
   };
 
   let i = 0;
@@ -42,6 +44,9 @@ export function parseArgs(givenArgs: string[]): CommandLineArgs {
     } else if (givenArgs[ i ] === '--seed') {
       args.seed = parseInt(givenArgs[ i + 1 ], 10);
       i += 2;
+    } else if (givenArgs[ i ] === '--allowRemoteConnections') {
+      args.allowRemoteConnections = true;
+      i++;
     } else {
       // continue through...
       i++;
@@ -53,7 +58,9 @@ export function parseArgs(givenArgs: string[]): CommandLineArgs {
       maxPlayers: args.maxPlayers || 8,
       debug: args.debug || false,
       port: args.port || 0,
-      seed: args.seed || 1234
+      // TODO: eventually change from `1234` to `Date.now()` for launch
+      seed: args.seed || 1234,
+      allowRemoteConnections: args.allowRemoteConnections || false
     };
   } else {
     return args;
@@ -78,7 +85,16 @@ export function startServer(args: CommandLineArgs, logger: Logger): Promise<Serv
   } else {
     const server = new Server(maxPlayers, seed, debug, logger);
 
-    return server.start(port);
+    // localhost <-> no remote connections
+    let hostname: string;
+
+    if (args.allowRemoteConnections) {
+      hostname = server.REMOTE_CONNECTION_ADDRESS;
+    } else {
+      hostname = server.LOCALHOST_ADDRESS;
+    }
+
+    return server.start(port, hostname);
   }
 }
 
@@ -86,6 +102,7 @@ function isBeingRun(): boolean {
   return !module.parent;
 }
 
+/* MAIN EXECUTABLE CODE */
 if (isBeingRun()) {
   const args = parseArgs(process.argv.slice(2));
 
