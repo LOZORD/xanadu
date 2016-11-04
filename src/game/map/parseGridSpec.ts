@@ -1,8 +1,8 @@
 import * as GridParser from './parseGrid';
 import * as Map from './map';
-//import { Barrier, Room } from './cell';
 import { expect } from 'chai';
 import { readFile } from 'fs';
+import { GENERAL_LINE_SEPARATOR_REGEXP } from '../../helpers';
 import { EOL } from 'os';
 
 describe('Grid Parsing', function () {
@@ -13,7 +13,8 @@ describe('Grid Parsing', function () {
     });
     it('should have a correctly parsed grid', function(done) {
       readFile(GridParser.TEST_MAP_PATH, 'utf8', (error, data) => {
-        const gridPart = data.split(EOL).slice(1).join(EOL).trim();
+        expect(Boolean(error)).to.be.false;
+        const gridPart = data.split(GENERAL_LINE_SEPARATOR_REGEXP).slice(1).join(EOL).trim();
         expect(Map.mapToString(GridParser.TEST_PARSE_RESULT)).to.equal(gridPart);
         done();
       });
