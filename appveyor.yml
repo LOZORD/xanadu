@@ -1,6 +1,15 @@
+environment:
+  matrix:
+    # see https://github.com/nodejs/LTS/
+    - nodejs_version: '4'
+    - nodejs_version: '6'
+    - nodejs_version: '7'
+
 install:
-  # install the most recent version of Node
-  - ps: Install-Product node 0
+  # install the above version(s) of Node
+  - ps: Install-Product node $env:nodejs_version
+  # update npm to the most recent version regardless of Node version
+  - npm -g install npm@latest
   - npm install
 
 test_script:
