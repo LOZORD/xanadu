@@ -1,6 +1,5 @@
 import { parseArgs, startServer } from './main';
 import { expect } from 'chai';
-import * as _ from 'lodash';
 import { createDefaultWinstonLogger } from './logger';
 
 describe('Main (Game Runner)', () => {
