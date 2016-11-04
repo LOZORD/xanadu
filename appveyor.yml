@@ -1,0 +1,12 @@
+install:
+  # install the most recent version of Node
+  - ps: Install-Product node 0
+  - npm install
+
+test_script:
+  - node --version
+  - npm --version
+  - npm test
+
+# Don't actually build
+build: off
