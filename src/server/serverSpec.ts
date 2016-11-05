@@ -131,7 +131,7 @@ describe('Server', () => {
         return server;
       });
     });
-    it('should use the hostname argument if it is given', function() {
+    it('should use the hostname argument if it is given', function () {
       const logger = createDefaultWinstonLogger();
       const remoteConnServer = new Server(8, 9876, false, logger);
 
@@ -143,7 +143,7 @@ describe('Server', () => {
       return startedServerPromise.then((server) => {
         expect(stub.callCount).to.eql(1);
 
-        const opts = stub.firstCall.args[0];
+        const opts = stub.firstCall.args[ 0 ];
 
         expect(opts.port).to.eql(8999);
         expect(opts.host).to.eql('0.0.0.0');
@@ -152,5 +152,8 @@ describe('Server', () => {
         stub.restore();
       });
     });
+  });
+  describe('stop', function () {
+    it('should be tested!');
   });
 });

@@ -1,6 +1,7 @@
 import Server from './server/server';
 import { Promise } from 'es6-promise';
 import { Logger, createDefaultWinstonLogger } from './logger';
+import { extendWith } from 'lodash';
 
 export type CommandLineArgs = {
   maxPlayers: number,
@@ -8,6 +9,15 @@ export type CommandLineArgs = {
   port: number,
   seed: number,
   allowRemoteConnections: boolean
+};
+
+// TODO: eventually change from `1234` to `Date.now()` for launch
+export const DEFAULT_ARGS: CommandLineArgs = {
+  maxPlayers: 8,
+  debug: false,
+  port: 0,
+  seed: 1234,
+  allowRemoteConnections: false
 };
 
 export function parseArgs(givenArgs: string[]): CommandLineArgs {
@@ -54,14 +64,9 @@ export function parseArgs(givenArgs: string[]): CommandLineArgs {
   }
 
   if (givenArgs.indexOf('--with-defaults') > -1) {
-    return {
-      maxPlayers: args.maxPlayers || 8,
-      debug: args.debug || false,
-      port: args.port || 0,
-      // TODO: eventually change from `1234` to `Date.now()` for launch
-      seed: args.seed || 1234,
-      allowRemoteConnections: args.allowRemoteConnections || false
-    };
+    return extendWith({}, args, DEFAULT_ARGS, (oldValue, newValue) => {
+      return isNaN(oldValue) ? newValue : oldValue;
+    });
   } else {
     return args;
   }
