@@ -16,6 +16,8 @@ import * as Map from '../game/map/map';
 import describeRoom from '../game/map/describeRoom';
 
 export default class Server {
+  static readonly LOCALHOST_ADDRESS = '127.0.0.1';
+  static readonly REMOTE_CONNECTION_ADDRESS = '0.0.0.0';
   expressApp: Express.Express;
   httpServer: Http.Server;
   io: SocketIO.Server;
@@ -26,8 +28,6 @@ export default class Server {
   seed: Seed;
   maxPlayers: number;
   logger: Logger;
-  readonly LOCALHOST_ADDRESS = '127.0.0.1';
-  readonly REMOTE_CONNECTION_ADDRESS = '0.0.0.0';
   constructor(maxPlayers: number, seed: Seed, debug: boolean, logger: Logger) {
     this.maxPlayers = maxPlayers;
     this.expressApp = Express();
@@ -48,7 +48,7 @@ export default class Server {
   }
 
   // default the hostname to localhost
-  start(port: number, hostname = this.LOCALHOST_ADDRESS): Promise<Server> {
+  start(port: number, hostname = Server.LOCALHOST_ADDRESS): Promise<Server> {
     this.logger.log('debug', 'Starting server at ', (new Date()).toString());
     return new Promise<Server>((resolve, reject) => {
       if (this.debugNS) {

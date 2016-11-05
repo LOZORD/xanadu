@@ -127,7 +127,7 @@ describe('Server', () => {
   describe('start', function () {
     it('should use the localhost hostname by default', function () {
       return (this.serverPromise as Promise<Server>).then(server => {
-        expect(server.address.address).to.eql(server.LOCALHOST_ADDRESS);
+        expect(server.address.address).to.eql(Server.LOCALHOST_ADDRESS);
         return server;
       });
     });

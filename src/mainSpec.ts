@@ -168,7 +168,7 @@ describe('Main (Game Runner)', () => {
           const [ port, hostname ] = spy.secondCall.args;
 
           expect(port).to.eql(1337);
-          expect(hostname).to.eql(server.REMOTE_CONNECTION_ADDRESS);
+          expect(hostname).to.eql(Server.REMOTE_CONNECTION_ADDRESS);
 
           server.stop();
         });
@@ -177,7 +177,7 @@ describe('Main (Game Runner)', () => {
         return this.defaultServerPromise.then((server: Server) => {
           const hostname = (this.createServerStub as Sinon.SinonStub).firstCall.args[ 1 ];
 
-          expect(hostname).to.eql(server.LOCALHOST_ADDRESS);
+          expect(hostname).to.eql(Server.LOCALHOST_ADDRESS);
 
           server.stop();
         });

@@ -21,7 +21,7 @@ export const DEFAULT_ARGS: CommandLineArgs = {
 };
 
 export function parseArgs(givenArgs: string[]): CommandLineArgs {
-  let args = {
+  let args: CommandLineArgs = {
     maxPlayers: NaN,
     debug: false,
     port: NaN,
@@ -94,9 +94,9 @@ export function startServer(args: CommandLineArgs, logger: Logger): Promise<Serv
     let hostname: string;
 
     if (args.allowRemoteConnections) {
-      hostname = server.REMOTE_CONNECTION_ADDRESS;
+      hostname = Server.REMOTE_CONNECTION_ADDRESS;
     } else {
-      hostname = server.LOCALHOST_ADDRESS;
+      hostname = Server.LOCALHOST_ADDRESS;
     }
 
     return server.start(port, hostname);
