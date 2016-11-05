@@ -1,8 +1,10 @@
 import { expect } from 'chai';
+import * as Sinon from 'sinon';
 import Server from './server';
 import { createDefaultWinstonLogger } from '../logger';
 import * as ClientSocket from 'socket.io-client';
 import { Promise } from 'es6-promise';
+import { noop } from 'lodash';
 
 type ClientSocket = SocketIOClient.Socket;
 
@@ -121,5 +123,37 @@ describe('Server', () => {
         return values;
       });
     });
+  });
+  describe('start', function () {
+    it('should use the localhost hostname by default', function () {
+      return (this.serverPromise as Promise<Server>).then(server => {
+        expect(server.address.address).to.eql(Server.LOCALHOST_ADDRESS);
+        return server;
+      });
+    });
+    it('should use the hostname argument if it is given', function () {
+      const logger = createDefaultWinstonLogger();
+      const remoteConnServer = new Server(8, 9876, false, logger);
+
+      // Don't actually listen, we just care about the arguments passed
+      const stub = Sinon.stub(remoteConnServer.httpServer, 'listen', noop);
+
+      const startedServerPromise = remoteConnServer.start(8999, '0.0.0.0');
+
+      return startedServerPromise.then((server) => {
+        expect(stub.callCount).to.eql(1);
+
+        const opts = stub.firstCall.args[ 0 ];
+
+        expect(opts.port).to.eql(8999);
+        expect(opts.host).to.eql('0.0.0.0');
+
+        server.stop();
+        stub.restore();
+      });
+    });
+  });
+  describe('stop', function () {
+    it('should be tested!');
   });
 });

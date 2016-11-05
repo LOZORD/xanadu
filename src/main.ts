@@ -1,20 +1,32 @@
 import Server from './server/server';
 import { Promise } from 'es6-promise';
 import { Logger, createDefaultWinstonLogger } from './logger';
+import { extendWith } from 'lodash';
 
 export type CommandLineArgs = {
   maxPlayers: number,
   debug: boolean,
   port: number,
-  seed: number
+  seed: number,
+  allowRemoteConnections: boolean
+};
+
+// TODO: eventually change from `1234` to `Date.now()` for launch
+export const DEFAULT_ARGS: CommandLineArgs = {
+  maxPlayers: 8,
+  debug: false,
+  port: 0,
+  seed: 1234,
+  allowRemoteConnections: false
 };
 
 export function parseArgs(givenArgs: string[]): CommandLineArgs {
-  let args = {
+  let args: CommandLineArgs = {
     maxPlayers: NaN,
     debug: false,
     port: NaN,
-    seed: NaN
+    seed: NaN,
+    allowRemoteConnections: false
   };
 
   let i = 0;
@@ -42,6 +54,9 @@ export function parseArgs(givenArgs: string[]): CommandLineArgs {
     } else if (givenArgs[ i ] === '--seed') {
       args.seed = parseInt(givenArgs[ i + 1 ], 10);
       i += 2;
+    } else if (givenArgs[ i ] === '--allowRemoteConnections') {
+      args.allowRemoteConnections = true;
+      i++;
     } else {
       // continue through...
       i++;
@@ -49,12 +64,9 @@ export function parseArgs(givenArgs: string[]): CommandLineArgs {
   }
 
   if (givenArgs.indexOf('--with-defaults') > -1) {
-    return {
-      maxPlayers: args.maxPlayers || 8,
-      debug: args.debug || false,
-      port: args.port || 0,
-      seed: args.seed || 1234
-    };
+    return extendWith({}, args, DEFAULT_ARGS, (oldValue, newValue) => {
+      return isNaN(oldValue) ? newValue : oldValue;
+    });
   } else {
     return args;
   }
@@ -78,7 +90,16 @@ export function startServer(args: CommandLineArgs, logger: Logger): Promise<Serv
   } else {
     const server = new Server(maxPlayers, seed, debug, logger);
 
-    return server.start(port);
+    // localhost <-> no remote connections
+    let hostname: string;
+
+    if (args.allowRemoteConnections) {
+      hostname = Server.REMOTE_CONNECTION_ADDRESS;
+    } else {
+      hostname = Server.LOCALHOST_ADDRESS;
+    }
+
+    return server.start(port, hostname);
   }
 }
 
@@ -86,6 +107,7 @@ function isBeingRun(): boolean {
   return !module.parent;
 }
 
+/* MAIN EXECUTABLE CODE */
 if (isBeingRun()) {
   const args = parseArgs(process.argv.slice(2));
 
