@@ -1,8 +1,10 @@
 import { expect } from 'chai';
+import * as Sinon from 'sinon';
 import Server from './server';
 import { createDefaultWinstonLogger } from '../logger';
 import * as ClientSocket from 'socket.io-client';
 import { Promise } from 'es6-promise';
+import { noop } from 'lodash';
 
 type ClientSocket = SocketIOClient.Socket;
 
@@ -129,8 +131,26 @@ describe('Server', () => {
         return server;
       });
     });
-    // TODO: is it bad to test with 0.0.0.0?
-    // should another address be used instead?
-    it('should use the hostname argument if it is given');
+    it('should use the hostname argument if it is given', function() {
+      const logger = createDefaultWinstonLogger();
+      const remoteConnServer = new Server(8, 9876, false, logger);
+
+      // Don't actually listen, we just care about the arguments passed
+      const stub = Sinon.stub(remoteConnServer.httpServer, 'listen', noop);
+
+      const startedServerPromise = remoteConnServer.start(8999, '0.0.0.0');
+
+      return startedServerPromise.then((server) => {
+        expect(stub.callCount).to.eql(1);
+
+        const opts = stub.firstCall.args[0];
+
+        expect(opts.port).to.eql(8999);
+        expect(opts.host).to.eql('0.0.0.0');
+
+        server.stop();
+        stub.restore();
+      });
+    });
   });
 });
