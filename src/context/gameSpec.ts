@@ -40,7 +40,7 @@ describe('Game', () => {
       this.player3 = (this.game as Game).getPlayer('r2d2');
 
       // now, force all the players to the same allegiance so they can communicate freely
-      [this.player1, this.player2, this.player3].forEach((player: GamePlayer) => {
+      [ this.player1, this.player2, this.player3 ].forEach((player: GamePlayer) => {
         player.character.allegiance = 'Eastern';
       });
     });
@@ -142,7 +142,7 @@ describe('Game', () => {
             message => message.type === 'Whisper');
 
           expect(whisper).to.be.ok;
-          expect(whisper.to[0].id).to.eql(this.player3.id);
+          expect(whisper.to[ 0 ].id).to.eql(this.player3.id);
           expect(whisper.content).to.eql('darth is a sith');
         });
       });
@@ -200,7 +200,38 @@ describe('Game', () => {
   });
 
   describe('isReadyForNextContext', () => {
-    it('should return true when the game has ended');
+    beforeEach(function () {
+      const players: Player[] = [
+        { id: 'foo', name: 'Foo', state: 'Ready' },
+        { id: 'bar', name: 'Baz', state: 'Ready' },
+        { id: 'baz', name: 'Baz', state: 'Ready' }
+      ];
+
+      this.game = new Game(8, players);
+    });
+    it('should return true when the game has ended', function () {
+      expect(this.game.isReadyForNextContext()).to.be.false;
+
+      const gamePlayers = [ 'foo', 'bar', 'baz' ].map(playerId => {
+        const somePlayer = (this.game as Game).getPlayer(playerId);
+
+        if (!somePlayer) {
+          throw new Error('Missing player for testing!');
+        }
+
+        return somePlayer;
+      });
+
+      // kill the first two, the last one escapes
+      gamePlayers[ 0 ].character.stats.health = 0;
+      gamePlayers[ 1 ].character.stats.health = 0;
+
+      expect(this.game.isReadyForNextContext()).to.be.false;
+
+      gamePlayers[ 2 ].character.hasEscaped = true;
+
+      expect(this.game.isReadyForNextContext()).to.be.true;
+    });
   });
 
   describe('update', () => {
@@ -357,20 +388,20 @@ describe('Game', () => {
     });
   });
 
-  describe('convertPlayer', function() {
-    before(function() {
-      this.game = new Game(8, [{
+  describe('convertPlayer', function () {
+    before(function () {
+      this.game = new Game(8, [ {
         id: '123', name: 'Alice', state: 'Playing'
       }], {
-        numModifiers: {
-          maximum: Character.MAX_NUM_MODIFIERS,
-          minimum: 0
-        },
-        seed: Date.now()
-      });
+          numModifiers: {
+            maximum: Character.MAX_NUM_MODIFIERS,
+            minimum: 0
+          },
+          seed: Date.now()
+        });
     });
-    context('when given a GamePlayer', function() {
-      it('should return the player', function() {
+    context('when given a GamePlayer', function () {
+      it('should return the player', function () {
         const gamePlayer = (this.game as Game).getPlayer('123');
 
         if (!gamePlayer) {
@@ -380,8 +411,8 @@ describe('Game', () => {
         expect((this.game as Game).convertPlayer(gamePlayer)).to.eql(gamePlayer);
       });
     });
-    context('when given a LobbyPlayer', function() {
-      before(function() {
+    context('when given a LobbyPlayer', function () {
+      before(function () {
         this.lobby = new Lobby(8, []);
 
         (this.lobby as Lobby).addPlayer('007', 'James_Bond', 'Preparing');
@@ -396,7 +427,7 @@ describe('Game', () => {
 
         expect(this.player.primordialCharacter.className).to.equal('Gunslinger');
       });
-      it('should build off of the primordial character', function() {
+      it('should build off of the primordial character', function () {
         const gamePlayer = (this.game as Game).convertPlayer(this.player);
 
         expect(gamePlayer.state).to.equal('Playing');

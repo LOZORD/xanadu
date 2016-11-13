@@ -8,7 +8,7 @@ import { Context, ClientMessage } from './context';
 import { TEST_PARSE_RESULT } from '../game/map/parseGrid';
 import { Message } from '../game/messaging';
 import * as Character from '../game/character';
-import { Animal } from '../game/animal';
+import * as Animal from '../game/animal';
 import { Entity } from '../game/entity';
 import { Seed, SeededRNG } from '../rng';
 import { Chance } from 'chance';
@@ -30,7 +30,7 @@ export default class Game extends Context<Player.GamePlayer> {
   turnNumber: number;
   map: Map.Map;
   rng: SeededRNG;
-  beasts: Animal[];
+  beasts: Animal.Animal[];
   minNumModifiers: number;
   maxNumModifiers: number;
   seed: number;
@@ -101,7 +101,7 @@ export default class Game extends Context<Player.GamePlayer> {
               if (maybePlayer) {
                 toPlayers.push(maybePlayer);
               } else {
-                throw new Error(`Got a bad or missing id: ${ animal.playerId }`);
+                throw new Error(`Got a bad or missing id: ${animal.playerId}`);
               }
             }
           }
@@ -163,12 +163,16 @@ export default class Game extends Context<Player.GamePlayer> {
   isReadyForNextContext(): boolean {
     // XXX: might be more 'correct' to check that no players have their state
     // as `PLAYING` or whatever...
-    return this.hasEnded;
+    return _.every(this.players,
+      player => !Animal.isAlive(player.character)
+        || player.character.hasEscaped);
   }
 
   isReadyForUpdate(): boolean {
     return _.every(this.players,
-      player => Boolean(player.character.nextAction));
+      player => Animal.isAlive(player.character)
+        && !player.character.hasEscaped
+        && Animal.hasNextAction(player.character));
   }
 
   getSortedActions(): Actions.Action[] {
@@ -216,11 +220,11 @@ export default class Game extends Context<Player.GamePlayer> {
     return { messages: completeMessages, log: performanceLog.concat(updateLog) };
   }
 
-  getAllAnimals(): Animal[] {
+  getAllAnimals(): Animal.Animal[] {
     return this.beasts.concat(this.players.map(player => player.character));
   }
 
-  getNearbyAnimals({row, col}: Entity, radius = 1): Animal[] {
+  getNearbyAnimals({row, col}: Entity, radius = 1): Animal.Animal[] {
     return _.filter(this.getAllAnimals(), (animal) => {
       return (
         _.inRange(animal.row, row - radius, row + radius + 1) &&

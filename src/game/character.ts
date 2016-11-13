@@ -18,6 +18,7 @@ export interface Character extends Animal {
   playerId: string;
   map: CharacterMap;
   effects: CharacterEffects;
+  hasEscaped: boolean;
 }
 
 export interface PrimordialCharacter {
@@ -313,6 +314,7 @@ export function createCharacter(
     stats: characterClass.startingStats,
     inventory: characterClass.startingInventory,
     nextAction: null,
+    hasEscaped: false,
     map: createCharacterMap(game.map),
     effects: {
       poison: {
