@@ -1,6 +1,7 @@
 import { Item } from './item';
 import { PartialStats } from '../stats';
-import { extend, find } from 'lodash';
+import { extend } from 'lodash';
+import { caseInsensitiveFind } from '../../helpers';
 
 export type FoodName = 'Raw Meat' | 'Cooked Meat' | 'Stew' | 'Honeydew' |
   'Cave Leaf' | 'Nightshade' | 'Dark Poppy';
@@ -17,12 +18,17 @@ export const names = [ 'Raw Meat', 'Cooked Meat', 'Stew', 'Honeydew',
   'Morphine', 'Opium', 'Medical Kit', 'Poison Antidote', 'Poison' ].sort();
 
 export function stringIsAnIngestibleName(str: string): str is Name {
-  return Boolean(stringToIngestibleName(str));
+  return stringToIngestibleName(str) !== undefined;
 }
 
-export function stringToIngestibleName(str: string): Name {
-  const loStr = str.toLowerCase();
-  return find(names, (name) => name.toLowerCase() === loStr) as Name;
+export function stringToIngestibleName(str: string): Name | undefined {
+  const needle = caseInsensitiveFind(names, str);
+
+  if (needle) {
+    return needle as Name;
+  } else {
+    return undefined;
+  }
 }
 
 // TODO: Use Maybe type for addiction relief?
