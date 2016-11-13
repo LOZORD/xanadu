@@ -8,3 +8,11 @@ export interface Animal extends MoveableEntity {
   inventory: Inventory;
   nextAction: Action | null;
 }
+
+export function isAlive(animal: Animal): boolean {
+  return animal.stats.health > 0;
+}
+
+export function hasNextAction(actor: Animal): boolean {
+  return actor.nextAction !== null;
+}
