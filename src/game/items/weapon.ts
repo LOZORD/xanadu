@@ -42,7 +42,7 @@ export interface MeleeWeapon extends Weapon {
 export const FIST: MeleeWeapon = {
   damageAmount: 3,
   mineRate: 12,
-  range: 1,
+  range: 0,
   name: 'Fist'
 };
 
@@ -50,14 +50,14 @@ export const KNIFE: MeleeWeapon = {
   damageAmount: 5,
   mineRate: 8,
   name: 'Knife',
-  range: 1
+  range: 0
 };
 
 export const PICKAXE: MeleeWeapon = {
   damageAmount: 1,
   mineRate: 4,
   name: 'Pickaxe',
-  range: 1
+  range: 0
 };
 
 export interface Bullet {
