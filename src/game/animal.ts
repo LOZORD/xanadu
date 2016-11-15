@@ -13,6 +13,10 @@ export function isAlive(animal: Animal): boolean {
   return animal.stats.health > 0;
 }
 
+export function isDead(animal: Animal): boolean {
+  return !isAlive(animal);
+}
+
 export function hasNextAction(actor: Animal): boolean {
   return actor.nextAction !== null;
 }
