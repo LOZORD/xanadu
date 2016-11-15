@@ -32,8 +32,3 @@ export function getCell(map: Map, { row, col }: Position): Cell {
 export function isValidRoom(map: Map, pos: Position): boolean {
   return isWithinMap(map, pos) && isRoom(getCell(map, pos));
 }
-
-// The distance it would take moving in one cardinal direction at a time.
-export function cardinalCellDistance(p1: Position, p2: Position): number {
-  return Math.abs(p1.row - p2.row) + Math.abs(p1.col - p2.col);
-}
