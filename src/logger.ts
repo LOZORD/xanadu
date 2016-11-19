@@ -10,7 +10,7 @@ export interface Logger {
 
 export function createDefaultWinstonLogger(level: LogLevel = 'info'): Winston.LoggerInstance {
   return new Winston.Logger({
-    level: level,
+    level,
     transports: [
       new Winston.transports.Console()
     ]

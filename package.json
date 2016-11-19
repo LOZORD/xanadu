@@ -9,7 +9,7 @@
     "bin": "dist"
   },
   "scripts": {
-    "lint": "tslint src/**/*.ts",
+    "lint": "tslint src/*.ts src/**/*.ts",
     "build": "tsc",
     "clean": "rm -rf dist/",
     "test:only": "node dist/test.js",
