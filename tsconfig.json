@@ -8,7 +8,9 @@
     "allowJs": true,
     "pretty": false,
     "strictNullChecks": true,
-    "traceResolution": false
+    "traceResolution": false,
+    "noUnusedParameters": true,
+    "noUnusedLocals": true
   },
   "exclude": [
     "dist",

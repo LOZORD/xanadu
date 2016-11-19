@@ -34,16 +34,16 @@ describe('Actions', function () {
       it('parsing should return a MoveAction', function () {
         // all locations are based off of starting position (1,1)
         const locations = {
-          'north': {
+          north: {
             r: 0, c: 1
           },
-          'south': {
+          south: {
             r: 2, c: 1
           },
-          'west': {
+          west: {
             r: 1, c: 0
           },
-          'east': {
+          east: {
             r: 1, c: 2
           }
         };

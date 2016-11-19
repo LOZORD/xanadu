@@ -155,7 +155,7 @@ export const CLASS_PRIMORDIAL_INVENTORY_STACKS: CLASS_DICTIONARY<PrimordialStack
   ],
   Excavator: [
     { name: 'Pickaxe', maxAmount: 1 },
-    { name: 'Dynamite', maxAmount: 5 },
+    { name: 'Dynamite', maxAmount: 5 }
   ],
   Doctor: [
     { name: 'Morphine', maxAmount: 5 },
@@ -226,7 +226,7 @@ export const CLASS_STARTING_GOLD: CLASS_DICTIONARY<number> = {
 
 export function createCharacterClass(className: CharacterClassName): CharacterClass {
   return {
-    className: className,
+    className,
     startingStats: _.cloneDeep<Stats>(CLASS_STARTING_STATS[ className ]),
     startingGold: _.cloneDeep<number>(CLASS_STARTING_GOLD[ className ]),
     startingInventory: createClassInventory(className)
@@ -259,7 +259,7 @@ export type Modifiers = {
   'Collector': boolean;
   'Scalper': boolean;
   'Missionary': boolean;
-}
+};
 
 export function createEmptyModifiers(): Modifiers {
   return {
@@ -309,7 +309,7 @@ export function createCharacter(
     modifiers,
     row: pos.row,
     col: pos.col,
-    allegiance: allegiance,
+    allegiance,
     goldAmount: characterClass.startingGold,
     stats: characterClass.startingStats,
     inventory: characterClass.startingInventory,
@@ -530,7 +530,7 @@ export const ADDICTED: MeteredEffect & ToggledEffect = {
   },
   meter: {
     maximum: 10,
-    current: 10,
+    current: 10
   },
   isActive: false
 };
@@ -544,7 +544,7 @@ export const EXHAUSTED: MeteredEffect = {
   },
   meter: {
     maximum: 50,
-    current: 50,
+    current: 50
   }
 };
 
@@ -557,7 +557,7 @@ export const HUNGRY: MeteredEffect = {
   },
   meter: {
     maximum: 30,
-    current: 30,
+    current: 30
   }
 };
 

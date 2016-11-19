@@ -277,7 +277,7 @@ export default class Game extends Context<Player.GamePlayer> {
         id: player.id,
         name: player.name,
         state: 'Playing',
-        character: character
+        character
       };
     } else {
       const character = Character.createCharacter(
@@ -289,7 +289,7 @@ export default class Game extends Context<Player.GamePlayer> {
         id: player.id,
         name: player.name,
         state: player.state,
-        character: character
+        character
       };
     }
   }

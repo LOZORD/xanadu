@@ -166,14 +166,14 @@ export const MOVE_COMPONENT: ActionParserComponent<MoveAction> = {
 
 export const PASS_COMPONENT: ActionParserComponent<PassAction> = {
   pattern: /^pass$/i,
-  parse(text: string, actor: Animal.Animal, timestamp: number) {
+  parse(_text: string, actor: Animal.Animal, timestamp: number) {
     return {
       actor,
       timestamp,
       key: 'Pass'
     };
   },
-  validate(passAction: PassAction, game: Game) {
+  validate(passAction: PassAction, _game: Game) {
     return { isValid: Boolean(passAction) };
   },
   perform(passAction: Action, game: Game, log: string[]): PerformResult {
@@ -201,7 +201,7 @@ export const PASS_COMPONENT: ActionParserComponent<PassAction> = {
 
 export const REST_COMPONENT: ActionParserComponent<RestAction> = {
   pattern: /^rest$/i,
-  parse(text: string, actor: Animal.Animal, timestamp: number) {
+  parse(_text: string, actor: Animal.Animal, timestamp: number) {
     return {
       actor,
       timestamp,
@@ -480,7 +480,7 @@ export const ATTACK_COMPONENT: ActionParserComponent<AttackAction> = {
 
     // Now either make the attacker tired or take away their used bullets
     if (Weapon.isWeaponGun(weaponStack.item)) {
-      const { inventory: newInventory, itemStack: _usedBullets } = Inventory.removeFromInventory(
+      const { inventory: newInventory } = Inventory.removeFromInventory(
         attackAction.actor.inventory, weaponStack.item.bullet, attackAction.times
       );
 
@@ -517,7 +517,7 @@ export const INGEST_COMPONENT: ActionParserComponent<IngestAction> = {
       }
     }
   },
-  validate(ingestAction: IngestAction, game: Game): ValidationResult {
+  validate(ingestAction: IngestAction, _game: Game): ValidationResult {
     const inventory = ingestAction.actor.inventory;
 
     if (Inventory.hasItem(inventory, ingestAction.itemName)) {
@@ -622,10 +622,10 @@ export interface ActionParserComponentMap<A extends Action> {
 };
 
 export const PARSERS: ActionParserComponentMap<Action> = {
-  'Move': MOVE_COMPONENT,
-  'Pass': PASS_COMPONENT,
-  'Rest': REST_COMPONENT,
-  'Ingest': INGEST_COMPONENT
+  Move: MOVE_COMPONENT,
+  Pass: PASS_COMPONENT,
+  Rest: REST_COMPONENT,
+  Ingest: INGEST_COMPONENT
 };
 
 export function parseAction(text: string, actor: Animal.Animal, timestamp: number): (Action | null) {
@@ -638,11 +638,11 @@ export function parseAction(text: string, actor: Animal.Animal, timestamp: numbe
   return myComponent.parse(text, actor, timestamp);
 }
 
-export function getComponentByText<A extends Action>(text: string): (ActionParserComponent<Action> | undefined) {
+export function getComponentByText(text: string): (ActionParserComponent<Action> | undefined) {
   return _.find(PARSERS, comp => comp.pattern.test(text));
 }
 
-export function getComponentByKey<A extends Action>(key: ComponentKey): ActionParserComponent<Action> {
+export function getComponentByKey(key: ComponentKey): ActionParserComponent<Action> {
   const component = PARSERS[ key ];
 
   if (component) {

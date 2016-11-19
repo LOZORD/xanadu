@@ -43,7 +43,7 @@ const getTestFiles = (dir: string): string[] => {
 const runMocha = (baseDir: string, mochaOptions, proc: NodeJS.Process) => {
   const mocha = new Mocha(mochaOptions);
 
-  const testFiles = getTestFiles(distDir);
+  const testFiles = getTestFiles(baseDir);
 
   _.forEach(testFiles, (testFile) => mocha.addFile(testFile));
 

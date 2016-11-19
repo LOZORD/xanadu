@@ -50,7 +50,7 @@ export default class Server {
   // default the hostname to localhost
   start(port: number, hostname = Server.LOCALHOST_ADDRESS): Promise<Server> {
     this.logger.log('debug', 'Starting server at ', (new Date()).toString());
-    return new Promise<Server>((resolve, reject) => {
+    return new Promise<Server>((resolve, _reject) => {
       if (this.debugNS) {
         this.createDebugServer();
       }
@@ -89,7 +89,7 @@ export default class Server {
     const PATHS = {
       CLIENT_ASSETS: Path.join(__dirname, '..', '..', 'assets', 'client'),
       CLIENT_SCRIPTS: Path.join(__dirname, '..', 'client'),
-      NODE_MODULES: NODE_MODULES,
+      NODE_MODULES,
       JQUERY: Path.join(NODE_MODULES, 'jquery', 'dist'),
       BOOTSTRAP: Path.join(NODE_MODULES, 'bootstrap', 'dist')
     };

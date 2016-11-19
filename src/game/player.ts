@@ -155,7 +155,7 @@ export function debugDetails(player: Player): {} {
       retObj.character.nextAction = {
         key: player.character.nextAction.key,
         timestamp: ts.toLocaleTimeString(),
-        otherData: otherData
+        otherData
       };
     }
   }

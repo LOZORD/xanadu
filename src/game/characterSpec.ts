@@ -259,7 +259,7 @@ describe('Character', function () {
         return [
           character.effects.addiction.current,
           character.effects.exhaustion.current,
-          character.effects.hunger.current,
+          character.effects.hunger.current
         ];
       }
       it('should decrease their meters', function () {
