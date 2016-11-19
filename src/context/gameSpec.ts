@@ -276,6 +276,10 @@ describe('Game', () => {
       expect(this.p1.character.row).to.equal(2);
       expect(this.p1.character.col).to.equal(1);
     });
+
+    context('when one of the players is killed during the update', function () {
+      it('should deliver the proper messages');
+    });
   });
 
   describe('isReadyForUpdate', () => {

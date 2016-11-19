@@ -200,14 +200,39 @@ export default class Game extends Context<Player.GamePlayer> {
 
     const { messages: completeMessages, log: performanceLog }: Actions.PerformResult = _.reduce(sortedActions,
       ({ messages, log }: Actions.PerformResult, action: Actions.Action) => {
-        const component = Actions.getComponentByKey(action.key);
+        if (Animal.isAlive(action.actor)) {
 
-        const { messages: newMessages, log: newLog } = component.perform(action, this, log);
+          const component = Actions.getComponentByKey(action.key);
 
-        return {
-          log: log.concat(newLog),
-          messages: messages.concat(newMessages)
-        };
+          const { messages: newMessages, log: newLog } = component.perform(action, this, log);
+
+          return {
+            log: log.concat(newLog),
+            messages: messages.concat(newMessages)
+          };
+        } else {
+          let newMessages: Message[];
+
+          if (Character.isPlayerCharacter(action.actor)) {
+            const actorPlayer = this.getPlayer(action.actor.playerId);
+
+            if (actorPlayer) {
+              newMessages = messages.concat(Messaging.createGameMessage(
+                'You died before your turn could be performed!', [ actorPlayer ]
+              ));
+            } else {
+              throw new Error('Expected player to exist!');
+            }
+          } else {
+            newMessages = messages;
+          }
+
+          return {
+            log: log.concat(`Animal died before their action could be performed.`),
+            messages: newMessages
+          };
+          //return null;
+        }
       }, { messages: [], log: [] });
 
     const updateLog = this.players.map(player => Character.updateCharacter(player.character));
