@@ -448,7 +448,7 @@ export const ATTACK_COMPONENT: ActionParserComponent<AttackAction> = {
 
       attackerName = actorPlayer.name;
     } else {
-      attackerName = 'An unknown assailant';
+      throw new Error('Expected attacker to be a player!');
     }
 
     result.messages.push(

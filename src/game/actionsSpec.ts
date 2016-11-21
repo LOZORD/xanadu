@@ -7,6 +7,7 @@ import * as Character from './character';
 import * as Inventory from './inventory';
 import * as Stats from './stats';
 import * as Ingestible from './items/ingestible';
+import * as Weapon from './items/weapon';
 
 describe('Actions', function () {
   describe('isParsableAction', function () {
@@ -390,7 +391,15 @@ describe('Actions', function () {
       this.p1 = (this.game as Game).getPlayer('alice');
       this.p2 = (this.game as Game).getPlayer('bob');
 
-      (this.p1.character as Character.Character).inventory.maximumCapacity = 100;
+      const aliceOrigInv = (this.p1.character as Character.Character).inventory;
+
+      aliceOrigInv.maximumCapacity = 100;
+
+      // remove any rifle bullets if she has any already
+      if (Inventory.hasItem(aliceOrigInv, 'Rifle Bullet')) {
+        Inventory.getItem(aliceOrigInv, 'Rifle Bullet').stackAmount = 0;
+      }
+
       const aliceInv1 = Inventory.addToInventory((this.p1.character as Character.Character).inventory, 'Knife', 1, 1);
       const aliceInv2 = Inventory.addToInventory(aliceInv1, 'Rifle', 1, 1);
       const aliceInv3 = Inventory.addToInventory(aliceInv2, 'Rifle Bullet', 10, 10);
@@ -610,6 +619,52 @@ describe('Actions', function () {
           expect(result.isValid).to.be.false;
           expect(result.error).to.contain('You cannot shoot 20 time(s) because you only have 10 bullet(s)!');
         });
+      });
+    });
+    describe('perform', function () {
+      context('when using a melee weapon', function () {
+        beforeEach(function () {
+          const knifeAttack: Actions.AttackAction = {
+            actor: this.p1.character,
+            weaponName: 'Knife',
+            times: 3,
+            targetName: 'Bob',
+            timestamp: Date.now(),
+            key: 'Attack'
+          };
+
+          this.threeKnifeDamage = Weapon.KNIFE.damageAmount * 3;
+          this.attackAction = knifeAttack;
+          this.log = [];
+          this.origBobHealth = this.p2.character.stats.health;
+          this.result = Actions.ATTACK_COMPONENT.perform(this.attackAction, this.game, this.log);
+          this.actorAttackResultMessage = _.find(
+            (this.result as Actions.PerformResult).messages,
+            message => message.content.indexOf('You attacked') > -1
+          );
+
+          this.targetAttackResultMessage = _.find(
+            (this.result as Actions.PerformResult).messages,
+            message => message.content.indexOf('attacked you') > -1
+          );
+        });
+        it('should attack the full number of times', function () {
+          expect(this.actorAttackResultMessage.content).to.contain('You attacked Bob 3 time(s)');
+        });
+        it('should cause the correct amount of damage', function () {
+          expect(this.origBobHealth - this.threeKnifeDamage).to.eql(this.p2.character.stats.health);
+        });
+        it('should give the correct attack damage', function () {
+          expect(this.actorAttackResultMessage.content).to.contain(`a total of ${this.threeKnifeDamage} damage`);
+        });
+        it('should send a message to the target', function () {
+          expect(this.targetAttackResultMessage.content).to.contain('Alice attacked you');
+          expect(this.targetAttackResultMessage.content).to.contain(`for ${this.threeKnifeDamage} damage`);
+        });
+      });
+      context('when using a ranged weapon', function () {
+        it('should factor in weapon accuracy');
+        it('should remove the correct number of bullets from the inventory');
       });
     });
   });
