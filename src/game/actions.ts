@@ -413,7 +413,7 @@ export const ATTACK_COMPONENT: ActionParserComponent<AttackAction> = {
     }
 
     // TODO: incorporate agility or some other stat
-    const actualTimesAttacked = attackAction.times * accuracyPercentage / 100.0;
+    const actualTimesAttacked = Math.floor(attackAction.times * accuracyPercentage / 100.0);
 
     const targetPlayer = _.find(game.players,
       player => player.state === 'Playing' && isApproximateSubstring(attackAction.targetName, player.name));

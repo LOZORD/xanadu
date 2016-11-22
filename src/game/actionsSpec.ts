@@ -663,8 +663,56 @@ describe('Actions', function () {
         });
       });
       context('when using a ranged weapon', function () {
-        it('should factor in weapon accuracy');
-        it('should remove the correct number of bullets from the inventory');
+        beforeEach(function () {
+          const rifleAction: Actions.AttackAction = {
+            actor: this.p1.character,
+            weaponName: 'Rifle',
+            times: 9,
+            targetName: 'bob',
+            timestamp: Date.now(),
+            key: 'Attack'
+          };
+
+          this.attackAction = rifleAction;
+
+          this.expectedNumberOfAttacks = Math.floor(
+            Weapon.RIFLE.accuracy * 9 / 100.0
+          );
+
+          this.expectedDamage = Weapon.RIFLE.damageAmount * this.expectedNumberOfAttacks;
+
+          this.log = [];
+          this.origBobHealth = this.p2.character.stats.health;
+          this.result = Actions.ATTACK_COMPONENT.perform(
+            this.attackAction, this.game, this.log
+          );
+
+          this.actorAttackResultMessage = _.find(
+            (this.result as Actions.PerformResult).messages,
+            message => message.content.indexOf('You attacked') > -1
+          );
+
+          this.targetAttackResultMessage = _.find(
+            (this.result as Actions.PerformResult).messages,
+            message => message.content.indexOf('attacked you') > -1
+          );
+        });
+        it('should give the correct attack damage', function () {
+          expect(
+            this.p2.character.stats.health + this.expectedDamage
+          ).to.eql(
+            this.origBobHealth
+            );
+        });
+        it('should factor in weapon accuracy', function () {
+          expect(
+            this.targetAttackResultMessage.content
+          ).to.contain(`attacked you for ${this.expectedDamage} damage`);
+        });
+        it('should remove the correct number of bullets from the inventory', function () {
+          const bulletStack = Inventory.getItem(this.p1.character.inventory, 'Rifle Bullet');
+          expect(bulletStack.stackAmount).to.equal(1);
+        });
       });
     });
   });

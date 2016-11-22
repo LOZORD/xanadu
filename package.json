@@ -57,7 +57,7 @@
     "@types/serve-static": "^1.7.31",
     "@types/socket.io": "^1.4.27",
     "@types/socket.io-client": "^1.4.27",
-    "@types/winston": "0.0.30",
+    "@types/winston": "0.0.31",
     "bootstrap": "^3.3.6",
     "chance": "^1.0.4",
     "es6-promise": "^4.0.5",

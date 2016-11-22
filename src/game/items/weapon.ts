@@ -100,7 +100,7 @@ export function isWeaponGun(weapon: Weapon): weapon is Gun {
 export const RIFLE: Gun = {
   name: 'Rifle',
   damageAmount: 20,
-  accuracy: 0.5,
+  accuracy: 50,
   bullet: 'Rifle Bullet',
   range: 2,
   currentClipAmount: 5,
@@ -110,7 +110,7 @@ export const RIFLE: Gun = {
 export const REVOLVER: Gun = {
   name: 'Revolver',
   damageAmount: 15,
-  accuracy: 0.5,
+  accuracy: 50,
   bullet: 'Revolver Bullet',
   range: 1,
   currentClipAmount: 6,
