@@ -6,6 +6,7 @@ import { PlayerState, GamePlayer, Player } from '../game/player';
 import * as Messaging from '../game/messaging';
 import * as Character from '../game/character';
 import Lobby from './lobby';
+import * as Sinon from 'sinon';
 
 const createGame = (players: Player[] = []): Game => {
   return new Game(8, players);
@@ -278,7 +279,74 @@ describe('Game', () => {
     });
 
     context('when one of the players is killed during the update', function () {
-      it('should deliver the proper messages');
+      before(function () {
+        // first, save some previous data
+        this.origAlicePos = {
+          row: this.p1.character.row,
+          col: this.p1.character.col
+        };
+
+        this.origBobHealth = this.p2.character.stats.health;
+
+        this.origBobPos = {
+          row: this.p2.character.row,
+          col: this.p2.character.col
+        };
+
+        this.p2.character.stats.health = 1;
+
+        // put Alice and Bob in the same room
+        const pos = (this.game as Game).startingRoom;
+
+        this.p1.character.row = pos.row;
+        this.p1.character.col = pos.col;
+        this.p2.character.row = pos.row;
+        this.p2.character.col = pos.col;
+
+        // now set up the proper actions
+        (this.game as Game).handleMessage({
+          content: 'attack bob fist 1',
+          player: this.p1,
+          timestamp: Date.now()
+        });
+
+        (this.game as Game).handleMessage({
+          content: 'pass',
+          player: this.p2,
+          timestamp: Date.now()
+        });
+
+        expect((this.game as Game).isReadyForUpdate()).to.be.true;
+
+        // force the moves to be returned regardless of true sorting order
+        this.getSortedActionsStub = Sinon.stub(this.game, 'getSortedActions', () => {
+          return [ this.p1.character.nextAction, this.p2.character.nextAction ];
+        });
+      });
+      after(function () {
+        this.getSortedActionsStub.restore();
+        this.p2.character.stats = this.origBobHealth;
+        _.extend(this.p1.character, this.origAlicePos);
+        _.extend(this.p2.character, this.origBobPos);
+      });
+      it('should deliver the proper messages', function () {
+
+        const results = (this.game as Game).update();
+
+        expect(this.p2.character.stats.health).to.eql(0);
+
+        const deathLogMessage = _.find(results.log, logMsg => logMsg.indexOf('Animal died') > -1);
+
+        expect(deathLogMessage).to.exist;
+
+        const deathNoticeMessage = _.find(results.messages, msg => {
+          const toPlayer = msg.to[ 0 ];
+
+          return toPlayer.id === this.p2.id && msg.content.indexOf('died before') > -1;
+        });
+
+        expect(deathNoticeMessage).to.exist;
+      });
     });
   });
 

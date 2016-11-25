@@ -400,9 +400,15 @@ export const ATTACK_COMPONENT: ActionParserComponent<AttackAction> = {
       log, messages: []
     };
 
-    const weaponStack = Inventory.getItem(
-      attackAction.actor.inventory, attackAction.weaponName
-    ) as ItemStack<Weapon.AttackWeapon>;
+    let weaponStack: ItemStack<Weapon.AttackWeapon>;
+
+    if (attackAction.weaponName === 'Fist') {
+      weaponStack = createItemStack(Weapon.FIST, 1, 1);
+    } else {
+      weaponStack = Inventory.getItem(
+        attackAction.actor.inventory, attackAction.weaponName
+      ) as ItemStack<Weapon.AttackWeapon>;
+    }
 
     let accuracyPercentage: number;
 
@@ -420,7 +426,8 @@ export const ATTACK_COMPONENT: ActionParserComponent<AttackAction> = {
 
     // Do the damage to the target
     const totalDamage = actualTimesAttacked * weaponStack.item.damageAmount;
-    targetPlayer.character.stats.health -= totalDamage;
+
+    targetPlayer.character.stats.health = Math.max(0, targetPlayer.character.stats.health - totalDamage);
 
     if (Character.isPlayerCharacter(attackAction.actor)) {
       const actorPlayer = game.getPlayer(attackAction.actor.playerId);
@@ -625,7 +632,8 @@ export const PARSERS: ActionParserComponentMap<Action> = {
   Move: MOVE_COMPONENT,
   Pass: PASS_COMPONENT,
   Rest: REST_COMPONENT,
-  Ingest: INGEST_COMPONENT
+  Ingest: INGEST_COMPONENT,
+  Attack: ATTACK_COMPONENT
 };
 
 export function parseAction(text: string, actor: Animal.Animal, timestamp: number): (Action | null) {
