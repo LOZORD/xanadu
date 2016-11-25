@@ -1,4 +1,5 @@
 import { Item, ItemStack } from '../items/item';
+import { range } from 'lodash';
 
 export interface Position {
   row: number;
@@ -81,7 +82,7 @@ export function isCellRepresentation(cr: string): cr is CellRepresentation {
 }
 
 export type CellName = 'Unknown' | 'PermanentBarrier' | 'ExcavatableBarrier' |
-'SimpleRoom' | 'TreasureRoom' | 'PassageRoom';
+  'SimpleRoom' | 'TreasureRoom' | 'PassageRoom';
 
 export function
 fromRepresentation(cr: CellRepresentation, { row, col }: Position, opts: FromRepresentationOptions): Cell {
@@ -119,6 +120,37 @@ export function getCardinalNeighboringPositions({ row, col }: Position): Cardina
   };
 }
 
-export function getPosition({ row, col }: Cell): Position {
-  return { row, col };
+// The distance it would take moving in one cardinal direction at a time.
+export function cardinalPositionDistance(p1: Position, p2: Position): number {
+  return Math.abs(p1.row - p2.row) + Math.abs(p1.col - p2.col);
+}
+
+// p1 is to the left of or above p2
+export function getPositionsBetween(p1: Position, p2: Position): Position[] {
+  // if (p1.row !== p2.row && p1.col !== p2.col) {
+  //   throw new Error('Can only get cells between using straight lines');
+  // }
+
+  // p2 is actually to the left of or above p1
+  if (p1.row > p2.row || p1.col > p2.col) {
+    return getPositionsBetween(p2, p1);
+  }
+
+  if (p1.row === p2.row) {
+    return range(p1.col, p2.col + 1).map(colInd => {
+      return {
+        row: p1.row,
+        col: colInd
+      };
+    });
+  } else if (p1.col === p2.col) {
+    return range(p1.row, p2.row + 1).map(rowInd => {
+      return {
+        row: rowInd,
+        col: p1.col
+      };
+    });
+  } else {
+    throw new Error('Can only get cells between using straight lines');
+  }
 }

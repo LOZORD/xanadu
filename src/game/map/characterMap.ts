@@ -14,7 +14,7 @@ export function createCharacterMap(gameMap: Map.Map): CharacterMap {
   }));
 
   return {
-    gameMap: gameMap,
+    gameMap,
     grid: characterMapGrid,
     width: gameMap.width,
     height: gameMap.height,

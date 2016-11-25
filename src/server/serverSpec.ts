@@ -10,7 +10,7 @@ type ClientSocket = SocketIOClient.Socket;
 
 describe('Server', () => {
   function createClient(serverPromise: Promise<Server>, nsp: string): Promise<ClientSocket> {
-    return new Promise<ClientSocket>((resolve, reject) => {
+    return new Promise<ClientSocket>((resolve, _reject) => {
       serverPromise.then(server => {
         const uri = `http://localhost:${server.address.port}${nsp}`;
         resolve(ClientSocket.connect(uri, {

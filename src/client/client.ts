@@ -43,7 +43,7 @@ export type JQueryDetailSelectors = {
 type ViewMessage = {
   styleClasses: StyleClass[];
   content: string;
-}
+};
 
 /* EXECUTED CODE */
 

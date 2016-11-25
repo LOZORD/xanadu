@@ -59,7 +59,7 @@ export function validateGrid(grid: Cell.Cell[][], startingPosition: Cell.Positio
 export function parseGrid(gridRows: string[], startingPosition: Cell.Position): Map {
   const grid: Cell.Cell[][] = _.map(gridRows,
     (row, rowInd) => _.map(row,
-      (col, colInd) => { //Cell.fromRepresentation(gridRows[ rowInd ][ colInd ])
+      (_col, colInd) => { //Cell.fromRepresentation(gridRows[ rowInd ][ colInd ])
         const cr = gridRows[ rowInd ][ colInd ];
 
         if (Cell.isCellRepresentation(cr)) {

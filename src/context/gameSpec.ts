@@ -6,6 +6,7 @@ import { PlayerState, GamePlayer, Player } from '../game/player';
 import * as Messaging from '../game/messaging';
 import * as Character from '../game/character';
 import Lobby from './lobby';
+import * as Sinon from 'sinon';
 
 const createGame = (players: Player[] = []): Game => {
   return new Game(8, players);
@@ -40,7 +41,7 @@ describe('Game', () => {
       this.player3 = (this.game as Game).getPlayer('r2d2');
 
       // now, force all the players to the same allegiance so they can communicate freely
-      [this.player1, this.player2, this.player3].forEach((player: GamePlayer) => {
+      [ this.player1, this.player2, this.player3 ].forEach((player: GamePlayer) => {
         player.character.allegiance = 'Eastern';
       });
     });
@@ -142,7 +143,7 @@ describe('Game', () => {
             message => message.type === 'Whisper');
 
           expect(whisper).to.be.ok;
-          expect(whisper.to[0].id).to.eql(this.player3.id);
+          expect(whisper.to[ 0 ].id).to.eql(this.player3.id);
           expect(whisper.content).to.eql('darth is a sith');
         });
       });
@@ -200,7 +201,38 @@ describe('Game', () => {
   });
 
   describe('isReadyForNextContext', () => {
-    it('should return true when the game has ended');
+    beforeEach(function () {
+      const players: Player[] = [
+        { id: 'foo', name: 'Foo', state: 'Ready' },
+        { id: 'bar', name: 'Baz', state: 'Ready' },
+        { id: 'baz', name: 'Baz', state: 'Ready' }
+      ];
+
+      this.game = new Game(8, players);
+    });
+    it('should return true when the game has ended', function () {
+      expect(this.game.isReadyForNextContext()).to.be.false;
+
+      const gamePlayers = [ 'foo', 'bar', 'baz' ].map(playerId => {
+        const somePlayer = (this.game as Game).getPlayer(playerId);
+
+        if (!somePlayer) {
+          throw new Error('Missing player for testing!');
+        }
+
+        return somePlayer;
+      });
+
+      // kill the first two, the last one escapes
+      gamePlayers[ 0 ].character.stats.health = 0;
+      gamePlayers[ 1 ].character.stats.health = 0;
+
+      expect(this.game.isReadyForNextContext()).to.be.false;
+
+      gamePlayers[ 2 ].character.hasEscaped = true;
+
+      expect(this.game.isReadyForNextContext()).to.be.true;
+    });
   });
 
   describe('update', () => {
@@ -244,6 +276,77 @@ describe('Game', () => {
 
       expect(this.p1.character.row).to.equal(2);
       expect(this.p1.character.col).to.equal(1);
+    });
+
+    context('when one of the players is killed during the update', function () {
+      before(function () {
+        // first, save some previous data
+        this.origAlicePos = {
+          row: this.p1.character.row,
+          col: this.p1.character.col
+        };
+
+        this.origBobHealth = this.p2.character.stats.health;
+
+        this.origBobPos = {
+          row: this.p2.character.row,
+          col: this.p2.character.col
+        };
+
+        this.p2.character.stats.health = 1;
+
+        // put Alice and Bob in the same room
+        const pos = (this.game as Game).startingRoom;
+
+        this.p1.character.row = pos.row;
+        this.p1.character.col = pos.col;
+        this.p2.character.row = pos.row;
+        this.p2.character.col = pos.col;
+
+        // now set up the proper actions
+        (this.game as Game).handleMessage({
+          content: 'attack bob fist 1',
+          player: this.p1,
+          timestamp: Date.now()
+        });
+
+        (this.game as Game).handleMessage({
+          content: 'pass',
+          player: this.p2,
+          timestamp: Date.now()
+        });
+
+        expect((this.game as Game).isReadyForUpdate()).to.be.true;
+
+        // force the moves to be returned regardless of true sorting order
+        this.getSortedActionsStub = Sinon.stub(this.game, 'getSortedActions', () => {
+          return [ this.p1.character.nextAction, this.p2.character.nextAction ];
+        });
+      });
+      after(function () {
+        this.getSortedActionsStub.restore();
+        this.p2.character.stats = this.origBobHealth;
+        _.extend(this.p1.character, this.origAlicePos);
+        _.extend(this.p2.character, this.origBobPos);
+      });
+      it('should deliver the proper messages', function () {
+
+        const results = (this.game as Game).update();
+
+        expect(this.p2.character.stats.health).to.eql(0);
+
+        const deathLogMessage = _.find(results.log, logMsg => logMsg.indexOf('Animal died') > -1);
+
+        expect(deathLogMessage).to.exist;
+
+        const deathNoticeMessage = _.find(results.messages, msg => {
+          const toPlayer = msg.to[ 0 ];
+
+          return toPlayer.id === this.p2.id && msg.content.indexOf('died before') > -1;
+        });
+
+        expect(deathNoticeMessage).to.exist;
+      });
     });
   });
 
@@ -357,20 +460,20 @@ describe('Game', () => {
     });
   });
 
-  describe('convertPlayer', function() {
-    before(function() {
-      this.game = new Game(8, [{
+  describe('convertPlayer', function () {
+    before(function () {
+      this.game = new Game(8, [ {
         id: '123', name: 'Alice', state: 'Playing'
       }], {
-        numModifiers: {
-          maximum: Character.MAX_NUM_MODIFIERS,
-          minimum: 0
-        },
-        seed: Date.now()
-      });
+          numModifiers: {
+            maximum: Character.MAX_NUM_MODIFIERS,
+            minimum: 0
+          },
+          seed: Date.now()
+        });
     });
-    context('when given a GamePlayer', function() {
-      it('should return the player', function() {
+    context('when given a GamePlayer', function () {
+      it('should return the player', function () {
         const gamePlayer = (this.game as Game).getPlayer('123');
 
         if (!gamePlayer) {
@@ -380,8 +483,8 @@ describe('Game', () => {
         expect((this.game as Game).convertPlayer(gamePlayer)).to.eql(gamePlayer);
       });
     });
-    context('when given a LobbyPlayer', function() {
-      before(function() {
+    context('when given a LobbyPlayer', function () {
+      before(function () {
         this.lobby = new Lobby(8, []);
 
         (this.lobby as Lobby).addPlayer('007', 'James_Bond', 'Preparing');
@@ -396,7 +499,7 @@ describe('Game', () => {
 
         expect(this.player.primordialCharacter.className).to.equal('Gunslinger');
       });
-      it('should build off of the primordial character', function() {
+      it('should build off of the primordial character', function () {
         const gamePlayer = (this.game as Game).convertPlayer(this.player);
 
         expect(gamePlayer.state).to.equal('Playing');
