@@ -565,6 +565,14 @@ describe('Client', () => {
       };
       this.clientLogger = new Client.ClientLogger(this.fakeConsole);
     });
+    it('should use `info` as a default level', function () {
+      expect(this.clientLogger.level).to.eql('info');
+    });
+    it('should allow a level argument in the constructor', function () {
+      const cl = new Client.ClientLogger({ log: _.noop } as Console, 'error');
+
+      expect(cl.level).to.eql('error');
+    });
     it('should have the correct matching log levels', function () {
       const cl = this.clientLogger as Client.ClientLogger;
 
@@ -591,6 +599,8 @@ describe('Client', () => {
 
       // since debug = debug, log
       expect(this.fakeConsole._logData[ 1 ]).to.eql([ 'debug', 'yolo' ]);
+
+      cl.level = 'info';
     });
   });
 });

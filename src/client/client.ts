@@ -59,7 +59,7 @@ type ViewMessage = {
 export class ClientLogger implements Logger {
   level: LogLevel;
   console: Console;
-  readonly levels: LogLevel[] = [ 'error', 'warn', 'info', 'debug' ];
+  readonly levels: LogLevel[] = [ 'error', 'warn', 'info', 'verbose', 'debug', 'silly' ];
   constructor(console: Console, level: LogLevel = 'info') {
     this.console = console;
     this.level = level;

@@ -1,8 +1,8 @@
 import * as Winston from 'winston';
 
-export type LogLevel = 'error' | 'warn' | 'info' | 'debug';
+export type LogLevel = Winston.NPMLoggingLevel;
 
-export const logLevels: LogLevel[] = ['error', 'warn', 'info', 'debug'];
+export const logLevels: LogLevel[] = [ 'error', 'warn', 'info', 'verbose', 'debug', 'silly' ];
 
 export interface Logger {
   level: string;
