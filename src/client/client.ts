@@ -1,10 +1,20 @@
 import * as ServerMessaging from '../game/messaging';
 import { PlayerDetailsJSON, PlayerRosterJSON, PlayerInfo } from '../game/player';
-import { Logger } from '../logger';
+import { Logger, LogLevel } from '../logger';
 import { CellRepresentation, Position, CellName } from '../game/map/cell';
 import * as Character from '../game/character';
 
-/* TYPES */
+/* CLIENT CHECK AND SETUP */
+const isRunningOnClient = typeof window !== 'undefined';
+
+if (isRunningOnClient) {
+  // since we're in the client, exporting is not allowed
+  // so here's a little hack that fixes the `undefined export` problem
+  const w: any = window;
+  w.exports = {};
+}
+
+/* TYPES AND CLASSES */
 
 type StyleClass = ServerMessaging.MessageType | 'Error' | 'Unknown';
 
@@ -45,26 +55,46 @@ type ViewMessage = {
   content: string;
 };
 
+// Implements the main Logger inteface, but behaves like Winston too
+export class ClientLogger implements Logger {
+  level: LogLevel;
+  console: Console;
+  readonly levels: LogLevel[] = [ 'error', 'warn', 'info', 'verbose', 'debug', 'silly' ];
+  constructor(console: Console, level: LogLevel = 'info') {
+    this.console = console;
+    this.level = level;
+  }
+
+  log(level: LogLevel, ...args) {
+    const currLevelInd = this.levels.indexOf(this.level);
+    const argLevelInd = this.levels.indexOf(level);
+
+    if (argLevelInd <= currLevelInd) {
+      this.console.log(level, ...args);
+    } else {
+      // do nothing
+    }
+  }
+}
+
 /* EXECUTED CODE */
 
-const isRunningOnClient = typeof window !== 'undefined';
-
-if (isRunningOnClient) {
+function main() {
   const socket = io('/game', {
     // don't attempt to reconnect if the server dies
     reconnection: false
   });
 
-  $(document).ready(onDocumentReady($, socket, console));
+  const clientLogger = new ClientLogger(console);
 
-  // since we're in the client, exporting is not allowed
-  // so here's a little hack that fixes the `undefined export` problem
-  const w: any = window;
-  w.exports = {};
+  $(document).ready(onDocumentReady($, socket, clientLogger));
+}
+
+if (isRunningOnClient) {
+  main();
 }
 
 /* FUNCTIONS */
-
 export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket, logger: Logger): () => void {
   return () => {
     assignDOMListensers(socket, $, logger);
@@ -170,6 +200,12 @@ export function assignClientSocketListeners(socket: SocketIOClient.Socket, $: JQ
     logger.log('debug', 'Got roster: ', data);
 
     updateRoster(data, $);
+  });
+
+  socket.on('debug', (data) => {
+    if (data.isDebugActive) {
+      logger.level = 'debug';
+    }
   });
 }
 
@@ -594,12 +630,6 @@ export function handleContextChange(newContext: ContextMode, $: JQueryCreator): 
   } else {
     throw new Error(`Unkown context mode: ${newContext}`);
   }
-}
-
-export function createClientLogger(console: Console): Logger {
-  // TODO: wrap console.log so output is similar to Winston's levels
-  // maybe even include winston instead?
-  return console; // TODO: implement me!
 }
 
 export function classifyCell(c: CellRepresentation): CellName {
