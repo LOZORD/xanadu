@@ -9,7 +9,7 @@ import { changeStats } from './stats';
 describe('Character', function () {
   describe('updateCharacter', function () {
     function setup(self) {
-      self.player = Player.createPlayer('007', 'James_Bond', 'Playing');
+      self.player = Player.createPlayer('007', 'James_Bond');
 
       self.game = new Game(8, [ self.player ]);
 
@@ -156,7 +156,7 @@ describe('Character', function () {
   });
   describe('updateEffectMeters', function () {
     beforeEach(function () {
-      this.player = Player.createPlayer('404', 'Missingno', 'Ready');
+      this.player = Player.createPlayer('404', 'Missingno');
 
       this.game = new Game(8, [ this.player ]);
 
@@ -319,8 +319,8 @@ describe('Character', function () {
   });
   describe('createCharacter', function () {
     before(function () {
-      const p1 = Player.createPlayer('1', 'Alice', 'Preparing');
-      const p2 = Player.createPlayer('2', 'Bob', 'Preparing');
+      const p1 = Player.createPlayer('1', 'Alice');
+      const p2 = Player.createPlayer('2', 'Bob');
 
       this.game = new Game(8, [ p1, p2 ]);
 

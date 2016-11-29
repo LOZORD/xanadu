@@ -14,6 +14,7 @@ import * as Stats from './stats';
 import * as Weapon from './items/weapon';
 import { isApproximateSubstring } from '../helpers';
 import { ItemStack, createItemStack } from './items/item';
+import { isPlaying } from './player';
 
 export interface Action {
   actor: Animal.Animal;
@@ -319,7 +320,7 @@ export const ATTACK_COMPONENT: ActionParserComponent<AttackAction> = {
 
       // first, look through our list of players
       const targetPlayer = _.find(game.players,
-        player => player.state === 'Playing' && isApproximateSubstring(attackAction.targetName, player.name));
+        player => isPlaying(player) && isApproximateSubstring(attackAction.targetName, player.name));
 
       if (!targetPlayer) {
         return {
@@ -422,7 +423,7 @@ export const ATTACK_COMPONENT: ActionParserComponent<AttackAction> = {
     const actualTimesAttacked = Math.floor(attackAction.times * accuracyPercentage / 100.0);
 
     const targetPlayer = _.find(game.players,
-      player => player.state === 'Playing' && isApproximateSubstring(attackAction.targetName, player.name));
+      player => isPlaying(player) && isApproximateSubstring(attackAction.targetName, player.name));
 
     // Do the damage to the target
     const totalDamage = actualTimesAttacked * weaponStack.item.damageAmount;

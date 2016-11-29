@@ -103,7 +103,7 @@ export type NameSpan = {
 };
 
 export function spanMessagePlayerNames (content: string, players: Player[], equality = isApproximateName): NameSpan {
-    const allPlayerNames = players.map(player => player.name);
+    const allPlayerNames = players.map(player => player.name).filter(maybeName => maybeName !== null) as string[];
 
     const splitContent = _.chain(content).split(' ');
 

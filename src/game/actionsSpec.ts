@@ -27,7 +27,7 @@ describe('Actions', function () {
     // remember: we are using the test map!
     before(function () {
       this.game = new Game(8, []);
-      this.player = Player.createPlayer('007', 'James_Bond', 'Playing');
+      this.player = Player.createPlayer('007', 'James_Bond');
       this.player.character = Character.createCharacter(this.game, this.player, this.game.map.startingPosition, 'None');
       this.game.players.push(this.player);
     });
@@ -110,7 +110,7 @@ describe('Actions', function () {
   describe('PassAction', function () {
     before(function () {
       this.game = new Game(8, []);
-      this.player = Player.createPlayer('007', 'James_Bond', 'Playing');
+      this.player = Player.createPlayer('007', 'James_Bond');
       this.player.character = Character.createCharacter(this.game, this.player, this.game.map.startingPosition, 'None');
       this.game.players.push(this.player);
     });
@@ -149,7 +149,7 @@ describe('Actions', function () {
   });
   describe('RestAction', function () {
     before(function () {
-      this.player = Player.createPlayer('darth', 'Darth_Vader', 'Playing');
+      this.player = Player.createPlayer('darth', 'Darth_Vader');
       this.game = new Game(8, [ this.player ]);
     });
     describe('parse', function () {
@@ -172,7 +172,7 @@ describe('Actions', function () {
   });
   describe('IngestAction', function () {
     beforeEach(function () {
-      this.player = Player.createPlayer('007', 'James_Bond', 'Playing');
+      this.player = Player.createPlayer('007', 'James_Bond');
 
       this.game = new Game(8, [ this.player ]);
 
@@ -382,8 +382,8 @@ describe('Actions', function () {
   });
   describe('AttackAction', function () {
     beforeEach(function () {
-      const p1 = Player.createPlayer('alice', 'Alice', 'Playing');
-      const p2 = Player.createPlayer('bob', 'Bob', 'Playing');
+      const p1 = Player.createPlayer('alice', 'Alice');
+      const p2 = Player.createPlayer('bob', 'Bob');
 
       this.game = new Game(8, [ p1, p2 ]);
 
