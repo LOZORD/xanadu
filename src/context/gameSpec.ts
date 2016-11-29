@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import * as _ from 'lodash';
 import Game from './game';
 import { TEST_PARSE_RESULT } from '../game/map/parseGrid';
-import { PlayerState, GamePlayer, Player } from '../game/player';
+import { GamePlayer, Player, createPlayer, getPlayerState } from '../game/player';
 import * as Messaging from '../game/messaging';
 import * as Character from '../game/character';
 import Lobby from './lobby';
@@ -10,10 +10,6 @@ import * as Sinon from 'sinon';
 
 const createGame = (players: Player[] = []): Game => {
   return new Game(8, players);
-};
-
-const createPlayer = (id: string, name: string, state: PlayerState): Player => {
-  return { id, name, state };
 };
 
 describe('Game', () => {
@@ -31,9 +27,9 @@ describe('Game', () => {
   describe('handleMessage', function () {
     before(function () {
       this.game = createGame([
-        createPlayer('vader', 'Darth_Vader', 'Playing'),
-        createPlayer('yoda', 'Yoda', 'Playing'),
-        createPlayer('r2d2', 'R2D2', 'Playing')
+        createPlayer('vader', 'Darth_Vader'),
+        createPlayer('yoda', 'Yoda'),
+        createPlayer('r2d2', 'R2D2')
       ]);
 
       this.player1 = (this.game as Game).getPlayer('vader');
@@ -203,9 +199,9 @@ describe('Game', () => {
   describe('isReadyForNextContext', () => {
     beforeEach(function () {
       const players: Player[] = [
-        { id: 'foo', name: 'Foo', state: 'Ready' },
-        { id: 'bar', name: 'Baz', state: 'Ready' },
-        { id: 'baz', name: 'Baz', state: 'Ready' }
+        { id: 'foo', name: 'Foo' },
+        { id: 'bar', name: 'Baz' },
+        { id: 'baz', name: 'Baz' }
       ];
 
       this.game = new Game(8, players);
@@ -238,8 +234,8 @@ describe('Game', () => {
   describe('update', () => {
     before(function () {
       this.game = createGame([
-        createPlayer('123', 'Alice', 'Playing'),
-        createPlayer('456', 'Bob', 'Playing')
+        createPlayer('123', 'Alice'),
+        createPlayer('456', 'Bob')
       ]);
 
       this.p1 = (this.game as Game).getPlayerByName('Alice');
@@ -353,8 +349,8 @@ describe('Game', () => {
   describe('isReadyForUpdate', () => {
     it('should be true iff all players have an action', () => {
       const game = createGame([
-        createPlayer('007', 'James_Bond', 'Playing'),
-        createPlayer('008', 'Bill', 'Playing')
+        createPlayer('007', 'James_Bond'),
+        createPlayer('008', 'Bill')
       ]);
 
       const p1 = game.getPlayer('007');
@@ -387,8 +383,8 @@ describe('Game', () => {
   describe('getNearbyAnimals', function () {
     before(function () {
       this.game = createGame([
-        createPlayer('luke', 'Luke', 'Playing'),
-        createPlayer('leia', 'Leia', 'Playing')
+        createPlayer('luke', 'Luke'),
+        createPlayer('leia', 'Leia')
       ]);
 
       this.player1 = (this.game as Game).getPlayer('luke');
@@ -405,9 +401,9 @@ describe('Game', () => {
   describe('getSortedActions', function () {
     before(function () {
       this.game = createGame([
-        createPlayer('123', 'Alice', 'Playing'),
-        createPlayer('456', 'Bob', 'Playing'),
-        createPlayer('789', 'Carol', 'Playing')
+        createPlayer('123', 'Alice'),
+        createPlayer('456', 'Bob'),
+        createPlayer('789', 'Carol')
       ]);
 
       this.player1 = (this.game as Game).getPlayer('123');
@@ -463,7 +459,7 @@ describe('Game', () => {
   describe('convertPlayer', function () {
     before(function () {
       this.game = new Game(8, [ {
-        id: '123', name: 'Alice', state: 'Playing'
+        id: '123', name: 'Alice'
       }], {
           numModifiers: {
             maximum: Character.MAX_NUM_MODIFIERS,
@@ -487,7 +483,7 @@ describe('Game', () => {
       before(function () {
         this.lobby = new Lobby(8, []);
 
-        (this.lobby as Lobby).addPlayer('007', 'James_Bond', 'Preparing');
+        (this.lobby as Lobby).addPlayer('007', 'James_Bond');
 
         this.player = (this.lobby as Lobby).getPlayer('007');
 
@@ -502,7 +498,7 @@ describe('Game', () => {
       it('should build off of the primordial character', function () {
         const gamePlayer = (this.game as Game).convertPlayer(this.player);
 
-        expect(gamePlayer.state).to.equal('Playing');
+        expect(getPlayerState(gamePlayer)).to.equal('Playing');
         expect(gamePlayer.character.characterClass.className).to.equal('Gunslinger');
         expect(gamePlayer.character.allegiance).to.equal('Western');
         expect(Character.getActiveModifierNames(gamePlayer.character.modifiers)).to.have.lengthOf(3);

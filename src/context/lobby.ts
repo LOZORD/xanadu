@@ -34,12 +34,12 @@ export default class Lobby extends Context<Player.LobbyPlayer> {
     // XXX: this will need to be updated if we want flip-flopping between
     // games and lobbies
     let responses: Message[] = [ createEchoMessage(fromClient.content, fromClient.player) ];
-    switch (fromClient.player.state) {
+    switch (Player.getPlayerState(fromClient.player)) {
       case 'Anon': {
         const name = fromClient.content;
         const validationResult = this.validateName(name);
         if (validationResult === 'Valid') {
-          this.updatePlayer(fromClient.player.id, { name, state: 'Preparing' });
+          fromClient.player.name = name;
           responses.push(
             createGameMessage(`Welcome to Xanadu ${name}! Enter \`ready \` to start.`, [ fromClient.player ])
           );
@@ -80,7 +80,7 @@ export default class Lobby extends Context<Player.LobbyPlayer> {
 
           fromClient.player.primordialCharacter = primordialCharacter;
 
-          this.updatePlayer(fromClient.player.id, { state: 'Ready' });
+          fromClient.player.isReady = true;
           responses.push(this.broadcastFromPlayer(`${fromClient.player.name} is ready`, fromClient.player));
         } else {
           responses.push(
@@ -91,8 +91,7 @@ export default class Lobby extends Context<Player.LobbyPlayer> {
         break;
       }
       default: {
-        // Don't do anything
-        break;
+        throw new Error('Cannot handle message from LobbyPlayer in bad state!');
       }
     }
 
@@ -106,7 +105,7 @@ export default class Lobby extends Context<Player.LobbyPlayer> {
       return {
         id: player.id,
         name: player.name,
-        state: 'Preparing',
+        isReady: false,
         primordialCharacter: {
           className: player.character.characterClass.className,
           allegiance: player.character.allegiance,
@@ -117,7 +116,7 @@ export default class Lobby extends Context<Player.LobbyPlayer> {
       return {
         name: player.name,
         id: player.id,
-        state: player.state,
+        isReady: false,
         primordialCharacter: {
           className: 'None',
           allegiance: 'None',

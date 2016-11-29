@@ -273,10 +273,13 @@ export default class Game extends Context<Player.GamePlayer> {
         this.generateModifiers(player.primordialCharacter.numModifiers)
       );
 
+      if (player.name === null) {
+        throw new Error('Cannot convert an annonymous player to a GamePlayer!');
+      }
+
       return {
         id: player.id,
         name: player.name,
-        state: 'Playing',
         character
       };
     } else {
@@ -285,10 +288,13 @@ export default class Game extends Context<Player.GamePlayer> {
         'None', 'None', Character.createEmptyModifiers()
       );
 
+      if (player.name === null) {
+        throw new Error('Cannot convert an annonymous player to a GamePlayer!');
+      }
+
       return {
         id: player.id,
         name: player.name,
-        state: player.state,
         character
       };
     }
