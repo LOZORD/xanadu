@@ -5,22 +5,47 @@ import { mapToRepresentations } from './map/map';
 import { isApproximateSubstring } from '../helpers';
 import { omit } from 'lodash';
 import { CellRepresentation, Position } from './map/cell';
+import * as Animal from './animal';
 
-// TODO: find a way to remove this (as most if not all can be computed from player properties)
 export type PlayerState = 'Anon' | 'Preparing' | 'Ready' | 'Playing' | 'Dead' | 'Spectating' | 'Absent';
 
 export interface Player {
   // this is the id of the socket on which the player is connected
   id: string;
-  name: string;
-  state: PlayerState;
+  name: string | null;
+}
+
+export function getPlayerState(player: Player): PlayerState {
+  if (isLobbyPlayer(player)) {
+    if (player.name === null) {
+      return 'Anon';
+    } else if (player.isReady) {
+      return 'Ready';
+    } else {
+      return 'Preparing';
+    }
+  } else if (isGamePlayer(player)) {
+    if (player.character.hasEscaped) {
+      return 'Spectating';
+    } else if (Animal.isAlive(player.character)) {
+      return 'Playing';
+    } else if (Animal.isDead(player.character)) {
+      return 'Dead';
+    } else {
+      throw new Error(`Unknown PlayerState for GamePlayer: ${JSON.stringify(player)}`);
+    }
+  } else {
+    throw new Error(`Unknown PlayerState for player: ${JSON.stringify(player)}`);
+  }
 }
 
 export interface LobbyPlayer extends Player {
   primordialCharacter: Character.PrimordialCharacter;
+  isReady: boolean;
 }
 
 export interface GamePlayer extends Player {
+  name: string;
   character: Character.Character;
 }
 
@@ -42,36 +67,36 @@ export interface PlayerRosterJSON {
 }
 
 export
-  function createPlayer(id: string, name: string, state: PlayerState): Player {
-  return { id, name, state };
+  function createPlayer(id: string, name: string): Player {
+  return { id, name };
 }
 
 export function isAnon(p: Player): boolean {
-  return p.state === 'Anon';
+  return getPlayerState(p) === 'Anon';
 }
 
 export function isPreparing(p: Player): boolean {
-  return p.state === 'Preparing';
+  return getPlayerState(p) === 'Preparing';
 }
 
 export function isReady(p: Player): boolean {
-  return p.state === 'Ready';
+  return getPlayerState(p) === 'Ready';
 }
 
 export function isPlaying(p: Player): boolean {
-  return p.state === 'Playing';
+  return getPlayerState(p) === 'Playing';
 }
 
 export function isDead(p: Player): boolean {
-  return p.state === 'Dead';
+  return getPlayerState(p) === 'Dead';
 }
 
 export function isSpectating(p: Player): boolean {
-  return p.state === 'Spectating';
+  return getPlayerState(p) === 'Spectating';
 }
 
 export function isAbsent(p: Player): boolean {
-  return p.state === 'Absent';
+  return getPlayerState(p) === 'Absent';
 }
 
 export function canCommunicate(p1: GamePlayer, p2: GamePlayer): boolean {
@@ -114,7 +139,7 @@ export type PlayerDetailsJSON = {
 export function playerDetails(player: GamePlayer): PlayerDetailsJSON {
   const ret: PlayerDetailsJSON = {
     stats: {
-      maximum: Character.CLASS_STARTING_STATS[player.character.characterClass.className],
+      maximum: Character.CLASS_STARTING_STATS[ player.character.characterClass.className ],
       current: player.character.stats
     },
     modifiers: Character.getActiveModifierNames(player.character.modifiers),
@@ -141,7 +166,7 @@ export function debugDetails(player: Player): {} {
   const retObj: any = {};
 
   retObj.name = player.name;
-  retObj.state = player.state;
+  retObj.state = getPlayerState(player);
 
   if (isGamePlayer(player)) {
     retObj.character = {
@@ -168,9 +193,17 @@ export function isApproximateName(chunk: string, name: string): boolean {
 }
 
 export function rosterData(player: Player): PlayerRosterJSON {
+  let playerName: string;
+
+  if (player.name) {
+    playerName = player.name;
+  } else {
+    playerName = 'Anonymous Player';
+  }
+
   const ret: PlayerRosterJSON = {
-    name: player.name,
-    state: player.state
+    name: playerName,
+    state: getPlayerState(player)
   };
 
   if (isGamePlayer(player)) {
@@ -197,7 +230,7 @@ export interface PlayerInfo {
 export function getPlayerInfo(player: Player): PlayerInfo {
   const ret = {} as PlayerInfo;
 
-  if (!isAnon(player)) {
+  if (player.name) {
     ret.playerName = player.name;
   }
 
@@ -214,8 +247,4 @@ export function getPlayerInfo(player: Player): PlayerInfo {
   }
 
   return ret;
-}
-
-export function toBasePlayer<P extends Player>({ id, name, state }: P): Player {
-  return { id, name, state };
 }
