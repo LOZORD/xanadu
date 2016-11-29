@@ -1,7 +1,6 @@
 import { expect } from 'chai';
-import * as _ from 'lodash';
 import Lobby from './lobby';
-import { Player, toBasePlayer } from '../game/player';
+import { Player } from '../game/player';
 import * as Messaging from '../game/messaging';
 
 describe('Context (tested via Lobby)', () => {
@@ -42,8 +41,7 @@ describe('Context (tested via Lobby)', () => {
     beforeEach(function () {
       this.context = new Lobby(8, [ {
         name: 'James_Bond',
-        id: '007',
-        state: 'Ready'
+        id: '007'
       }]);
     });
     testContext('when the player is present', () => {
@@ -64,18 +62,19 @@ describe('Context (tested via Lobby)', () => {
 
   describe('broadcast', () => {
     before(function () {
-      this.players = [
-        { name: 'Alex', id: 'guitar', state: 'Ready' },
-        { name: 'Geddy', id: 'bass', state: 'Ready' },
-        { name: 'Neil', id: 'drums', state: 'Ready' }
+      const players: Player[] = [
+        { name: 'Alex', id: 'guitar' },
+        { name: 'Geddy', id: 'bass' },
+        { name: 'Neil', id: 'drums' }
       ];
+
+      this.players = players;
 
       this.context = new Lobby(8, this.players);
     });
     it('should return a game message addressed to all players', function () {
       const msg = this.context.broadcast('hello world') as Messaging.Message;
-      const baseTo = msg.to.map(player => toBasePlayer(player));
-      expect(baseTo).to.eql((this as Lobby).players.map(player => toBasePlayer(player)));
+      expect(msg.to).to.eql(this.context.players);
     });
   });
 
@@ -83,14 +82,13 @@ describe('Context (tested via Lobby)', () => {
     it('should validate against "subset" names', () => {
       const player1: Player = {
         id: '007',
-        name: 'James_Bond',
-        state: 'Preparing'
+        name: 'James_Bond'
       };
 
       const player2: Player = {
         id: '2112',
-        name: 'Geddy_Lee',
-        state: 'Preparing'
+        name: 'Geddy_Lee'
+
       };
 
       const context = new Lobby(8, [ player1, player2 ]);
@@ -103,48 +101,13 @@ describe('Context (tested via Lobby)', () => {
     });
   });
 
-  describe('updatePlayer', () => {
-    testContext('when the player is present', () => {
-      before(function () {
-        this.originalPlayer = {
-          name: 'nada',
-          id: '007',
-          state: 'Preparing'
-        };
-
-        this.context = new Lobby(8, [ _.cloneDeep(this.originalPlayer) ]);
-
-        this.context.updatePlayer('007', {
-          name: 'James_Bond',
-          state: 'Ready'
-        });
-
-        this.updatedPlayer = this.context.getPlayerByName('James_Bond');
-      });
-      it('should update the name field', function () {
-        expect(this.updatedPlayer.name).to.equal('James_Bond');
-      });
-      it('should update the state field', function () {
-        expect(this.updatedPlayer.state).to.equal('Ready');
-      });
-    });
-
-    testContext('when the player is NOT present', () => {
-      it('should throw an error', () => {
-        expect(
-          () => ((new Lobby(8, [])).updatePlayer('foobar', {}))
-        ).to.throw(Error);
-      });
-    });
-  });
-
   describe('getRosterData', function () {
     before(function () {
       const lobby = new Lobby(8, []);
 
       lobby.addPlayer('abc');
-      lobby.addPlayer('def', 'Darwin', 'Preparing');
-      lobby.addPlayer('ghi', 'Georgia', 'Ready');
+      lobby.addPlayer('def', 'Darwin');
+      lobby.addPlayer('ghi', 'Georgia');
 
       this.lobby = lobby;
     });

@@ -37,11 +37,11 @@ export abstract class Context<P extends Player> {
     return this.getPlayerByName(name) !== undefined;
   }
 
-  addPlayer(id: string, name = '[ANON#PLAYER]', state: Player.PlayerState = 'Anon'): void {
+  addPlayer(id: string, name: string | null = null): void {
     if (this.hasPlayer(id)) {
       throw new Error(`Player with id ${id} already exists!`);
     } else if (this.isAcceptingPlayers()) {
-      this.players.push(this.convertPlayer({ id, name, state }));
+      this.players.push(this.convertPlayer({ id, name }));
     } else {
       throw new Error('Attempted to add a player when not accepting!');
     }
@@ -53,21 +53,6 @@ export abstract class Context<P extends Player> {
     return removedPlayer;
   }
 
-  updatePlayer(id: string, update: { state?: Player.PlayerState, name?: string }): void {
-    const player = this.getPlayer(id);
-
-    if (!player) {
-      throw new Error('Could not find player to update with id: ' + id);
-    }
-
-    if (update.name) {
-      player.name = update.name;
-    }
-    if (update.state) {
-      player.state = update.state;
-    }
-  }
-
   isAcceptingPlayers(): boolean {
     return this.players.length < this.maxPlayers;
   }
@@ -75,7 +60,7 @@ export abstract class Context<P extends Player> {
   validateName(name: string): NameValidation {
     const similarNameExists = _.some(this.players, player => {
       // do a bidirectional test (either could be subset of the other)
-      return (
+      return player.name && (
         Player.isApproximateName(name, player.name) ||
         Player.isApproximateName(player.name, name)
       );
