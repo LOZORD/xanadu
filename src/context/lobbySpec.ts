@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import * as _ from 'lodash';
 import Lobby, { parsePrimordialCharacter } from './lobby';
 import * as Messaging from '../game/messaging';
-import { LobbyPlayer } from '../game/player';
+import { LobbyPlayer, getPlayerState } from '../game/player';
 
 describe('Lobby', () => {
   // again, for the sake of clarity
@@ -12,17 +12,21 @@ describe('Lobby', () => {
     it('should return true iff all players are ready', () => {
       const lobby = new Lobby(8, [ {
         name: 'Foo',
-        id: 'foo',
-        state: 'Ready'
+        id: 'foo'
       }, {
         name: 'Bar',
-        id: 'bar',
-        state: 'Preparing'
+        id: 'bar'
       }]);
+
+      const foo = lobby.getPlayer('foo');
+
+      foo!.isReady = true;
 
       expect(lobby.isReadyForNextContext()).to.be.false;
 
-      lobby.updatePlayer('bar', { state: 'Ready' });
+      const bar = lobby.getPlayer('bar');
+
+      bar!.isReady = true;
 
       expect(lobby.isReadyForNextContext()).to.be.true;
     });
@@ -47,7 +51,7 @@ describe('Lobby', () => {
         });
         it('should make their first message their name', function () {
           expect(this.lobby.hasPlayerByName('James_Bond')).to.be.true;
-          expect(this.jbPlayer.state).to.equal('Preparing');
+          expect(getPlayerState(this.jbPlayer)).to.equal('Preparing');
         });
         it('should broadcast their name', function () {
           const nameBroadcasted = _
@@ -142,7 +146,7 @@ describe('Lobby', () => {
           timestamp: Date.now()
         });
 
-        expect(p1.state).to.not.equal('Ready');
+        expect(getPlayerState(p1)).to.not.equal('Ready');
 
         const m3 = lobby.handleMessage({
           content: 'ready',
@@ -150,7 +154,7 @@ describe('Lobby', () => {
           timestamp: Date.now()
         });
 
-        expect(p1.state).to.equal('Ready');
+        expect(getPlayerState(p1)).to.equal('Ready');
 
         const readyBroadcastPresent = _.some(m3,
           message => message.type === 'Game' && _.includes(message.content, 'ready'));
@@ -161,9 +165,13 @@ describe('Lobby', () => {
     testContext('when the player is ready', () => {
       before(function () {
         this.lobby = new Lobby(8, [
-          { id: '123', name: 'Alice', state: 'Preparing' },
-          { id: '456', name: 'Bob', state: 'Ready' }
+          { id: '123', name: 'Alice'},
+          { id: '456', name: 'Bob'}
         ]);
+
+        const bob = (this.lobby as Lobby).getPlayerByName('Bob');
+
+        bob!.isReady = true;
       });
       it('should default to (global/broadcasted) talk messages');
       it('should send whisper messages');
@@ -217,32 +225,7 @@ describe('Lobby', () => {
       });
     });
     testContext('when the player is in another state', () => {
-      it('should produce no responses', () => {
-        const lobby = new Lobby(8, []);
-
-        lobby.addPlayer('007');
-
-        const p1 = lobby.getPlayer('007');
-
-        if (!p1) {
-          throw new Error('Test player not present!');
-        }
-
-        // should never happen :^)
-        p1.state = 'Dead';
-
-        const m1 = lobby.handleMessage({
-          content: 'James_Bond',
-          player: p1,
-          timestamp: Date.now()
-        });
-
-        expect(p1.name).to.not.equal('James_Bond');
-
-        expect(m1.length).to.equal(1);
-
-        expect(m1[ 0 ].type).to.equal('Echo');
-      });
+      it('should throw an error');
     });
   });
 
@@ -251,7 +234,7 @@ describe('Lobby', () => {
       const player: LobbyPlayer = {
         id: '007',
         name: 'James_Bond',
-        state: 'Ready',
+        isReady: false,
         primordialCharacter: {
           className: 'Excavator',
           allegiance: 'Eastern',
