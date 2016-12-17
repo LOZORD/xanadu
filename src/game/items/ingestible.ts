@@ -9,13 +9,13 @@ export type FoodName = 'Raw Meat' | 'Cooked Meat' | 'Stew' | 'Honeydew' |
 export type DrinkName = 'Water' | 'Alph Water' | 'Alcohol';
 
 export type MedicineName = 'Morphine' | 'Opium' | 'Medical Kit' |
-'Poison Antidote' | 'Poison';
+  'Poison Antidote' | 'Poison';
 
 export type Name = FoodName | DrinkName | MedicineName;
 
 export const names = [ 'Raw Meat', 'Cooked Meat', 'Stew', 'Honeydew',
   'Cave Leaf', 'Nightshade', 'Dark Poppy', 'Water', 'Alph Water', 'Alcohol',
-  'Morphine', 'Opium', 'Medical Kit', 'Poison Antidote', 'Poison' ].sort();
+  'Morphine', 'Opium', 'Medical Kit', 'Poison Antidote', 'Poison' ].sort() as Name[];
 
 export function stringIsAnIngestibleName(str: string): str is Name {
   return stringToIngestibleName(str) !== undefined;

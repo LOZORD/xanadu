@@ -2,6 +2,8 @@ import { Item } from './item';
 
 export type BookName = 'Modern Translation Book' | 'Map' | 'Ancient Translation Book';
 
+export const names: BookName[] = [ 'Modern Translation Book', 'Map', 'Ancient Translation Book' ];
+
 export type Name = BookName;
 
 export interface Book extends Item {

@@ -14,6 +14,9 @@ export const gunNames: GunName[] = [ 'Rifle', 'Revolver' ];
 export const namesForAttacking: AttackWeaponName[]
   = [ 'Knife', 'Pickaxe', 'Fist', 'Rifle', 'Revolver' ];
 
+export const names = [ 'Rifle Bullet', 'Revolver Bullet', 'Knife', 'Pickaxe',
+  'Fist', 'Rifle', 'Revolver', 'Dynamite' ].sort() as Name[];
+
 export function stringIsAttackWeaponName(str: string): str is AttackWeaponName {
   return Boolean(stringToAttackWeaponName(str));
 }
