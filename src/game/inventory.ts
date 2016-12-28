@@ -1,14 +1,14 @@
 import * as _ from 'lodash';
-import { Item, ItemStack, ItemStackJSON, changeStackAmount, createItemStack, stackIsEmpty } from './items/item';
+import * as Item from './items/item';
 import { ItemName } from './items/itemName';
 import { createItem } from './items/itemCreator';
 
 export interface Inventory {
-  itemStacks: ItemStack<Item>[];
+  itemStacks: Item.ItemStack<Item.Item>[];
   maximumCapacity: number;
 }
 
-export function createInventory(itemStacks: ItemStack<Item>[], size: number): Inventory {
+export function createInventory(itemStacks: Item.ItemStack<Item.Item>[], size: number): Inventory {
   return {
     maximumCapacity: size,
     itemStacks: removeEmptyStacks(_.take(itemStacks, size))
@@ -23,21 +23,12 @@ export function inventoryIsFull(inventory: Inventory): boolean {
   return inventory.itemStacks.length === inventory.maximumCapacity;
 }
 
-export function getItem(inventory: Inventory, itemName: ItemName): ItemStack<Item> {
-  const needle = _.find(inventory.itemStacks,
-    (itemStack: ItemStack<Item>) => itemStack.item.name === itemName);
-
-  // some odd condition (error) checking
-  if (needle && stackIsEmpty(needle)) {
-    throw new Error(`Empty item stack (${needle.item.name}) found in inventory!`);
-  } else {
-    // needle DNE or it is a non-empty stack
-    return needle;
-  }
+export function getItem(inventory: Inventory, itemName: ItemName): Item.ItemStack<Item.Item> {
+  return Item.getItem(inventory.itemStacks, itemName);
 }
 
 export function hasItem(inventory: Inventory, itemName: ItemName): boolean {
-  return Boolean(getItem(inventory, itemName));
+  return Item.hasItem(inventory.itemStacks, itemName);
 }
 
 export function updateInventory(
@@ -50,11 +41,11 @@ export function updateInventory(
 
     newStack = _.cloneDeep(itemStack);
 
-    changeStackAmount(newStack, amount);
+    Item.changeStackAmount(newStack, amount);
   } else {
     const isFull = inventoryIsFull(inventory);
     if (!isFull && amount > 0) {
-      newStack = createItemStack(createItem(itemName), amount, maxAmount);
+      newStack = Item.createItemStack(createItem(itemName), amount, maxAmount);
     } else if (isFull && amount > 0) {
       throw new Error(
         'Attempted to add a non-present item to a full inventory!'
@@ -76,7 +67,7 @@ export function updateInventory(
 }
 
 export function removeFromInventory(inventory: Inventory, itemName: ItemName, amount: number): {
-  inventory: Inventory, itemStack: ItemStack<Item>
+  inventory: Inventory, itemStack: Item.ItemStack<Item.Item>
 } {
 
   if (hasItem(inventory, itemName)) {
@@ -84,7 +75,7 @@ export function removeFromInventory(inventory: Inventory, itemName: ItemName, am
     const newInventory = updateInventory(inventory, itemName, -amount);
     return {
       inventory: newInventory,
-      itemStack: createItemStack(retrievedItemStack.item, amount, retrievedItemStack.maxStackAmount)
+      itemStack: Item.createItemStack(retrievedItemStack.item, amount, retrievedItemStack.maxStackAmount)
     };
   } else {
     throw new Error(`Attempted to remove non-present "${itemName}" from inventory!`);
@@ -96,7 +87,7 @@ export function addToInventory(inventory: Inventory, itemName: ItemName, amount:
 }
 
 // TODO: put other Item_JSON types in parens:
-export type InventoryJSON = (ItemStackJSON)[];
+export type InventoryJSON = (Item.ItemStackJSON)[];
 
 // FIXME: implement item condition (i.e. how much it needs to be repaired)
 export function toJSON(inventory: Inventory): InventoryJSON {
@@ -105,6 +96,6 @@ export function toJSON(inventory: Inventory): InventoryJSON {
   );
 }
 
-export function removeEmptyStacks(stacks: ItemStack<Item>[]): ItemStack<Item>[] {
-  return _.filter(stacks, _.negate(stackIsEmpty));
+export function removeEmptyStacks(stacks: Item.ItemStack<Item.Item>[]): Item.ItemStack<Item.Item>[] {
+  return _.filter(stacks, _.negate(Item.stackIsEmpty));
 }

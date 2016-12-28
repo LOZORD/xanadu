@@ -93,6 +93,16 @@ describe('Inventory', () => {
     });
     it('should not modify the argument inventory');
   });
+  describe('removeFromInventory', function () {
+    context('when the item is not present', function () {
+      it('should throw an error', function () {
+        expect(() =>
+          Inventory.removeFromInventory(
+            Inventory.createInventory([], 1), 'Honeydew', 5)
+        ).to.throw(Error);
+      });
+    });
+  });
   describe('toJSON', () => {
     it('should return the correct result');
   });
