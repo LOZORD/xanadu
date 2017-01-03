@@ -8,6 +8,9 @@ import * as Inventory from './inventory';
 import * as Stats from './stats';
 import * as Ingestible from './items/ingestible';
 import * as Weapon from './items/weapon';
+import * as Map from './map/map';
+import { createItem } from './items/itemCreator';
+import * as Item from './items/item';
 
 describe('Actions', function () {
   describe('isParsableAction', function () {
@@ -712,6 +715,182 @@ describe('Actions', function () {
         it('should remove the correct number of bullets from the inventory', function () {
           const bulletStack = Inventory.getItem(this.p1.character.inventory, 'Rifle Bullet');
           expect(bulletStack.stackAmount).to.equal(1);
+        });
+      });
+    });
+  });
+  describe('PickupAction', function () {
+    beforeEach(function () {
+      const p: Player.Player = {
+        id: '007',
+        name: 'James_Bond'
+      };
+
+      const game = new Game(4, [ p ]);
+
+      this.game = game;
+      this.player = game.getPlayer('007');
+
+      this.caveLeafStack = Item.createItemStack(createItem('Cave Leaf'), 5, 5);
+
+      (this.game as Game).startingRoom.items = [ this.caveLeafStack ];
+
+      expect(Item.hasItem(this.game.startingRoom.items, 'Cave Leaf'));
+      expect(this.game.startingRoom.items).to.have.lengthOf(1);
+    });
+    describe('parse', function () {
+      context('when given a valid input', function () {
+        it('should return a correctly parsed action', function () {
+          const now = Date.now();
+          const action = Actions.PICKUP_ACTION.parse(
+            'GET honeydew', this.player.character, now
+          );
+
+          expect(action.actor).to.be.ok;
+          expect(action.timestamp).to.eql(now);
+          expect(action.itemName).to.eql('Honeydew');
+          expect(action.key).to.eql('Pickup');
+        });
+      });
+      context('when given an invalid input', function () {
+        it('should throw an error', function () {
+          expect(
+            () => Actions.PICKUP_ACTION.parse(
+              'grab foobar', this.player.character, Date.now()
+            )
+          ).to.throw(Error);
+        });
+      });
+    });
+    describe('validate', function () {
+      context('when the actor is not in a room', function () {
+        beforeEach(function () {
+          (this.player as Player.GamePlayer).character.row -= 1;
+          expect(Map.isValidRoom(this.game.map, this.player.character)).to.be.false;
+        });
+        it('should throw an error', function () {
+          const action = Actions.PICKUP_ACTION.parse('get honeydew', this.player.character, Date.now());
+          expect(() => Actions.PICKUP_ACTION.validate(action, this.game)).to.throw(Error);
+        });
+      });
+      context('when room does not have the requested item in it', function () {
+        it('should not be valid', function () {
+          const action = Actions.PICKUP_ACTION.parse('grab honeydew', this.player.character, 0);
+          const validation = Actions.PICKUP_ACTION.validate(action, this.game);
+          expect(validation.isValid).to.be.false;
+          expect(validation.error).to.contain('Honeydew is not in the room');
+        });
+      });
+      context('when the player\'s inventory is full', function () {
+        beforeEach(function () {
+          const inventory = (this.player as Player.GamePlayer).character.inventory;
+          inventory.maximumCapacity = inventory.itemStacks.length;
+          expect(Inventory.inventoryIsFull(inventory)).to.be.true;
+        });
+        it('should not be valid', function () {
+          const action = Actions.PICKUP_ACTION.parse('pick up cave leaf', this.player.character, 1);
+          const validation = Actions.PICKUP_ACTION.validate(action, this.game);
+          expect(validation.isValid).to.be.false;
+          expect(validation.error).to.contain('is full');
+        });
+      });
+      context('when the player already has the item', function () {
+        beforeEach(function () {
+          this.player.character.inventory = Inventory.addToInventory(
+            this.player.character.inventory, 'Cave Leaf', 3, 5
+          );
+
+          expect(Inventory.getItem(this.player.character.inventory, 'Cave Leaf')).to.be.ok;
+        });
+        context('and their stack is not full', function () {
+          it('should be valid', function () {
+            const action = Actions.PICKUP_ACTION.parse('get cave leaf', this.player.character, 1);
+            const validation = Actions.PICKUP_ACTION.validate(action, this.game);
+            expect(validation.isValid).to.be.true;
+          });
+        });
+        context('and their stack is full', function () {
+          beforeEach(function () {
+            this.player.character.inventory = Inventory.addToInventory(
+              this.player.character.inventory, 'Cave Leaf', 2, 5
+            );
+            const stack = Inventory.getItem(this.player.character.inventory, 'Cave Leaf');
+            expect(Item.stackIsFull(stack)).to.be.true;
+          });
+          it('should not be valid', function () {
+            const action = Actions.PICKUP_ACTION.parse('get cave leaf', this.player.character, 1);
+            const validation = Actions.PICKUP_ACTION.validate(action, this.game);
+            expect(validation.isValid).to.be.false;
+            expect(validation.error).to.contain('current Cave Leaf stack is full');
+          });
+        });
+      });
+      context('when the player\'s inventory has room and the player does not have the item', function () {
+        beforeEach(function () {
+          expect(Inventory.inventoryIsFull(this.player.character.inventory)).to.be.false;
+          expect(Inventory.hasItem(this.player.character.inventory, 'Cave Leaf')).to.be.false;
+        });
+        it('should be valid', function () {
+          const action = Actions.PICKUP_ACTION.parse('get cave leaf', this.player.character, 1);
+          const validation = Actions.PICKUP_ACTION.validate(action, this.game);
+          expect(validation.isValid).to.be.true;
+        });
+      });
+    });
+    describe('perform', function () {
+      context('when the player already has the item', function () {
+        beforeEach(function () {
+          this.player.character.inventory =
+            Inventory.addToInventory(this.player.character.inventory, 'Cave Leaf', 3, 5);
+          expect(Inventory.hasItem(this.player.character.inventory, 'Cave Leaf')).to.be.true;
+
+          const action = Actions.PICKUP_ACTION.parse('get cave leaf', this.player.character, 1);
+          expect(Actions.PICKUP_ACTION.validate(action, this.game).isValid).to.be.true;
+
+          this.result = Actions.PICKUP_ACTION.perform(action, this.game, []);
+        });
+        it('should leave leftovers in the room', function () {
+          const playerStack = Inventory.getItem((this.player as Player.GamePlayer).character.inventory, 'Cave Leaf');
+          expect(playerStack).to.be.ok;
+          expect(Item.stackIsFull(playerStack)).to.be.true;
+
+          const roomStack = Item.getItem((this.game as Game).startingRoom.items, 'Cave Leaf');
+          expect(roomStack).to.be.ok;
+          expect(Item.stackIsFull(roomStack)).to.be.false;
+
+          const beforeAmount = 3;
+          const roomStackAmount = 5;
+          const amountTaken = roomStackAmount - beforeAmount;
+          expect(roomStack.stackAmount).to.eql(roomStackAmount - amountTaken);
+        });
+      });
+      context('when the player does not already have the item', function () {
+        beforeEach(function () {
+          expect(Inventory.hasItem(this.player.character.inventory, 'Cave Leaf')).to.be.false;
+
+          const action = Actions.PICKUP_ACTION.parse('get cave leaf', this.player.character, 1);
+          expect(Actions.PICKUP_ACTION.validate(action, this.game).isValid).to.be.true;
+
+          this.result = Actions.PICKUP_ACTION.perform(action, this.game, []);
+        });
+        it('should take the whole stack', function () {
+          const room = (this.game as Game).startingRoom;
+
+          expect(Item.hasItem(room.items, 'Cave Leaf')).to.be.false;
+
+          const playerStack = Inventory.getItem(this.player.character.inventory, 'Cave Leaf');
+
+          expect(playerStack).to.eql(this.caveLeafStack);
+        });
+        it('should send the correct message', function () {
+          const pickupMessage = _.find(
+            (this.result as Actions.PerformResult).messages,
+            message => {
+              return message.type === 'Game' &&
+                _.includes(message.content, 'picked up 5 Cave Leaf');
+            });
+
+          expect(pickupMessage).to.be.ok;
         });
       });
     });
