@@ -4,165 +4,187 @@ import * as Player from './player';
 import Game from '../context/game';
 import * as Inventory from './inventory';
 import { cloneDeep } from 'lodash';
-import { changeStats } from './stats';
+import { changeStats, Stats } from './stats';
 
 describe('Character', function () {
   describe('updateCharacter', function () {
-    function setup(self) {
-      self.player = Player.createPlayer('007', 'James_Bond');
+    // type UpdateSetup = {
+    //   player: Player.GamePlayer;
+    //   game: Game;
+    // };
 
-      self.game = new Game(8, [ self.player ]);
+    // function setup(setup: UpdateSetup) {
+    //   setup.game = new Game(8, [ {id: '007', name: 'James_Bond'} ]);
 
-      self.player = (self.game as Game).getPlayer('007');
+    //   setup.player = setup.game.getPlayer('007')!;
 
-      self.player.character = Character.createCharacter(self.game, self.player);
-    }
-    before(function () {
-      setup(this);
-    });
-    afterEach(function () {
-      setup(this);
+    //   // self.player.character = Character.createCharacter(self.game, self.player);
+    // }
+
+    let game: Game;
+    let player: Player.GamePlayer;
+
+    // before(function () {
+    //   setup(this);
+    // });
+    // afterEach(function () {
+    //   setup(this);
+    // });
+
+    beforeEach(() => {
+      game = new Game(8, [ { id: '007', name: 'James_Bond' }]);
+      player = game.getPlayer('007') !;
     });
     context('when the character has no active effects', function () {
-      before(function () {
+      beforeEach(function () {
         // assign a pass action
-        (this.player.character as Character.Character).nextAction = {
-          actor: (this.player.character as Character.Character),
+        player.character.nextAction = {
+          actor: player.character,
           timestamp: Date.now(),
           key: 'Pass'
         };
       });
       it('should return the proper log message', function () {
-        const log = Character.updateCharacter(this.player.character, 'James_Bond');
+        const log = Character.updateCharacter(player.character, 'James_Bond');
 
         expect(log).to.include('James_Bond has no active effects');
       });
     });
     context('when the character is exhausted', function () {
-      before(function () {
-        this.origStats = cloneDeep(this.player.character.stats);
-        (this.player.character as Character.Character).effects.exhaustion.current = 0;
+      let origStats: Stats;
+      let log: string;
+      beforeEach(function () {
+        origStats = cloneDeep(player.character.stats);
+        player.character.effects.exhaustion.current = 0;
 
-        (this.player.character as Character.Character).nextAction = {
-          actor: this.player.character,
+        player.character.nextAction = {
+          actor: player.character,
           timestamp: Date.now(),
           key: 'Pass'
         };
 
-        this.log = Character.updateCharacter(this.player.character, 'James_Bond');
+        log = Character.updateCharacter(player.character, 'James_Bond');
       });
       it('should apply the negative exhaustion stat change', function () {
-        expect(this.player.character.stats).to.eql(
-          changeStats(this.origStats, Character.EXHAUSTED.statChange)
+        expect(player.character.stats).to.eql(
+          changeStats(origStats, Character.EXHAUSTED.statChange)
         );
       });
       it('should give the proper log message', function () {
-        expect(this.log).to.contain('James_Bond is exhausted');
+        expect(log).to.contain('James_Bond is exhausted');
       });
     });
     context('when the character is hungry', function () {
-      before(function () {
-        this.origStats = cloneDeep(this.player.character.stats);
-        (this.player.character as Character.Character).effects.hunger.current = 0;
+      let origStats: Stats;
+      let log: string;
+      beforeEach(function () {
+        origStats = cloneDeep(player.character.stats);
+        player.character.effects.hunger.current = 0;
 
-        (this.player.character as Character.Character).nextAction = {
-          actor: this.player.character,
+        player.character.nextAction = {
+          actor: player.character,
           timestamp: Date.now(),
           key: 'Pass'
         };
 
-        this.log = Character.updateCharacter(this.player.character, 'James_Bond');
+        log = Character.updateCharacter(player.character, 'James_Bond');
       });
       it('should apply the negative hunger stat change', function () {
-        expect(this.player.character.stats).to.eql(
-          changeStats(this.origStats, Character.HUNGRY.statChange)
+        expect(player.character.stats).to.eql(
+          changeStats(origStats, Character.HUNGRY.statChange)
         );
       });
       it('should give the proper log message', function () {
-        expect(this.log).to.contain('James_Bond is hungry');
+        expect(log).to.contain('James_Bond is hungry');
       });
     });
     context('when the character is poisoned', function () {
-      before(function () {
-        this.origStats = cloneDeep(this.player.character.stats);
-        (this.player.character as Character.Character).effects.poison.isActive = true;
+      let origStats: Stats;
+      let log: string;
+      beforeEach(function () {
+        origStats = cloneDeep(player.character.stats);
+        player.character.effects.poison.isActive = true;
 
-        (this.player.character as Character.Character).nextAction = {
-          actor: this.player.character,
+        player.character.nextAction = {
+          actor: player.character,
           timestamp: Date.now(),
           key: 'Pass'
         };
 
-        this.log = Character.updateCharacter(this.player.character, 'James_Bond');
+        log = Character.updateCharacter(player.character, 'James_Bond');
       });
       it('should apply the poisoned stat change', function () {
-        expect(this.player.character.stats).to.eql(
-          changeStats(this.origStats, Character.POISONED.statChange)
+        expect(player.character.stats).to.eql(
+          changeStats(origStats, Character.POISONED.statChange)
         );
       });
       it('should give the proper log message', function () {
-        expect(this.log).to.contain('James_Bond is poisoned');
+        expect(log).to.contain('James_Bond is poisoned');
       });
     });
     context('when the character is immortal', function () {
-      before(function () {
-        this.origStats = cloneDeep(this.player.character.stats);
-        this.player.character.effects.immortality.isActive = true;
-        this.player.character.effects.exhaustion.current = 0;
-        this.player.character.effects.hunger.current = 0;
-        this.player.character.effects.poison.isActive = true;
-        this.player.character.effects.addiction.isActive = true;
-        this.player.character.effects.addiction.current = 0;
+      let origStats: Stats;
+      let log: string;
+      beforeEach(function () {
+        origStats = cloneDeep(player.character.stats);
+        player.character.effects.immortality.isActive = true;
+        player.character.effects.exhaustion.current = 0;
+        player.character.effects.hunger.current = 0;
+        player.character.effects.poison.isActive = true;
+        player.character.effects.addiction.isActive = true;
+        player.character.effects.addiction.current = 0;
 
-        (this.player.character as Character.Character).nextAction = {
-          actor: this.player.character,
+        player.character.nextAction = {
+          actor: player.character,
           timestamp: Date.now(),
           key: 'Pass'
         };
 
-        this.log = Character.updateCharacter(this.player.character, 'James_Bond');
+        log = Character.updateCharacter(player.character, 'James_Bond');
       });
       it('should not modify the character\'s stats', function () {
-        expect(this.player.character.stats).to.eql(this.origStats);
+        expect(player.character.stats).to.eql(origStats);
       });
       it('should give the proper log message', function () {
-        expect(this.log).to.contain('James_Bond is immortal');
+        expect(log).to.contain('James_Bond is immortal');
       });
     });
     context('when the character is addicted', function () {
-      before(function () {
-        this.origStats = cloneDeep(this.player.character.stats);
+      let origStats: Stats;
+      let log: string;
+      beforeEach(function () {
+        origStats = cloneDeep(player.character.stats);
 
-        this.player.character.effects.addiction.isActive = true;
-        this.player.character.effects.addiction.current = 0;
+        player.character.effects.addiction.isActive = true;
+        player.character.effects.addiction.current = 0;
 
-        this.player.character.nextAction = {
-          actor: this.player.character,
+        player.character.nextAction = {
+          actor: player.character,
           timestamp: Date.now(),
           key: 'Pass'
         };
 
-        this.log = Character.updateCharacter(this.player.character, 'James_Bond');
+        log = Character.updateCharacter(player.character, 'James_Bond');
       });
       it('should apply the addicted stat change', function () {
-        expect(this.player.character.stats).to.eql(
-          changeStats(this.origStats, Character.ADDICTED.statChange)
+        expect(player.character.stats).to.eql(
+          changeStats(origStats, Character.ADDICTED.statChange)
         );
       });
       it('should give the proper log message', function () {
-        expect(this.log).to.contain('James_Bond is in withdrawal');
+        expect(log).to.contain('James_Bond is in withdrawal');
       });
     });
   });
   describe('updateEffectMeters', function () {
+    let game: Game;
+    let player: Player.GamePlayer;
     beforeEach(function () {
-      this.player = Player.createPlayer('404', 'Missingno');
+      game = new Game(8, [ { id: '404', name: 'Missingno' }]);
 
-      this.game = new Game(8, [ this.player ]);
+      player = game.getPlayer('404') !;
 
-      this.player = (this.game as Game).getPlayer('404');
-
-      this.player.character = Character.createCharacter(this.game, this.player.id);
+      // this.player.character = Character.createCharacter(this.game, this.player.id);
     });
     context('when the player doesn\'t have an action', function () {
       it('should throw an error');
@@ -170,86 +192,86 @@ describe('Character', function () {
     context('when the player rested', function () {
       it('should not decrease their exhaustion meter', function () {
         //place camp at starting position
-        (this.game as Game).startingRoom.hasCamp = true;
+        game.startingRoom.hasCamp = true;
 
-        const origExhaustion = this.player.character.effects.exhaustion.current;
+        const origExhaustion = player.character.effects.exhaustion.current;
 
-        (this.game as Game).handleMessage({
+        game.handleMessage({
+          player,
           content: 'rest',
-          player: this.player,
           timestamp: Date.now()
         });
 
-        expect((this.game as Game).isReadyForUpdate()).to.be.true;
+        expect(game.isReadyForUpdate()).to.be.true;
 
-        this.game.update();
+        game.update();
 
-        const newExhaustion = this.player.character.effects.exhaustion.current;
+        const newExhaustion = player.character.effects.exhaustion.current;
 
         expect(newExhaustion).to.eql(origExhaustion);
       });
     });
     context('when the player ingested something that relieves hunger', function () {
       it('should not decrease their hunger meter', function () {
-        (this.player.character as Character.Character).inventory = Inventory.addToInventory(
-          this.player.character.inventory, 'Stew', 1, 5
+        player.character.inventory = Inventory.addToInventory(
+          player.character.inventory, 'Stew', 1, 5
         );
 
-        const origHunger = this.player.character.effects.hunger.current;
+        const origHunger = player.character.effects.hunger.current;
 
-        (this.game as Game).handleMessage({
+        game.handleMessage({
+          player,
           content: 'eat stew',
-          player: this.player,
           timestamp: Date.now()
         });
 
-        this.game.update();
+        game.update();
 
-        const newHunger = this.player.character.effects.hunger.current;
+        const newHunger = player.character.effects.hunger.current;
 
         expect(newHunger).to.eql(origHunger);
       });
     });
     context('when the player ingested something that relieves exhaustion', function () {
       it('should not decrease their exhaustion meter', function () {
-        (this.player.character as Character.Character).inventory = Inventory.addToInventory(
-          this.player.character.inventory, 'Cave Leaf', 1, 5
+        player.character.inventory = Inventory.addToInventory(
+          player.character.inventory, 'Cave Leaf', 1, 5
         );
 
-        const origExhaustion = this.player.character.effects.exhaustion.current;
+        const origExhaustion = player.character.effects.exhaustion.current;
 
-        (this.game as Game).handleMessage({
+        game.handleMessage({
+          player,
           content: 'eat cave leaf',
-          player: this.player,
           timestamp: Date.now()
         });
 
-        this.game.update();
+        game.update();
 
-        const newExhaustion = this.player.character.effects.exhaustion.current;
+        const newExhaustion = player.character.effects.exhaustion.current;
 
         expect(newExhaustion).to.eql(origExhaustion);
       });
     });
     context('when the player is addicted and ingested something that relieves addiction', function () {
       it('should not decrease their addiction meter', function () {
-        (this.player.character as Character.Character).inventory = Inventory.addToInventory(
-          this.player.character.inventory, 'Cave Leaf', 1, 5
+        player.character.inventory = Inventory.addToInventory(
+          player.character.inventory, 'Cave Leaf', 1, 5
         );
 
-        this.player.character.effects.addiction.isActive = true;
+        player.character.effects.addiction.isActive = true;
 
-        const origAddiction = this.player.character.effects.addiction.current;
+        const origAddiction = player.character.effects.addiction.current;
 
-        (this.game as Game).handleMessage({
+        game.handleMessage({
+          player,
           content: 'eat cave leaf',
-          player: this.player,
           timestamp: Date.now()
         });
 
-        this.game.update();
+        game.update();
 
-        const newAddiction = this.player.character.effects.addiction.current;
+        const newAddiction = player.character.effects.addiction.current;
 
         expect(newAddiction).to.eql(origAddiction);
       });
@@ -263,33 +285,33 @@ describe('Character', function () {
         ];
       }
       it('should decrease their meters', function () {
-        const [ a0, e0, h0 ] = getMeters(this.player.character);
+        const [ a0, e0, h0 ] = getMeters(player.character);
 
-        this.game.handleMessage({
+        game.handleMessage({
+          player,
           content: 'pass',
-          player: this.player,
           timestamp: Date.now()
         });
 
-        this.game.update();
+        game.update();
 
-        const [ a1, e1, h1 ] = getMeters(this.player.character);
+        const [ a1, e1, h1 ] = getMeters(player.character);
 
         expect(a1).to.eql(a0); // not addicted
         expect(e1).to.be.lessThan(e0);
         expect(h1).to.be.lessThan(h0);
 
-        this.player.character.effects.addiction.isActive = true;
+        player.character.effects.addiction.isActive = true;
 
-        this.game.handleMessage({
+        game.handleMessage({
+          player,
           content: 'pass',
-          player: this.player,
           timestamp: Date.now()
         });
 
-        this.game.update();
+        game.update();
 
-        const [ a2, e2, h2 ] = getMeters(this.player.character);
+        const [ a2, e2, h2 ] = getMeters(player.character);
 
         expect(a2).to.be.lessThan(a1); // now addicted
         expect(e2).to.be.lessThan(e1);
@@ -298,45 +320,47 @@ describe('Character', function () {
     });
     context('when the player has no action', function () {
       it('should throw an error', function () {
-        const badUpdate = () => Character.updateEffectMeters(this.player.character);
+        const badUpdate = () => Character.updateEffectMeters(player.character);
         expect(badUpdate).to.throw(Error);
       });
     });
     context('when the character is immortal', function () {
+      let origStats: Stats;
       beforeEach(function () {
-        this.player.character.effects.immortality.isActive = true;
-        this.origStats = cloneDeep(this.player.character.stats);
-        (this.game as Game).handleMessage({
+        player.character.effects.immortality.isActive = true;
+        origStats = cloneDeep(player.character.stats);
+        game.handleMessage({
+          player,
           content: 'pass',
-          player: this.player,
           timestamp: Date.now()
         });
       });
       it('should not change the stats', function () {
-        expect(this.player.character.stats).to.eql(this.origStats);
+        expect(player.character.stats).to.eql(origStats);
       });
     });
   });
   describe('createCharacter', function () {
+    let game: Game;
     before(function () {
       const p1 = Player.createPlayer('1', 'Alice');
       const p2 = Player.createPlayer('2', 'Bob');
 
-      this.game = new Game(8, [ p1, p2 ]);
+      game = new Game(8, [ p1, p2 ]);
 
-      const gp1 = (this.game as Game).getPlayer('1');
-      const gp2 = (this.game as Game).getPlayer('2');
+      const gp1 = (game as Game).getPlayer('1');
+      const gp2 = (game as Game).getPlayer('2');
 
       if (gp1 && gp2) {
-        gp1.character = Character.createCharacter(this.game, gp1.id, this.game.startingPosition, 'Shaman');
-        gp2.character = Character.createCharacter(this.game, gp2.id, this.game.startingPosition, 'Shaman');
+        gp1.character = Character.createCharacter(game, gp1.id, game.startingRoom, 'Shaman');
+        gp2.character = Character.createCharacter(game, gp2.id, game.startingRoom, 'Shaman');
       } else {
         throw new Error('Test players are not present!');
       }
     });
     it('should create distinct characters', function () {
-      const gp1 = (this.game as Game).getPlayer('1');
-      const gp2 = (this.game as Game).getPlayer('2');
+      const gp1 = game.getPlayer('1');
+      const gp2 = game.getPlayer('2');
 
       if (gp1 && gp2) {
         const origHealth = gp1.character.stats.health;
@@ -351,7 +375,7 @@ describe('Character', function () {
 
         expect(h1).to.be.lessThan(h2);
 
-        const bob = (this.game as Game).getPlayerByName('Bob');
+        const bob = game.getPlayerByName('Bob');
 
         if (bob) {
           const {inventory: newInv} = Inventory.removeFromInventory(bob.character.inventory, 'Knife', 2);

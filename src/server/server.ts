@@ -66,10 +66,12 @@ export default class Server {
     return new Promise<Server>((resolve) => {
       const port = this.address.port;
 
-      this.currentContext.players.forEach(player => {
-        const socket = this.getSocket(player.id);
-        socket.emit('server-stopped');
-        socket.disconnect(true);
+      this.getCurrentSockets().forEach(socket => {
+        // TODO: refactor this so no undefined check.
+        if (socket) {
+          socket.emit('server-stopped');
+          socket.disconnect(true);
+        }
       });
 
       this.httpServer.close(() => {
@@ -82,6 +84,14 @@ export default class Server {
 
   get address() {
     return this.httpServer.address();
+  }
+
+  getCurrentPlayers() {
+    return this.currentContext.players;
+  }
+
+  getCurrentSockets() {
+    return this.getCurrentPlayers().map(player => this.getSocket(player.id));
   }
 
   createServer(port: number, hostname: string) {
@@ -151,9 +161,10 @@ export default class Server {
         createGameMessage('THE GAME HAS BEGUN!', this.currentContext.players)
       );
 
-      this.currentContext.players.forEach(player => {
-        const socket = this.getSocket(player.id);
-        socket.emit('context-change', 'Game');
+      this.getCurrentSockets().forEach(socket => {
+        if (socket) {
+          socket.emit('context-change', 'Game');
+        }
       });
 
       const gameMap = (this.currentContext as Game).map;
@@ -171,9 +182,10 @@ export default class Server {
     } else {
       this.currentContext = this.createLobby(this.currentContext.players);
 
-      this.currentContext.players.forEach(player => {
-        const socket = this.getSocket(player.id);
-        socket.emit('context-change', 'Lobby');
+      this.getCurrentSockets().forEach(socket => {
+        if (socket) {
+          socket.emit('context-change', 'Lobby');
+        }
       });
     }
 
@@ -304,8 +316,14 @@ export default class Server {
   }
   sendDetails() {
     if (isContextGame(this.currentContext)) {
-      (this.currentContext as Game).players.forEach(player => {
-        this.getSocket(player.id).emit('details', Player.playerDetails(player));
+      this.currentContext.players.forEach(player => {
+        const socket = this.getSocket(player.id);
+
+        if (socket) {
+          socket.emit('details', Player.playerDetails(player));
+        } else {
+          throw new Error(`Expected socket with id "${player.id}" to exist!`);
+        }
       });
     } else {
       // do nothing
@@ -314,10 +332,15 @@ export default class Server {
   sendRoster() {
     const rosterInformation = this.currentContext.getRosterData();
 
-    this.currentContext.players.forEach(player => {
+    this.getCurrentPlayers().forEach(player => {
       const socket = this.getSocket(player.id);
-      socket.emit('player-info', Player.getPlayerInfo(player));
-      socket.emit('roster', rosterInformation);
+
+      if (socket) {
+        socket.emit('player-info', Player.getPlayerInfo(player));
+        socket.emit('roster', rosterInformation);
+      } else {
+        throw new Error(`Expected socket with id "${player.id}" to exist!`);
+      }
     });
   }
 }

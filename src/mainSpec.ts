@@ -1,6 +1,6 @@
 import * as Main from './main';
 import { expect } from 'chai';
-import { createDefaultWinstonLogger } from './logger';
+import { createDefaultWinstonLogger, Logger } from './logger';
 import * as Sinon from 'sinon';
 import Server from './server/server';
 import { cloneDeep } from 'lodash';
@@ -128,27 +128,33 @@ describe('Main (Game Runner)', () => {
     });
 
     context('when the given args are valid', () => {
+      let createServerStub: Sinon.SinonStub;
+      let createDebugServerStub: Sinon.SinonStub;
+      let startSpy: Sinon.SinonSpy;
+      let logger: Logger;
+      let defaultServerPromise: Promise<Server>;
       beforeEach(function () {
         // Don't actually let our servers listen
-        this.createServerStub
+        createServerStub
           = Sinon.stub(Server.prototype, 'createServer', () => null);
-        this.createDebugServerStub
+        createDebugServerStub
           = Sinon.stub(Server.prototype, 'createDebugServer', () => null);
-        this.startSpy
+        startSpy
           = Sinon.spy(Server.prototype, 'start');
-        this.logger = createDefaultWinstonLogger();
-        this.defaultServerPromise = Main.startServer(Main.DEFAULT_ARGS, this.logger);
+        logger = createDefaultWinstonLogger();
+        defaultServerPromise = Main.startServer(Main.DEFAULT_ARGS, logger);
       });
       afterEach(function () {
-        this.createServerStub.restore();
-        this.createDebugServerStub.restore();
-        (Server.prototype.start as Sinon.SinonSpy).restore();
+        createServerStub.restore();
+        createDebugServerStub.restore();
+        //(Server.prototype.start as Sinon.SinonSpy).restore();
+        startSpy.restore();
       });
       it('should create and start a server', function () {
         // the default args from `parseArgs` using `--with-defaults` are valid
-        return this.defaultServerPromise.then(server => {
+        return defaultServerPromise.then(server => {
           expect(server).to.be.ok;
-          expect((this.startSpy as Sinon.SinonSpy).calledOnce).to.be.true;
+          expect(startSpy.calledOnce).to.be.true;
           server.stop();
         });
       });
@@ -157,12 +163,12 @@ describe('Main (Game Runner)', () => {
         remoteConnArgs.allowRemoteConnections = true;
         remoteConnArgs.port = 1337;
 
-        const remoteConnServerPromise = Main.startServer(remoteConnArgs, this.logger);
+        const remoteConnServerPromise = Main.startServer(remoteConnArgs, logger);
 
         return remoteConnServerPromise.then((server: Server) => {
           expect(server).to.be.ok;
 
-          const spy = this.startSpy as Sinon.SinonSpy;
+          const spy = startSpy as Sinon.SinonSpy;
 
           // the first call is for the defaultServerPromise
           const [ port, hostname ] = spy.secondCall.args;
@@ -174,8 +180,8 @@ describe('Main (Game Runner)', () => {
         });
       });
       it('should use localhost by default', function () {
-        return this.defaultServerPromise.then((server: Server) => {
-          const hostname = (this.createServerStub as Sinon.SinonStub).firstCall.args[ 1 ];
+        return defaultServerPromise.then((server: Server) => {
+          const hostname = createServerStub.firstCall.args[ 1 ];
 
           expect(hostname).to.eql(Server.LOCALHOST_ADDRESS);
 

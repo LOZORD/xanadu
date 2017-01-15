@@ -37,7 +37,7 @@ export function echoMessage(message: string): messageFunc {
 }
 
 export function createEchoMessage(message: string, player: Player): Message {
-  return echoMessage(message)([player]);
+  return echoMessage(message)([ player ]);
 }
 
 export function gameMessage(message: string): messageFunc {
@@ -53,7 +53,7 @@ export function whisperMessage(from: Player, message: string): messageFunc {
 }
 
 export function createWhisperMessage(from: Player, content: string, to: Player) {
-  return whisperMessage(from, content)([to]);
+  return whisperMessage(from, content)([ to ]);
 }
 
 export function talkMessage(from: Player, message: string): messageFunc {
@@ -102,25 +102,26 @@ export type NameSpan = {
   rest: string
 };
 
-export function spanMessagePlayerNames (content: string, players: Player[], equality = isApproximateName): NameSpan {
-    const allPlayerNames = players.map(player => player.name).filter(maybeName => maybeName !== null) as string[];
+export function spanMessagePlayerNames(content: string, players: Player[], equality = isApproximateName): NameSpan {
+  const allPlayerNames = players.map(player => player.name).filter(maybeName => maybeName !== null) as string[];
 
-    const splitContent = _.chain(content).split(' ');
+  const splitContent = _.chain(content).split(' ');
 
-    const namesFromMessage = splitContent
-      .tail()
-      .takeWhile(chunk => _.some(allPlayerNames, name => equality(chunk, name)))
-      .map(chunk => _.find(allPlayerNames, name => equality(chunk, name)))
-      .value();
+  const namesFromMessage = splitContent
+    .tail()
+    .takeWhile(chunk => _.some(allPlayerNames, name => equality(chunk, name)))
+    .map(chunk => _.find(allPlayerNames, name => equality(chunk, name)))
+    .filter(maybeString => _.isString(maybeString)) // take out any undefineds
+    .value() as string[];
 
-    const restContent = splitContent
-      .tail()
-      .drop(namesFromMessage.length)
-      .join(' ')
-      .value();
+  const restContent = splitContent
+    .tail()
+    .drop(namesFromMessage.length)
+    .join(' ')
+    .value();
 
-    return {
-      names: namesFromMessage,
-      rest: restContent
-    };
+  return {
+    names: namesFromMessage,
+    rest: restContent
+  };
 }

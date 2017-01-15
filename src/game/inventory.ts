@@ -23,7 +23,7 @@ export function inventoryIsFull(inventory: Inventory): boolean {
   return inventory.itemStacks.length === inventory.maximumCapacity;
 }
 
-export function getItem(inventory: Inventory, itemName: ItemName): Item.ItemStack<Item.Item> {
+export function getItem(inventory: Inventory, itemName: ItemName): Item.ItemStack<Item.Item> | undefined {
   return Item.getItem(inventory.itemStacks, itemName);
 }
 
@@ -71,7 +71,7 @@ export function removeFromInventory(inventory: Inventory, itemName: ItemName, am
 } {
 
   if (hasItem(inventory, itemName)) {
-    const retrievedItemStack = getItem(inventory, itemName);
+    const retrievedItemStack = getItem(inventory, itemName) !;
     const newInventory = updateInventory(inventory, itemName, -amount);
     return {
       inventory: newInventory,

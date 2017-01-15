@@ -370,7 +370,7 @@ export const ATTACK_COMPONENT: ActionParserComponent<AttackAction> = {
       // now check that if the player is attacking with a gun, that they have the bullets required
       if (Weapon.isWeaponGun(weaponStack.item)) {
         if (Inventory.hasItem(inventory, weaponStack.item.bullet)) {
-          const bulletStack = Inventory.getItem(inventory, weaponStack.item.bullet);
+          const bulletStack = Inventory.getItem(inventory, weaponStack.item.bullet) !;
 
           if (bulletStack.stackAmount < attackAction.times) {
             const t = attackAction.times;
@@ -429,6 +429,10 @@ export const ATTACK_COMPONENT: ActionParserComponent<AttackAction> = {
 
     const targetPlayer = _.find(game.players,
       player => isPlaying(player) && isApproximateSubstring(attackAction.targetName, player.name));
+
+    if (!targetPlayer) {
+      throw new Error(`Expected target player "${attackAction.targetName}" to exist!`);
+    }
 
     // Do the damage to the target
     const totalDamage = actualTimesAttacked * weaponStack.item.damageAmount;
@@ -660,7 +664,7 @@ export const PICKUP_ACTION: ActionParserComponent<PickupAction> = {
       if (hasItem(cell.items, pickupAction.itemName)) {
         if (!Inventory.inventoryIsFull(pickupAction.actor.inventory)) {
           if (Inventory.hasItem(pickupAction.actor.inventory, pickupAction.itemName)) {
-            const currentStack = Inventory.getItem(pickupAction.actor.inventory, pickupAction.itemName);
+            const currentStack = Inventory.getItem(pickupAction.actor.inventory, pickupAction.itemName) !;
             if (!stackIsFull(currentStack)) {
               return {
                 isValid: true
@@ -698,12 +702,13 @@ export const PICKUP_ACTION: ActionParserComponent<PickupAction> = {
     const actorInventory = pickupAction.actor.inventory;
     const room = Map.getCell(game.map, pickupAction.actor) as Cell.Room;
 
-    const roomStack = getItem(room.items, itemName);
+    // we know that the stack will be there via validation
+    const roomStack = getItem(room.items, itemName) !;
 
     let beforeActorStackSize: number;
 
     if (Inventory.hasItem(actorInventory, itemName)) {
-      beforeActorStackSize = Inventory.getItem(actorInventory, itemName).stackAmount;
+      beforeActorStackSize = Inventory.getItem(actorInventory, itemName) !.stackAmount;
     } else {
       beforeActorStackSize = 0;
     }

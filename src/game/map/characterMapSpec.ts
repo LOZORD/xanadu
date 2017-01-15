@@ -7,13 +7,15 @@ import * as Cell from './cell';
 
 describe('Character Map', function () {
   describe('createCharacterMap', function () {
+    let gameMap: Map.Map;
+    let characterMap: CharacterMap.CharacterMap;
     before(function () {
-      this.gameMap = _.cloneDeep(TEST_PARSE_RESULT);
-      this.characterMap = CharacterMap.createCharacterMap(this.gameMap);
+      gameMap = _.cloneDeep(TEST_PARSE_RESULT);
+      characterMap = CharacterMap.createCharacterMap(gameMap);
     });
 
     it('should start with every cell hidden', function () {
-      const flattenedGrid = _.flatten((this.characterMap as CharacterMap.CharacterMap).grid);
+      const flattenedGrid = _.flatten(characterMap.grid);
 
       const allUnknown = _.every(flattenedGrid, (cell) => cell.representation === '?');
 
@@ -22,48 +24,50 @@ describe('Character Map', function () {
   });
 
   describe('reveal', function () {
+    let gameMap: Map.Map;
+    let characterMap: CharacterMap.CharacterMap;
     before(function () {
-      this.gameMap = _.cloneDeep(TEST_PARSE_RESULT);
-      this.characterMap = CharacterMap.createCharacterMap(this.gameMap);
+      gameMap = _.cloneDeep(TEST_PARSE_RESULT);
+      characterMap = CharacterMap.createCharacterMap(gameMap);
     });
     it('should update the center cell and its cardinal neighbors', function () {
-      CharacterMap.reveal(this.characterMap, TEST_PARSE_RESULT.startingPosition);
+      CharacterMap.reveal(characterMap, TEST_PARSE_RESULT.startingPosition);
 
       const neighbors = _.values<Cell.Position>(
         Cell.getCardinalNeighboringPositions(TEST_PARSE_RESULT.startingPosition)
       );
 
       const validPositions = neighbors.concat(TEST_PARSE_RESULT.startingPosition).filter(pos => {
-        return Map.isWithinMap(this.gameMap, pos);
+        return Map.isWithinMap(gameMap, pos);
       });
 
       validPositions.forEach(pos => {
         const isRevealed =
-          Map.getCell(this.characterMap, pos).representation === Map.getCell(this.gameMap, pos).representation;
+          Map.getCell(characterMap, pos).representation === Map.getCell(gameMap, pos).representation;
 
         expect(isRevealed).to.be.true;
       });
     });
     it('should be a shallow view of the game map', function () {
-      const { south } = Cell.getCardinalNeighboringPositions(this.gameMap.startingPosition);
+      const { south } = Cell.getCardinalNeighboringPositions(gameMap.startingPosition);
 
       // check before we replace
-      expect(Cell.isRoom(Map.getCell(this.gameMap, south))).to.be.true;
+      expect(Cell.isRoom(Map.getCell(gameMap, south))).to.be.true;
 
       // make it a barrier
-      this.gameMap.grid[ south.row ][ south.col ] = {
+      gameMap.grid[ south.row ][ south.col ] = {
         representation: '#',
         row: south.row,
         col: south.col
       };
 
-      expect(Cell.isBarrier(Map.getCell(this.gameMap, south))).to.be.true;
+      expect(Cell.isBarrier(Map.getCell(gameMap, south))).to.be.true;
 
-      expect(Cell.isBarrier(Map.getCell(this.characterMap, south))).to.be.false;
+      expect(Cell.isBarrier(Map.getCell(characterMap, south))).to.be.false;
 
-      CharacterMap.reveal(this.characterMap, this.characterMap.startingPosition);
+      CharacterMap.reveal(characterMap, characterMap.startingPosition);
 
-      expect(Cell.isBarrier(Map.getCell(this.characterMap, south))).to.be.true;
+      expect(Cell.isBarrier(Map.getCell(characterMap, south))).to.be.true;
     });
   });
 });

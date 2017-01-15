@@ -37,16 +37,17 @@ export function changeStackAmount<I extends Item>(stack: ItemStack<I>, n: number
   stack.stackAmount = _.clamp(stack.stackAmount + n, 0, stack.maxStackAmount);
 }
 
-export function getItem(stacks: ItemStack<Item>[], itemName: ItemName): ItemStack<Item> {
+export function getItem(stacks: ItemStack<Item>[], itemName: ItemName): ItemStack<Item> | undefined {
   const needle = _.find(stacks,
     (itemStack: ItemStack<Item>) => itemStack.item.name === itemName);
 
-  // some odd condition (error) checking
-  if (needle && stackIsEmpty(needle)) {
-    throw new Error(`Empty item stack (${needle.item.name}) found in inventory!`);
-  } else {
-    // needle DNE or it is a non-empty stack
+  if (!needle) {
+    return undefined;
+  } else if (!stackIsEmpty(needle)) {
     return needle;
+  } else {
+    // some odd condition (error) checking
+    throw new Error(`Empty item stack (${needle.item.name}) found in inventory!`);
   }
 }
 

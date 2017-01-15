@@ -2,7 +2,9 @@ import { expect } from 'chai';
 import * as _ from 'lodash';
 import Game from './game';
 import { TEST_PARSE_RESULT } from '../game/map/parseGrid';
-import { GamePlayer, Player, createPlayer, getPlayerState } from '../game/player';
+import { Position } from '../game/map/cell';
+import { Action } from '../game/actions';
+import { GamePlayer, Player, createPlayer, getPlayerState, LobbyPlayer } from '../game/player';
 import * as Messaging from '../game/messaging';
 import * as Character from '../game/character';
 import Lobby from './lobby';
@@ -25,44 +27,49 @@ describe('Game', () => {
   });
 
   describe('handleMessage', function () {
+    let game: Game;
+    let player1: GamePlayer;
+    let player2: GamePlayer;
+    let player3: GamePlayer;
+    let responses: Messaging.Message[];
     before(function () {
-      this.game = createGame([
+      game = createGame([
         createPlayer('vader', 'Darth_Vader'),
         createPlayer('yoda', 'Yoda'),
         createPlayer('r2d2', 'R2D2')
       ]);
 
-      this.player1 = (this.game as Game).getPlayer('vader');
-      this.player2 = (this.game as Game).getPlayer('yoda');
-      this.player3 = (this.game as Game).getPlayer('r2d2');
+      player1 = game.getPlayer('vader') !;
+      player2 = game.getPlayer('yoda') !;
+      player3 = game.getPlayer('r2d2') !;
 
       // now, force all the players to the same allegiance so they can communicate freely
-      [ this.player1, this.player2, this.player3 ].forEach((player: GamePlayer) => {
+      [ player1, player2, player3 ].forEach((player: GamePlayer) => {
         player.character.allegiance = 'Eastern';
       });
     });
     describe('when given a valid action command', function () {
       before(function () {
-        expect((this.player1.character as Character.Character).nextAction).to.be.null;
-        this.responses = (this.game as Game).handleMessage({
+        expect(player1.character.nextAction).to.be.null;
+        responses = game.handleMessage({
           content: 'go south', // a valid movement on the default test map
-          player: this.player1,
+          player: player1,
           timestamp: Date.now()
         });
       });
       after(function () {
-        (this.game as Game).handleMessage({
+        game.handleMessage({
           content: 'go north', // after the tests, reverse the movement
-          player: this.player1,
+          player: player1,
           timestamp: Date.now()
         });
       });
       it('should update the sender\'s character\'s `nextAction` field', function () {
-        expect((this.player1.character as Character.Character).nextAction).to.not.be.null;
+        expect(player1.character.nextAction).to.not.be.null;
       });
       it('should send a response to the player confirming their next action', function () {
         const hasConfirmation =
-          _.some(this.responses as Messaging.Message[],
+          _.some(responses as Messaging.Message[],
             (message) => _.startsWith(message.content, 'Next action:'));
 
         expect(hasConfirmation).to.be.true;
@@ -70,19 +77,19 @@ describe('Game', () => {
     });
     describe('when given an invalid action command', function () {
       before(function () {
-        (this.player1 as GamePlayer).character.nextAction = null;
-        this.responses = (this.game as Game).handleMessage({
+        player1.character.nextAction = null;
+        responses = game.handleMessage({
           content: 'go north', // north of the starting position is a barrier,
-          player: this.player1,
+          player: player1,
           timestamp: Date.now()
         });
       });
       it('should not update the `nextAction` field', function () {
-        expect((this.player1.character as Character.Character).nextAction).to.be.null;
+        expect(player1.character.nextAction).to.be.null;
       });
       it('should send a rejection to the player', function () {
         const hasRejection =
-          _.some(this.responses as Messaging.Message[],
+          _.some(responses as Messaging.Message[],
             (message) => _.startsWith(message.content, 'Invalid action:'));
 
         expect(hasRejection).to.be.true;
@@ -91,15 +98,15 @@ describe('Game', () => {
     describe('when given a communication command', function () {
       describe('for talking', function () {
         before(function () {
-          this.responses = (this.game as Game).handleMessage({
+          responses = game.handleMessage({
             content: '/t yod May the force be with you',
-            player: this.player1,
+            player: player1,
             timestamp: Date.now()
           });
         });
         it('should have sent a talk message to the other player', function () {
           const result =
-            _.some(this.responses as Messaging.Message[],
+            _.some(responses as Messaging.Message[],
               (message) => message.type === 'Talk' && _.startsWith(message.content, 'May the force'));
 
           expect(result).to.be.true;
@@ -107,52 +114,52 @@ describe('Game', () => {
       });
       describe('for shouting', function () {
         before(function () {
-          this.responses = (this.game as Game).handleMessage({
+          responses = game.handleMessage({
             content: '/s HELP!',
-            player: this.player1,
+            player: player1,
             timestamp: Date.now()
           });
         });
         it('should have sent a shout message to the other players', function () {
-          const shout = _.find(this.responses as Messaging.Message[],
-            (message) => message.type === 'Shout');
+          const shout = _.find(responses as Messaging.Message[],
+            (message) => message.type === 'Shout') !;
 
           expect(shout).to.be.ok;
           expect(shout.content).to.equal('HELP!');
           expect(shout.to.length).to.equal(2);
           expect(shout.to.map(player => player.id))
-            .to.include(this.player2.id).and
-            .to.include(this.player3.id).and
-            .to.not.include(this.player1.id);
+            .to.include(player2.id).and
+            .to.include(player3.id).and
+            .to.not.include(player1.id);
         });
       });
       describe('for whispering', function () {
         before(function () {
-          this.responses = (this.game as Game).handleMessage({
+          responses = game.handleMessage({
             content: '/w r2 darth is a sith', // I know that's not how Yoda speaks...
-            player: this.player2,
+            player: player2,
             timestamp: Date.now()
           });
         });
         it('should have sent a whisper message ot the other player', function () {
-          const whisper = _.find(this.responses as Messaging.Message[],
-            message => message.type === 'Whisper');
+          const whisper = _.find(responses as Messaging.Message[],
+            message => message.type === 'Whisper') !;
 
           expect(whisper).to.be.ok;
-          expect(whisper.to[ 0 ].id).to.eql(this.player3.id);
+          expect(whisper.to[ 0 ].id).to.eql(player3.id);
           expect(whisper.content).to.eql('darth is a sith');
         });
       });
       describe('for unknown communications', function () {
         before(function () {
-          this.responses = (this.game as Game).handleMessage({
+          responses = game.handleMessage({
             content: '/-blarg-',
-            player: this.player3,
+            player: player3,
             timestamp: Date.now()
           });
         });
         it('should have sent a rejection message', function () {
-          const result = _.some(this.responses as Messaging.Message[],
+          const result = _.some(responses as Messaging.Message[],
             (message) => message.type === 'Game' && _.startsWith(message.content, 'Unknown communication:'));
 
           expect(result).to.be.true;
@@ -161,15 +168,15 @@ describe('Game', () => {
     });
     describe('when given an unknown command', function () {
       before(function () {
-        this.responses = (this.game as Game).handleMessage({
+        responses = game.handleMessage({
           content: 'foobarbaz',
-          player: this.player1,
+          player: player1,
           timestamp: Date.now()
         });
       });
       it('should have a rejection message', function () {
         const hasRejection =
-          _.some(this.responses as Messaging.Message[],
+          _.some(responses as Messaging.Message[],
             (message) => _.startsWith(message.content, 'Unknown command or communication'));
 
         expect(hasRejection).to.be.true;
@@ -197,6 +204,7 @@ describe('Game', () => {
   });
 
   describe('isReadyForNextContext', () => {
+    let game: Game;
     beforeEach(function () {
       const players: Player[] = [
         { id: 'foo', name: 'Foo' },
@@ -204,13 +212,13 @@ describe('Game', () => {
         { id: 'baz', name: 'Baz' }
       ];
 
-      this.game = new Game(8, players);
+      game = new Game(8, players);
     });
     it('should return true when the game has ended', function () {
-      expect(this.game.isReadyForNextContext()).to.be.false;
+      expect(game.isReadyForNextContext()).to.be.false;
 
       const gamePlayers = [ 'foo', 'bar', 'baz' ].map(playerId => {
-        const somePlayer = (this.game as Game).getPlayer(playerId);
+        const somePlayer = game.getPlayer(playerId);
 
         if (!somePlayer) {
           throw new Error('Missing player for testing!');
@@ -223,36 +231,39 @@ describe('Game', () => {
       gamePlayers[ 0 ].character.stats.health = 0;
       gamePlayers[ 1 ].character.stats.health = 0;
 
-      expect(this.game.isReadyForNextContext()).to.be.false;
+      expect(game.isReadyForNextContext()).to.be.false;
 
       gamePlayers[ 2 ].character.hasEscaped = true;
 
-      expect(this.game.isReadyForNextContext()).to.be.true;
+      expect(game.isReadyForNextContext()).to.be.true;
     });
   });
 
   describe('update', () => {
+    let game: Game;
+    let p1: GamePlayer;
+    let p2: GamePlayer;
     before(function () {
-      this.game = createGame([
+      game = createGame([
         createPlayer('123', 'Alice'),
         createPlayer('456', 'Bob')
       ]);
 
-      this.p1 = (this.game as Game).getPlayerByName('Alice');
-      this.p2 = (this.game as Game).getPlayerByName('Bob');
+      p1 = game.getPlayerByName('Alice') !;
+      p2 = game.getPlayerByName('Bob') !;
     });
 
     it('should work with move actions', function () {
       // a valid movement
-      const r1: Messaging.Message[] = this.game.handleMessage({
-        player: this.p1,
+      const r1: Messaging.Message[] = game.handleMessage({
+        player: p1,
         content: 'go south',
         timestamp: Date.now()
       });
 
       // don't really care about the result of p2's command
-      this.game.handleMessage({
-        player: this.p2,
+      game.handleMessage({
+        player: p2,
         content: 'pass',
         timestamp: Date.now()
       });
@@ -265,71 +276,77 @@ describe('Game', () => {
 
       expect(hasNextActionMessage).to.be.true;
 
-      expect(this.p1.character.nextAction.key).to.equal('Move');
-      expect(this.p2.character.nextAction.key).to.equal('Pass');
+      expect(p1.character.nextAction).to.be.ok;
 
-      this.game.update();
+      expect(p1.character.nextAction!.key).to.equal('Move');
+      expect(p2.character.nextAction!.key).to.equal('Pass');
 
-      expect(this.p1.character.row).to.equal(2);
-      expect(this.p1.character.col).to.equal(1);
+      game.update();
+
+      expect(p1.character.row).to.equal(2);
+      expect(p1.character.col).to.equal(1);
     });
 
     context('when one of the players is killed during the update', function () {
+      let origAlicePos: Position;
+      let origBobPos: Position;
+      let origBobHealth: number;
+      let getSortedActionsStub: Sinon.SinonStub;
       before(function () {
         // first, save some previous data
-        this.origAlicePos = {
-          row: this.p1.character.row,
-          col: this.p1.character.col
+        origAlicePos = {
+          row: p1.character.row,
+          col: p1.character.col
         };
 
-        this.origBobHealth = this.p2.character.stats.health;
+        origBobHealth = p2.character.stats.health;
 
-        this.origBobPos = {
-          row: this.p2.character.row,
-          col: this.p2.character.col
+        origBobPos = {
+          row: p2.character.row,
+          col: p2.character.col
         };
 
-        this.p2.character.stats.health = 1;
+        p2.character.stats.health = 1;
 
         // put Alice and Bob in the same room
-        const pos = (this.game as Game).startingRoom;
+        const pos = game.startingRoom;
 
-        this.p1.character.row = pos.row;
-        this.p1.character.col = pos.col;
-        this.p2.character.row = pos.row;
-        this.p2.character.col = pos.col;
+        p1.character.row = pos.row;
+        p1.character.col = pos.col;
+        p2.character.row = pos.row;
+        p2.character.col = pos.col;
 
         // now set up the proper actions
-        (this.game as Game).handleMessage({
+        game.handleMessage({
           content: 'attack bob fist 1',
-          player: this.p1,
+          player: p1,
           timestamp: Date.now()
         });
 
-        (this.game as Game).handleMessage({
+        game.handleMessage({
           content: 'pass',
-          player: this.p2,
+          player: p2,
           timestamp: Date.now()
         });
 
-        expect((this.game as Game).isReadyForUpdate()).to.be.true;
+        expect(game.isReadyForUpdate()).to.be.true;
 
         // force the moves to be returned regardless of true sorting order
-        this.getSortedActionsStub = Sinon.stub(this.game, 'getSortedActions', () => {
-          return [ this.p1.character.nextAction, this.p2.character.nextAction ];
+        getSortedActionsStub = Sinon.stub(game, 'getSortedActions', () => {
+          return [ p1.character.nextAction, p2.character.nextAction ];
         });
       });
       after(function () {
-        this.getSortedActionsStub.restore();
-        this.p2.character.stats = this.origBobHealth;
-        _.extend(this.p1.character, this.origAlicePos);
-        _.extend(this.p2.character, this.origBobPos);
+        getSortedActionsStub.restore();
+        p2.character.stats.health = origBobHealth;
+        _.extend(p1.character, origAlicePos);
+        _.extend(p2.character, origBobPos);
       });
       it('should deliver the proper messages', function () {
 
-        const results = (this.game as Game).update();
+        const results = game.update();
 
-        expect(this.p2.character.stats.health).to.eql(0);
+        expect(p2.character.stats.health).to.eql(0);
 
         const deathLogMessage = _.find(results.log, logMsg => logMsg.indexOf('Animal died') > -1);
 
@@ -338,7 +355,7 @@ describe('Game', () => {
         const deathNoticeMessage = _.find(results.messages, msg => {
           const toPlayer = msg.to[ 0 ];
 
-          return toPlayer.id === this.p2.id && msg.content.indexOf('died before') > -1;
+          return toPlayer.id === p2.id && msg.content.indexOf('died before') > -1;
         });
 
         expect(deathNoticeMessage).to.exist;
@@ -381,84 +398,96 @@ describe('Game', () => {
   });
 
   describe('getNearbyAnimals', function () {
+    let game: Game;
+    let player1: GamePlayer;
+    let player2: GamePlayer;
     before(function () {
-      this.game = createGame([
+      game = createGame([
         createPlayer('luke', 'Luke'),
         createPlayer('leia', 'Leia')
       ]);
 
-      this.player1 = (this.game as Game).getPlayer('luke');
-      this.player2 = (this.game as Game).getPlayer('leia');
+      player1 = game.getPlayer('luke') !;
+      player2 = game.getPlayer('leia') !;
     });
 
     it('should return the other player', function () {
-      const nearby = (this.game as Game).getNearbyAnimals((this.player1.character as Character.Character));
+      const nearby = game.getNearbyAnimals(player1.character);
 
-      expect(nearby).to.include(this.player1.character).and.to.include(this.player2.character);
+      expect(nearby).to.include(player1.character).and.to.include(player2.character);
     });
   });
 
   describe('getSortedActions', function () {
+    let game: Game;
+    let player1: GamePlayer;
+    let player2: GamePlayer;
+    let player3: GamePlayer;
+    let sortedActions: Action[];
     before(function () {
-      this.game = createGame([
+      game = createGame([
         createPlayer('123', 'Alice'),
         createPlayer('456', 'Bob'),
         createPlayer('789', 'Carol')
       ]);
 
-      this.player1 = (this.game as Game).getPlayer('123');
-      this.player2 = (this.game as Game).getPlayer('456');
-      this.player3 = (this.game as Game).getPlayer('789');
+      player1 = game.getPlayer('123') !;
+      player2 = game.getPlayer('456') !;
+      player3 = game.getPlayer('789') !;
 
-      this.player1.character.stats = {
+      player1.character.stats = {
         health: 50,
         intelligence: 50,
         strength: 50,
         agility: 50
       };
 
-      (this.player2 as GamePlayer).character.stats.agility = 1;
-      (this.player3 as GamePlayer).character.stats.agility = 1;
+      player2.character.stats.agility = 1;
+      player3.character.stats.agility = 1;
 
-      expect(this.game.getPlayer('123').character.stats.agility)
-        .to.be.greaterThan(this.game.getPlayer('456').character.stats.agility).and
-        .to.be.greaterThan(this.game.getPlayer('789').character.stats.agility);
+      expect(game.getPlayer('123') !.character.stats.agility)
+        .to.be.greaterThan(game.getPlayer('456') !.character.stats.agility).and
+        .to.be.greaterThan(game.getPlayer('789') !.character.stats.agility);
 
-      (this.game as Game).handleMessage({
+      game.handleMessage({
         content: 'go south',
-        player: this.player2,
+        player: player2,
         timestamp: 1
       });
 
-      (this.game as Game).handleMessage({
+      game.handleMessage({
         content: 'go south',
-        player: this.player3,
+        player: player3,
         timestamp: 0
       });
 
-      (this.game as Game).handleMessage({
+      game.handleMessage({
         content: 'go south',
-        player: this.player1,
+        player: player1,
         timestamp: 2
       });
 
       // the order should be [p1, p3, p2]
       // p1 has highest agility
       // p3's timestamp is before p2's timestamp
-      this.sortedActions = (this.game as Game).getSortedActions();
+      sortedActions = game.getSortedActions();
     });
     it('should sort first by player agility', function () {
-      expect(((this.sortedActions)[ 0 ].actor as Character.Character).playerId).to.eql(this.player1.id);
+      const firstActor = sortedActions[ 0 ].actor as Character.Character;
+      expect(firstActor.playerId).to.eql(player1.id);
     });
     it('should sort second by timestamp', function () {
-      expect(this.sortedActions[ 1 ].actor.playerId).to.equal(this.player3.id);
-      expect(this.sortedActions[ 2 ].actor.playerId).to.equal(this.player2.id);
+      const secondActor = sortedActions[ 1 ].actor as Character.Character;
+      expect(secondActor.playerId).to.equal(player3.id);
+      const thirdActor = sortedActions[ 2 ].actor as Character.Character;
+      expect(thirdActor.playerId).to.equal(player2.id);
     });
   });
 
   describe('convertPlayer', function () {
+    let game: Game;
     before(function () {
-      this.game = new Game(8, [ {
+      game = new Game(8, [ {
         id: '123', name: 'Alice'
       }], {
           numModifiers: {
@@ -470,33 +499,35 @@ describe('Game', () => {
     });
     context('when given a GamePlayer', function () {
       it('should return the player', function () {
-        const gamePlayer = (this.game as Game).getPlayer('123');
+        const gamePlayer = game.getPlayer('123');
 
         if (!gamePlayer) {
           throw new Error('Test player not present!');
         }
 
-        expect((this.game as Game).convertPlayer(gamePlayer)).to.eql(gamePlayer);
+        expect(game.convertPlayer(gamePlayer)).to.eql(gamePlayer);
       });
     });
     context('when given a LobbyPlayer', function () {
+      let lobby: Lobby;
+      let player: LobbyPlayer;
       before(function () {
-        this.lobby = new Lobby(8, []);
+        lobby = new Lobby(8, []);
 
-        (this.lobby as Lobby).addPlayer('007', 'James_Bond');
+        lobby.addPlayer('007', 'James_Bond');
 
-        this.player = (this.lobby as Lobby).getPlayer('007');
+        player = lobby.getPlayer('007') !;
 
-        (this.lobby as Lobby).handleMessage({
-          player: this.player,
+        lobby.handleMessage({
+          player,
           timestamp: Date.now(),
           content: 'ready c=gunslinger a=western m=3'
         });
 
-        expect(this.player.primordialCharacter.className).to.equal('Gunslinger');
+        expect(player.primordialCharacter.className).to.equal('Gunslinger');
       });
       it('should build off of the primordial character', function () {
-        const gamePlayer = (this.game as Game).convertPlayer(this.player);
+        const gamePlayer = game.convertPlayer(player);
 
         expect(getPlayerState(gamePlayer)).to.equal('Playing');
         expect(gamePlayer.character.characterClass.className).to.equal('Gunslinger');
