@@ -1,5 +1,6 @@
 import * as _ from 'lodash';
 import { ItemName } from './itemName';
+import { hashString } from '../../helpers';
 
 export interface Item {
   name: ItemName;
@@ -10,6 +11,8 @@ export interface ItemStack<I extends Item> {
   stackAmount: number;
   maxStackAmount: number;
 }
+
+export type GenericItemStacks = ItemStack<Item>[];
 
 export function createItemStack<I extends Item>(
   item: I, stackAmount: number, maxStackAmount = stackAmount
@@ -61,4 +64,53 @@ export interface ItemJSON {
 
 export interface ItemStackJSON extends ItemJSON {
   stack: number;
+}
+
+export function removeEmptyStacks(stacks: ItemStack<Item>[]): ItemStack<Item>[] {
+  return _.filter(stacks, _.negate(stackIsEmpty));
+}
+
+export function itemHash(item: Item): number {
+  return hashString(JSON.stringify(item));
+}
+
+export function mergeStacks(stacks: GenericItemStacks): GenericItemStacks {
+  // TODO: do we want the original order?
+  //const origOrder = _.map(stacks, (stack, ind) => ({name: stack.item.name, index: ind}));
+  // TODO: this might give away certain properties for different items (e.g. poison)
+  const groupedStacks = _.groupBy(stacks, stack => itemHash(stack.item));
+  const mergedGroups = _.reduce(groupedStacks, (acc, stacksToMerge) => {
+    //console.log(stacksToMerge);
+    const firstMaxAmount = stacksToMerge[ 0 ].maxStackAmount;
+    const totalAmount = _.sumBy(stacksToMerge, stack => {
+      // sanity check
+      if (stack.maxStackAmount !== firstMaxAmount) {
+        throw new Error(
+          `Expected all ${stacksToMerge[ 0 ].item.name} to have equal maxStackAmount
+          (first: ${firstMaxAmount}, found: ${stack.maxStackAmount})`
+        );
+      }
+
+      return stack.stackAmount;
+    });
+
+    const maxStackAmount = stacksToMerge[ 0 ].maxStackAmount;
+    const item = stacksToMerge[ 0 ].item;
+
+    return acc.concat(generateFullStacks(item, totalAmount, maxStackAmount));
+  }, [] as GenericItemStacks);
+
+  return mergedGroups;
+}
+
+export function generateFullStacks(item: Item, amount: number, max: number): GenericItemStacks {
+  if (amount <= 0) {
+    return [];
+  } else {
+    const currAmount = Math.min(amount, max);
+
+    return [ createItemStack(item, currAmount, max) ].concat(
+      generateFullStacks(item, amount - currAmount, max)
+    );
+  }
 }

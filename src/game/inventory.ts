@@ -9,10 +9,10 @@ export interface Inventory {
 }
 
 export function createInventory(itemStacks: Item.ItemStack<Item.Item>[], size: number): Inventory {
-  return {
+  return removeEmptyStacks({
     maximumCapacity: size,
-    itemStacks: removeEmptyStacks(_.take(itemStacks, size))
-  };
+    itemStacks: _.take(itemStacks, size)
+  });
 }
 
 export function inventoryIsEmpty(inventory: Inventory): boolean {
@@ -58,7 +58,7 @@ export function updateInventory(
     }
   }
 
-  const newItemStacks = removeEmptyStacks(_.unionBy([ newStack ], inventory.itemStacks, 'item.name'));
+  const newItemStacks = Item.removeEmptyStacks(_.unionBy([ newStack ], inventory.itemStacks, 'item.name'));
 
   return {
     itemStacks: newItemStacks,
@@ -96,6 +96,9 @@ export function toJSON(inventory: Inventory): InventoryJSON {
   );
 }
 
-export function removeEmptyStacks(stacks: Item.ItemStack<Item.Item>[]): Item.ItemStack<Item.Item>[] {
-  return _.filter(stacks, _.negate(Item.stackIsEmpty));
+export function removeEmptyStacks(inventory: Inventory): Inventory {
+  const newInventory = _.cloneDeep(inventory);
+  const newStacks = Item.removeEmptyStacks(inventory.itemStacks);
+  newInventory.itemStacks = newStacks;
+  return newInventory;
 }
