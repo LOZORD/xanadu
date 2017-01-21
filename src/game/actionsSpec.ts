@@ -950,4 +950,118 @@ describe('Actions', function () {
       });
     });
   });
+  describe('DropAction', () => {
+    let game: Game;
+    let player: Player.GamePlayer;
+
+    beforeEach(() => {
+      game = new Game(4, [ { id: '007', name: 'James_Bond' }]);
+      player = game.getPlayer('007') !;
+
+      expect(Inventory.hasItem(player.character.inventory, 'Nightshade')).to.be.false;
+      player.character.inventory = Inventory.addToInventory(player.character.inventory, 'Nightshade', 4, 5);
+      expect(Inventory.hasItem(player.character.inventory, 'Nightshade')).to.be.true;
+    });
+    describe('parse', () => {
+      context('when the actor gives a drop count', () => {
+        context('and the drop count is valid', () => {
+          it('should have the correct drop count', () => {
+            const result = Actions.DROP_ACTION.parse('drop 3 nightshade', player.character, 1);
+
+            expect(result.dropCount).to.eql(3);
+            expect(result.itemName).to.eql('Nightshade');
+          });
+        });
+      });
+      context('when the actor does not give a drop count', () => {
+        it('should not parse one', () => {
+          const result = Actions.DROP_ACTION.parse('drop nightSHAde', player.character, 1);
+
+          expect(result.dropCount).to.be.undefined;
+        });
+      });
+    });
+    describe('validate', () => {
+      context('when the item is not in the actor\'s inventory', () => {
+        it('should not be valid', () => {
+          expect(Inventory.hasItem(player.character.inventory, 'Honeydew')).to.be.false;
+          const action = Actions.DROP_ACTION.parse('drop honeydew', player.character, 1);
+          const result = Actions.DROP_ACTION.validate(action, game);
+          expect(result.isValid).to.be.false;
+        });
+      });
+      context('when the dropCount is nonpositive', () => {
+        it('should not be valid', () => {
+          const action = Actions.DROP_ACTION.parse('drop 0 nightshade', player.character, 1);
+          const result = Actions.DROP_ACTION.validate(action, game);
+          expect(result.isValid).to.be.false;
+        });
+      });
+      context('when the dropCount exceeds the stackAmount', () => {
+        it('should not be valid', () => {
+          const action = Actions.DROP_ACTION.parse('drop 12345 nightshade', player.character, 1);
+          const result = Actions.DROP_ACTION.validate(action, game);
+          expect(result.isValid).to.be.false;
+        });
+      });
+      context('when the item is in the actors\'s inventory', () => {
+        context('and there is no dropCount', () => {
+          it('should be valid', () => {
+            const action = Actions.DROP_ACTION.parse('drop nightshade', player.character, 1);
+            const result = Actions.DROP_ACTION.validate(action, game);
+            expect(result.isValid).to.be.true;
+          });
+        });
+        context('and there is a finite, correctly bounded dropCount', () => {
+          it('should be valid', () => {
+            const action = Actions.DROP_ACTION.parse('drop 3 NIGHTSHADE', player.character, 1);
+            const result = Actions.DROP_ACTION.validate(action, game);
+            expect(result.isValid).to.be.true;
+          });
+        });
+      });
+    });
+    describe('perform', () => {
+      context('when a dropCount is given', () => {
+        let result: Actions.PerformResult;
+        let log: string[] = [];
+        beforeEach(() => {
+          const action = Actions.DROP_ACTION.parse('drop 3 nightSHAde', player.character, 1);
+          result = Actions.DROP_ACTION.perform(action, game, log);
+        });
+        afterEach(() => {
+          // Empty the room of items.
+          game.startingRoom.items = [];
+        });
+        it('should only drop the correct amount', () => {
+          const playerStack = Inventory.getItem(player.character.inventory, 'Nightshade') !;
+          expect(playerStack).to.be.ok;
+          expect(playerStack.stackAmount).to.eql(1);
+          const roomStack = Item.getItem(game.startingRoom.items, 'Nightshade') !;
+          expect(roomStack).to.be.ok;
+          expect(roomStack.stackAmount).to.eql(3);
+        });
+        it('should give the correct game message', () => {
+          const playerMessage = _.find(result.messages, (message) => message.to[ 0 ].id === player.id) !;
+          expect(playerMessage).to.exist;
+          expect(playerMessage.content).to.contain('dropped 3 Nightshade');
+        });
+      });
+      context('when no dropCount is given', () => {
+        let result: Actions.PerformResult;
+        let log: string[] = [];
+        beforeEach(() => {
+          const action = Actions.DROP_ACTION.parse('drop nightshade', player.character, 1);
+          result = Actions.DROP_ACTION.perform(action, game, log);
+        });
+        it('should drop the full stack', () => {
+          expect(Inventory.hasItem(player.character.inventory, 'Nightshade')).to.be.false;
+          expect(Item.hasItem(game.startingRoom.items, 'Nightshade')).to.be.true;
+          const roomStack = Item.getItem(game.startingRoom.items, 'Nightshade') !;
+          expect(roomStack.stackAmount).to.eql(4);
+          expect(roomStack.maxStackAmount).to.eql(5);
+        });
+      });
+    });
+  });
 });

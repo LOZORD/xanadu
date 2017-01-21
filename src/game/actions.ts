@@ -13,7 +13,7 @@ import * as Ingestible from './items/ingestible';
 import * as Stats from './stats';
 import * as Weapon from './items/weapon';
 import { isApproximateSubstring } from '../helpers';
-import { ItemStack, createItemStack, hasItem, getItem, stackIsFull } from './items/item';
+import * as Item from './items/item';
 import { isPlaying } from './player';
 import { ItemName, itemNames, stringToItemName } from './items/itemName';
 
@@ -28,7 +28,8 @@ export type ValidationResult = {
   error?: string
 };
 
-export type ComponentKey = 'Move' | 'Pass' | 'Ingest' | 'Rest' | 'Attack' | 'Pickup';
+export type ComponentKey = 'Move' | 'Pass' | 'Ingest' | 'Rest' | 'Attack'
+  | 'Pickup' | 'Drop';
 
 // TODO rename to PerformanceResult
 export type PerformResult = {
@@ -62,6 +63,11 @@ export interface AttackAction extends Action {
 
 export interface PickupAction extends Action {
   itemName: ItemName;
+}
+
+export interface DropAction extends Action {
+  itemName: ItemName;
+  dropCount?: number;
 }
 
 // nothing special about pass or rest actions
@@ -311,12 +317,12 @@ export const ATTACK_COMPONENT: ActionParserComponent<AttackAction> = {
       };
     } else {
       const actor = attackAction.actor;
-      let weaponStack: ItemStack<Weapon.AttackWeapon>;
+      let weaponStack: Item.ItemStack<Weapon.AttackWeapon>;
 
       if (attackAction.weaponName === 'Fist') {
-        weaponStack = createItemStack(Weapon.FIST, 1, 1);
+        weaponStack = Item.createItemStack(Weapon.FIST, 1, 1);
       } else {
-        weaponStack = Inventory.getItem(inventory, attackAction.weaponName) as ItemStack<Weapon.AttackWeapon>;
+        weaponStack = Inventory.getItem(inventory, attackAction.weaponName) as Item.ItemStack<Weapon.AttackWeapon>;
       }
 
       // now get the target
@@ -406,14 +412,14 @@ export const ATTACK_COMPONENT: ActionParserComponent<AttackAction> = {
       log, messages: []
     };
 
-    let weaponStack: ItemStack<Weapon.AttackWeapon>;
+    let weaponStack: Item.ItemStack<Weapon.AttackWeapon>;
 
     if (attackAction.weaponName === 'Fist') {
-      weaponStack = createItemStack(Weapon.FIST, 1, 1);
+      weaponStack = Item.createItemStack(Weapon.FIST, 1, 1);
     } else {
       weaponStack = Inventory.getItem(
         attackAction.actor.inventory, attackAction.weaponName
-      ) as ItemStack<Weapon.AttackWeapon>;
+      ) as Item.ItemStack<Weapon.AttackWeapon>;
     }
 
     let accuracyPercentage: number;
@@ -661,11 +667,11 @@ export const PICKUP_ACTION: ActionParserComponent<PickupAction> = {
     const cell = Map.getCell(game.map, pickupAction.actor);
 
     if (Cell.isRoom(cell)) {
-      if (hasItem(cell.items, pickupAction.itemName)) {
+      if (Item.hasItem(cell.items, pickupAction.itemName)) {
         if (!Inventory.inventoryIsFull(pickupAction.actor.inventory)) {
           if (Inventory.hasItem(pickupAction.actor.inventory, pickupAction.itemName)) {
             const currentStack = Inventory.getItem(pickupAction.actor.inventory, pickupAction.itemName) !;
-            if (!stackIsFull(currentStack)) {
+            if (!Item.stackIsFull(currentStack)) {
               return {
                 isValid: true
               };
@@ -703,7 +709,7 @@ export const PICKUP_ACTION: ActionParserComponent<PickupAction> = {
     const room = Map.getCell(game.map, pickupAction.actor) as Cell.Room;
 
     // we know that the stack will be there via validation
-    const roomStack = getItem(room.items, itemName) !;
+    const roomStack = Item.getItem(room.items, itemName) !;
 
     let beforeActorStackSize: number;
 
@@ -726,7 +732,7 @@ export const PICKUP_ACTION: ActionParserComponent<PickupAction> = {
     const amountLeftOver = roomStack.stackAmount - amountToAdd;
 
     if (amountLeftOver > 0) {
-      const leftOverStack = createItemStack(roomStack.item, amountLeftOver, roomStack.maxStackAmount);
+      const leftOverStack = Item.createItemStack(roomStack.item, amountLeftOver, roomStack.maxStackAmount);
       room.items[ stackInd ] = leftOverStack;
     } else {
       room.items = room.items.filter((_v, i) => i !== stackInd);
@@ -754,6 +760,121 @@ export const PICKUP_ACTION: ActionParserComponent<PickupAction> = {
   componentKey: 'Pickup'
 };
 
+export const DROP_ACTION: ActionParserComponent<DropAction> = {
+  pattern: new RegExp(`drop(\\s+(\\d+))?\\s+(${itemNames.join('|')})`, 'i'),
+  parse(text: string, actor: Animal.Animal, timestamp: number): DropAction {
+    const matches = text.match(this.pattern);
+
+    if (!matches) {
+      throw new Error(`Could not parse DropAction: ${text}`);
+    } else {
+      const itemName = stringToItemName(matches[ 3 ]);
+
+      if (!itemName) {
+        throw new Error(`Item name not found: ${matches[ 3 ]}`);
+      }
+
+      let dropCount: number | undefined;
+
+      if (matches[ 2 ]) {
+        dropCount = parseInt(matches[ 2 ], 10);
+
+        if (isNaN(dropCount)) {
+          throw new Error(`Could not parse drop count: ${matches[ 2 ]}`);
+        }
+      } else {
+        dropCount = undefined;
+      }
+
+      return {
+        actor,
+        timestamp,
+        itemName,
+        dropCount,
+        key: 'Drop'
+      };
+    }
+  },
+  validate(dropAction: DropAction, game: Game): ValidationResult {
+    const cell = Map.getCell(game.map, dropAction.actor);
+
+    if (!Cell.isRoom(cell)) {
+      throw new Error(`Actor is not in a room!`);
+    }
+
+    if (!Inventory.hasItem(dropAction.actor.inventory, dropAction.itemName)) {
+      return {
+        isValid: false,
+        error: `You do not have any ${dropAction.itemName} to drop!`
+      };
+    }
+
+    // TODO: case where inventory contains multiple stacks of the same item?
+    const stackToDrop = Inventory.getItem(dropAction.actor.inventory, dropAction.itemName) !;
+
+    if (dropAction.dropCount !== undefined) {
+      if (!isFinite(dropAction.dropCount)) {
+        throw new Error(`Drop count ${dropAction.dropCount} exists but is not finite`);
+      }
+
+      if (dropAction.dropCount < 1) {
+        return {
+          isValid: false,
+          error: `Drop count must be positive!`
+        };
+      }
+
+      if (dropAction.dropCount > stackToDrop.stackAmount) {
+        return {
+          isValid: false,
+          error: `You cannot drop more than ${stackToDrop.stackAmount} ${stackToDrop.item.name}!`
+        };
+      }
+    }
+
+    return {
+      isValid: true
+    };
+  },
+  perform(dropAction: DropAction, game: Game, log: string[]): PerformResult {
+    const messages: Messaging.Message[] = [];
+    // first, remove the stack from the player's inventory
+    const room = Map.getCell(game.map, dropAction.actor) as Cell.Room;
+    const stackToRemove = Inventory.getItem(dropAction.actor.inventory, dropAction.itemName) !;
+
+    // if the actor doesn't specify a dropCount, set it to the stack amount
+    let amountToRemove: number;
+
+    if (dropAction.dropCount) {
+      amountToRemove = dropAction.dropCount;
+    } else {
+      amountToRemove = stackToRemove.stackAmount;
+    }
+
+    stackToRemove.stackAmount -= amountToRemove;
+
+    dropAction.actor.inventory = Inventory.removeEmptyStacks(dropAction.actor.inventory);
+
+    const dropStack = Item.createItemStack(stackToRemove.item, amountToRemove, stackToRemove.maxStackAmount);
+
+    room.items.push(dropStack);
+
+    room.items = Item.mergeStacks(room.items);
+
+    log.push(`After DropAction: Room (${room.row}, ${room.col}) has items: ${JSON.stringify(room.items)}`);
+
+    if (Character.isPlayerCharacter(dropAction.actor) && game.hasPlayer(dropAction.actor.playerId)) {
+      const player = game.getPlayer(dropAction.actor.playerId) !;
+      messages.push(
+        Messaging.createGameMessage(`You dropped ${amountToRemove} ${stackToRemove.item.name}(s).`, [ player ])
+      );
+    }
+
+    return { messages, log };
+  },
+  componentKey: 'Drop'
+};
+
 export interface ActionParserComponentMap<A extends Action> {
   [ componentKey: string ]: ActionParserComponent<A>;
 };
@@ -764,7 +885,8 @@ export const PARSERS: ActionParserComponentMap<Action> = {
   Rest: REST_COMPONENT,
   Ingest: INGEST_COMPONENT,
   Attack: ATTACK_COMPONENT,
-  Pickup: PICKUP_ACTION
+  Pickup: PICKUP_ACTION,
+  Drop: DROP_ACTION
 };
 
 export function parseAction(text: string, actor: Animal.Animal, timestamp: number): (Action | null) {
