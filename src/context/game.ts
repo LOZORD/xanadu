@@ -204,6 +204,9 @@ export default class Game extends Context<Player.GamePlayer> {
 
           const component = Actions.getComponentByKey(action.key);
 
+          // TODO: check again that the move is valid here!
+          // E.g. attacking someone who left the room, picking up an absent item
+
           const { messages: newMessages, log: newLog } = component.perform(action, this, log);
 
           return {

@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import Context from './context';
 import Lobby from './lobby';
 import { Player } from '../game/player';
 import * as Messaging from '../game/messaging';
@@ -9,18 +10,19 @@ describe('Context (tested via Lobby)', () => {
   const testContext = context;
 
   describe('addPlayer', () => {
+    let context: Context<Player>;
     beforeEach(function () {
-      this.context = new Lobby(2, []);
+      context = new Lobby(2, []);
     });
     testContext('when there is room available', () => {
       it('should add the player', function () {
-        this.context.addPlayer('007');
-        expect(this.context.hasPlayer('007')).to.be.true;
+        context.addPlayer('007');
+        expect(context.hasPlayer('007')).to.be.true;
       });
     });
     testContext('when the id is already present', () => {
       it('should throw an error', function () {
-        const add007 = () => this.context.addPlayer('007');
+        const add007 = () => context.addPlayer('007');
         // not present
         expect(add007).not.to.throw(Error);
         // present
@@ -29,7 +31,7 @@ describe('Context (tested via Lobby)', () => {
     });
     testContext('when the game is full', () => {
       it('should throw an error', function () {
-        const ap = (id) => (() => this.context.addPlayer(id));
+        const ap = (id) => (() => context.addPlayer(id));
         expect(ap('foo')).not.to.throw(Error);
         expect(ap('bar')).not.to.throw(Error);
         expect(ap('baz')).to.throw(Error);
@@ -38,43 +40,44 @@ describe('Context (tested via Lobby)', () => {
   });
 
   describe('removePlayer', () => {
+    let context: Context<Player>;
     beforeEach(function () {
-      this.context = new Lobby(8, [ {
+      context = new Lobby(8, [ {
         name: 'James_Bond',
         id: '007'
       }]);
     });
     testContext('when the player is present', () => {
       it('should remove and return the player', function () {
-        const bond = this.context.removePlayer('007');
+        const bond = context.removePlayer('007') !;
         expect(bond.id).to.equal('007');
-        expect(this.context.hasPlayer('007')).to.be.false;
-        expect(this.context.players.length).to.equal(0);
+        expect(context.hasPlayer('007')).to.be.false;
+        expect(context.players.length).to.equal(0);
       });
     });
     testContext('when the player is NOT present', () => {
       it('should return undefined', function () {
-        const noOne = this.context.removePlayer('foobar');
+        const noOne = context.removePlayer('foobar');
         expect(noOne).to.be.undefined;
       });
     });
   });
 
   describe('broadcast', () => {
+    let context: Context<Player>;
+    let players: Player[];
     before(function () {
-      const players: Player[] = [
+      players = [
         { name: 'Alex', id: 'guitar' },
         { name: 'Geddy', id: 'bass' },
         { name: 'Neil', id: 'drums' }
       ];
 
-      this.players = players;
-
-      this.context = new Lobby(8, this.players);
+      context = new Lobby(8, players);
     });
     it('should return a game message addressed to all players', function () {
-      const msg = this.context.broadcast('hello world') as Messaging.Message;
-      expect(msg.to).to.eql(this.context.players);
+      const msg = context.broadcast('hello world') as Messaging.Message;
+      expect(msg.to).to.eql(context.players);
     });
   });
 
@@ -102,6 +105,7 @@ describe('Context (tested via Lobby)', () => {
   });
 
   describe('getRosterData', function () {
+    let context: Context<Player>;
     before(function () {
       const lobby = new Lobby(8, []);
 
@@ -109,10 +113,10 @@ describe('Context (tested via Lobby)', () => {
       lobby.addPlayer('def', 'Darwin');
       lobby.addPlayer('ghi', 'Georgia');
 
-      this.lobby = lobby;
+      context = lobby;
     });
     it('should not include anonymous players', function () {
-      const rosterData = (this.lobby as Lobby).getRosterData();
+      const rosterData = context.getRosterData();
 
       expect(rosterData).to.have.lengthOf(2);
     });

@@ -20,7 +20,8 @@ type StyleClass = ServerMessaging.MessageType | 'Error' | 'Unknown';
 
 type ContextMode = 'Game' | 'Lobby';
 
-export type JQueryCreator = (selector: (string | Element)) => JQuery;
+// export type JQueryCreator = (selector: (string | Element)) => JQuery;
+export type JQueryCreator = JQueryStatic;
 
 export type JQueryDetailSelectors = {
   current: {
@@ -55,12 +56,16 @@ type ViewMessage = {
   content: string;
 };
 
+export interface SimpleClientConsole {
+  log(...args: any[]): void;
+}
+
 // Implements the main Logger inteface, but behaves like Winston too
 export class ClientLogger implements Logger {
   level: LogLevel;
-  console: Console;
+  console: SimpleClientConsole;
   readonly levels: LogLevel[] = [ 'error', 'warn', 'info', 'verbose', 'debug', 'silly' ];
-  constructor(console: Console, level: LogLevel = 'info') {
+  constructor(console: SimpleClientConsole, level: LogLevel = 'info') {
     this.console = console;
     this.level = level;
   }

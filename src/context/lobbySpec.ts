@@ -35,27 +35,31 @@ describe('Lobby', () => {
   describe('handleMessage', () => {
     testContext('when the player is anonymous', () => {
       testContext('when the name given is valid', () => {
+        let lobby: Lobby;
+        let player: LobbyPlayer;
+        let messages: Messaging.Message[];
         beforeEach(function () {
-          this.lobby = new Lobby(8, []);
+          lobby = new Lobby(8, [ {
+            id: '007',
+            name: null
+          }]);
 
-          this.lobby.addPlayer('007');
+          player = lobby.getPlayer('007') !;
 
-          this.jbPlayer = this.lobby.getPlayer('007');
-
-          this.messages =
-            this.lobby.handleMessage({
-              player: this.jbPlayer,
+          messages =
+            lobby.handleMessage({
+              player,
               content: 'James_Bond',
               timestamp: Date.now()
             });
         });
         it('should make their first message their name', function () {
-          expect(this.lobby.hasPlayerByName('James_Bond')).to.be.true;
-          expect(getPlayerState(this.jbPlayer)).to.equal('Preparing');
+          expect(lobby.hasPlayerByName('James_Bond')).to.be.true;
+          expect(getPlayerState(player)).to.equal('Preparing');
         });
         it('should broadcast their name', function () {
           const nameBroadcasted = _
-            .some(this.messages as Messaging.Message[],
+            .some(messages as Messaging.Message[],
             message => message.type === 'Game' && _.includes(message.content, 'James_Bond')
             );
 
@@ -99,7 +103,7 @@ describe('Lobby', () => {
 
           expect(p2.name).to.not.equal('James_Bond');
 
-          const takenResponse = _.find(m2, (response) => response.type === 'Game');
+          const takenResponse = _.find(m2, (response) => response.type === 'Game') !;
 
           expect(takenResponse).to.exist;
 
@@ -113,7 +117,7 @@ describe('Lobby', () => {
             timestamp: Date.now()
           });
 
-          const patternResponse = _.find(m3, (response) => response.type === 'Game');
+          const patternResponse = _.find(m3, (response) => response.type === 'Game') !;
 
           expect(patternResponse).to.exist;
 
@@ -163,46 +167,47 @@ describe('Lobby', () => {
       });
     });
     testContext('when the player is ready', () => {
+      let lobby: Lobby;
       before(function () {
-        this.lobby = new Lobby(8, [
-          { id: '123', name: 'Alice'},
-          { id: '456', name: 'Bob'}
+        lobby = new Lobby(8, [
+          { id: '123', name: 'Alice' },
+          { id: '456', name: 'Bob' }
         ]);
 
-        const bob = (this.lobby as Lobby).getPlayerByName('Bob');
+        const bob = lobby.getPlayerByName('Bob');
 
         bob!.isReady = true;
       });
       it('should default to (global/broadcasted) talk messages');
       it('should send whisper messages');
       it('should be able to reconfigure their primordial character', function () {
-        this.player2 = (this.lobby as Lobby).getPlayerByName('Bob');
-        (this.lobby as Lobby).handleMessage({
-          player: this.player2,
+        const player2 = lobby.getPlayerByName('Bob') !;
+        lobby.handleMessage({
+          player: player2,
           timestamp: Date.now(),
           content: 'ready c=chef a=west'
         });
 
-        expect(this.player2.primordialCharacter.className).to.equal('Chef');
-        expect(this.player2.primordialCharacter.allegiance).to.equal('Western');
+        expect(player2.primordialCharacter.className).to.equal('Chef');
+        expect(player2.primordialCharacter.allegiance).to.equal('Western');
 
-        (this.lobby as Lobby).handleMessage({
-          player: this.player2,
+        lobby.handleMessage({
+          player: player2,
           timestamp: Date.now(),
           content: 'ready c=doc a=e'
         });
 
-        expect(this.player2.primordialCharacter.className).to.equal('Doctor');
-        expect(this.player2.primordialCharacter.allegiance).to.equal('Eastern');
+        expect(player2.primordialCharacter.className).to.equal('Doctor');
+        expect(player2.primordialCharacter.allegiance).to.equal('Eastern');
       });
       it('should report any unknown character options', function () {
-        const player = (this.lobby as Lobby).getPlayerByName('Alice');
+        const player = lobby.getPlayerByName('Alice');
 
         let responses: Messaging.Message[];
 
         // re-ready player1
         if (player) {
-          responses = (this.lobby as Lobby).handleMessage({
+          responses = lobby.handleMessage({
             player,
             timestamp: Date.now(),
             content: 'ReAdY a=_FOO c=_BAR m=_BAZ z=_QUUX'
@@ -230,8 +235,9 @@ describe('Lobby', () => {
   });
 
   describe('parsePrimordialCharacter', function () {
+    let player: LobbyPlayer;
     beforeEach(function () {
-      const player: LobbyPlayer = {
+      player = {
         id: '007',
         name: 'James_Bond',
         isReady: false,
@@ -241,14 +247,12 @@ describe('Lobby', () => {
           numModifiers: 1
         }
       };
-
-      this.player = player;
     });
     it('should respect already present properties on the primordial character', function () {
       const command = 'ready m=3 a=WE';
 
       const { log, primordialCharacter } = parsePrimordialCharacter(
-        command.split(' '), (this.player as LobbyPlayer).primordialCharacter
+        command.split(' '), player.primordialCharacter
       );
 
       expect(log).to.be.empty;
@@ -267,7 +271,7 @@ describe('Lobby', () => {
       const command = 'ready m=0';
 
       const { log, primordialCharacter } = parsePrimordialCharacter(
-        command.split(' '), (this.player as LobbyPlayer).primordialCharacter
+        command.split(' '), player.primordialCharacter
       );
 
       expect(log).to.be.empty;

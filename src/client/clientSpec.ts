@@ -8,8 +8,12 @@ import * as _ from 'lodash';
 import { TEST_PARSE_RESULT } from '../game/map/parseGrid';
 import { mapToRepresentations } from '../game/map/map';
 import * as Logger from '../logger';
+import { InventoryJSON } from '../game/inventory';
 
-describe('Client', () => {
+describe('Client', function () {
+  // because of all the setup and file i/o, let 500 ms be considered "slow"
+  this.slow(500);
+
   function normalize(rawText: string): string {
     return rawText.replace(/\s+/g, ' ').trim();
   }
@@ -33,9 +37,14 @@ describe('Client', () => {
     return !elemIsHidden($elem);
   }
 
+  interface WindowAndJQuery {
+    window: Window;
+    $: JQueryStatic;
+  }
+
+  let clientPromise: Promise<WindowAndJQuery>;
+
   before(function () {
-    // because of all the setup and file i/o, let 500 ms be considered "slow"
-    this.slow(500);
     const htmlPath = Path.resolve(__dirname,
       '..', '..', 'assets', 'client', 'index.html');
     const jqueryPath = Path.resolve(__dirname,
@@ -43,7 +52,7 @@ describe('Client', () => {
     const bootstrapPath = Path.resolve(__dirname,
       '..', '..', 'node_modules', 'bootstrap', 'dist', 'js', 'bootstrap.min.js');
 
-    return this.windowPromise = new Promise<Window>((resolve) => {
+    clientPromise = new Promise<WindowAndJQuery>((resolve) => {
       // XXX: should virtualConsole be set?
       jsdom.env({
         file: htmlPath,
@@ -54,7 +63,10 @@ describe('Client', () => {
           } else {
             if ((window as any).$) {
               (window as any).$(window.document).ready(function () {
-                resolve(window);
+                resolve({
+                  window,
+                  $: (window as any).$
+                });
               });
             } else {
               throw new Error('jQuery not attached to window!');
@@ -63,10 +75,13 @@ describe('Client', () => {
         }
       });
     });
+
+    return clientPromise;
   });
   after(function () {
-    return this.windowPromise.then((window) => {
+    return clientPromise.then(({window}) => {
       window.close();
+      return window;
     }, (error) => {
       throw error;
     });
@@ -129,79 +144,83 @@ describe('Client', () => {
     it('should default to `Unknown`');
   });
   describe('updateDetails', function () {
-    before(function () {
-      const testDetails: PlayerDetailsJSON = {
-        stats: {
-          current: {
-            health: 3,
-            intelligence: 5,
-            strength: 6,
-            agility: 4
-          },
-          maximum: {
-            health: 13,
-            intelligence: 15,
-            strength: 16,
-            agility: 14
-          }
+    const TEST_DETAILS: PlayerDetailsJSON = {
+      stats: {
+        current: {
+          health: 3,
+          intelligence: 5,
+          strength: 6,
+          agility: 4
         },
-        gold: 7890,
-        items: [],
-        map: {
-          currentPosition: TEST_PARSE_RESULT.startingPosition,
-          grid: mapToRepresentations(TEST_PARSE_RESULT)
-        },
-        modifiers: [],
-        effects: {
-          addiction: {
-            isActive: false,
-            maximum: 50,
-            current: 50
-          },
-          exhaustion: {
-            maximum: 50,
-            current: 50
-          },
-          poison: {
-            isActive: false
-          },
-          immortality: {
-            isActive: false
-          },
-          hunger: {
-            current: 50,
-            maximum: 50
-          }
+        maximum: {
+          health: 13,
+          intelligence: 15,
+          strength: 16,
+          agility: 14
         }
-      };
+      },
+      gold: 7890,
+      items: [],
+      map: {
+        currentPosition: TEST_PARSE_RESULT.startingPosition,
+        grid: mapToRepresentations(TEST_PARSE_RESULT)
+      },
+      modifiers: [],
+      effects: {
+        addiction: {
+          isActive: false,
+          maximum: 50,
+          current: 50
+        },
+        exhaustion: {
+          maximum: 50,
+          current: 50
+        },
+        poison: {
+          isActive: false
+        },
+        immortality: {
+          isActive: false
+        },
+        hunger: {
+          current: 50,
+          maximum: 50
+        }
+      }
+    };
+    let testDetails: PlayerDetailsJSON;
 
-      this.TEST_DETAILS = testDetails;
+    function createPostUpdatePromise(details: PlayerDetailsJSON): Promise<Client.JQueryDetailSelectors> {
+      return new Promise(resolve => {
+        clientPromise.then(payload => {
+          const $selectors = Client.createSelectors(payload.$);
 
-      this.createPostUpdatePromise = (details: PlayerDetailsJSON) => {
-        return new Promise<Client.JQueryDetailSelectors>(resolve => {
-          this.windowPromise.then(window => {
-            const $ = window.$ as Client.JQueryCreator;
-            const $selectors = Client.createSelectors($);
+          resolve(Client.updateDetails($selectors, details));
 
-            resolve(Client.updateDetails($selectors, details));
-            return window;
-          });
+          return payload;
         });
-      };
+      });
+    }
 
-      this.revertToOriginalTestDetails = (doneFunc: MochaDone): void => {
-        this.createPostUpdatePromise(this.TEST_DETAILS).then(() => doneFunc());
-      };
+    function revertToOriginalTestDetails(doneFunc: MochaDone): void {
+      createPostUpdatePromise(TEST_DETAILS).then(() => doneFunc());
+    }
 
-      this.testDetailsUpdatePromise = this.createPostUpdatePromise(testDetails);
+    let originalTestDetailsUpdatePromise: Promise<Client.JQueryDetailSelectors>;
 
-      return this.testDetailsUpdatePromise;
+    before(function () {
+      testDetails = TEST_DETAILS;
+
+      originalTestDetailsUpdatePromise = createPostUpdatePromise(TEST_DETAILS);
+
+      return originalTestDetailsUpdatePromise;
     });
 
     describe('Stats', function () {
+      let statsPromise: Promise<{ [ key: string ]: string }>;
       before(function () {
-        this.statsPromise = new Promise(resolve => {
-          this.testDetailsUpdatePromise.then($selectors => {
+        statsPromise = new Promise(resolve => {
+          originalTestDetailsUpdatePromise.then($selectors => {
             const gt = _.curry(getText)($selectors);
 
             resolve({
@@ -216,7 +235,7 @@ describe('Client', () => {
         });
       });
       it('should have updated the stats', function () {
-        return this.statsPromise.then((results) => {
+        return statsPromise.then((results) => {
           _.forEach(results, (actual, expected) => {
             expect(expected).to.eql(actual);
           });
@@ -230,20 +249,21 @@ describe('Client', () => {
     });
     describe('Effects', function () {
       context('when the character is immortal', function () {
+        let immortalUpdatePromise: Promise<Client.JQueryDetailSelectors>;
         before(function () {
-          const newDetails: PlayerDetailsJSON = _.cloneDeep(this.TEST_DETAILS);
+          const newDetails: PlayerDetailsJSON = _.cloneDeep(TEST_DETAILS);
 
           newDetails.effects.immortality.isActive = true;
 
-          this.immortalUpdatePromise = this.createPostUpdatePromise(newDetails);
+          immortalUpdatePromise = createPostUpdatePromise(newDetails);
 
-          return this.immortalUpdatePromise;
+          return immortalUpdatePromise;
         });
         after(function (done) {
-          this.revertToOriginalTestDetails(done);
+          revertToOriginalTestDetails(done);
         });
         it('should show the immortality meter', function () {
-          return this.immortalUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
+          return immortalUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
             expect(elemIsVisible($selectors.effects.$immortalityBox)).to.be.true;
             expect(
               $selectors.effects.$immortalityBox.find('.progress-bar').width()
@@ -252,7 +272,7 @@ describe('Client', () => {
           });
         });
         it('should max the intransient meters', function () {
-          return this.immortalUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
+          return immortalUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
             const intransientMeters = [
               $selectors.effects.$exhaustionBox, $selectors.effects.$hungerBox
             ];
@@ -267,30 +287,32 @@ describe('Client', () => {
         });
       });
       context('when the character is addicted', function () {
+        let newDetails: PlayerDetailsJSON;
+        let addictedUpdatePromise: Promise<Client.JQueryDetailSelectors>;
         before(function () {
-          this.newDetails = _.cloneDeep(this.TEST_DETAILS);
+          newDetails = _.cloneDeep(TEST_DETAILS);
 
-          this.newDetails.effects.addiction.isActive = true;
+          newDetails.effects.addiction.isActive = true;
 
-          this.addictedUpdatePromise = this.createPostUpdatePromise(this.newDetails);
+          addictedUpdatePromise = createPostUpdatePromise(newDetails);
 
-          return this.addictedUpdatePromise;
+          return addictedUpdatePromise;
         });
         after(function (done) {
-          this.revertToOriginalTestDetails(done);
+          revertToOriginalTestDetails(done);
         });
         it('should show the addiction meter', function () {
-          return this.addictedUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
+          return addictedUpdatePromise.then($selectors => {
             expect(elemIsVisible($selectors.effects.$addictionBox.find('.progress-bar'))).to.be.true;
             return $selectors;
           });
         });
         it('should have the correct amount for the addiction meter', function () {
-          return this.addictedUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
+          return addictedUpdatePromise.then($selectors => {
             const expectedPercent =
               100.0 *
-              this.newDetails.effects.addiction.current /
-              this.newDetails.effects.addiction.maximum;
+              newDetails.effects.addiction.current /
+              newDetails.effects.addiction.maximum;
 
             expect($selectors.effects.$addictionBox.find('.progress-bar').width()).to.eql(expectedPercent);
 
@@ -299,27 +321,29 @@ describe('Client', () => {
         });
       });
       context('when the character is poisoned', function () {
+        let newDetails: PlayerDetailsJSON;
+        let poisonedUpdatePromise: Promise<Client.JQueryDetailSelectors>;
         before(function () {
-          this.newDetails = _.cloneDeep(this.TEST_DETAILS);
+          newDetails = _.cloneDeep(TEST_DETAILS);
 
-          this.newDetails.effects.poison.isActive = true;
+          newDetails.effects.poison.isActive = true;
 
-          this.poisonedUpdatePromise = this.createPostUpdatePromise(this.newDetails);
+          poisonedUpdatePromise = createPostUpdatePromise(newDetails);
 
-          return this.poisonedUpdatePromise;
+          return poisonedUpdatePromise;
         });
         after(function (done) {
-          this.revertToOriginalTestDetails(done);
+          revertToOriginalTestDetails(done);
         });
         it('should show the poison meter', function () {
-          return this.poisonedUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
+          return poisonedUpdatePromise.then($selectors => {
             expect(elemIsVisible($selectors.effects.$poisonBox.find('.progress-bar'))).to.be.true;
 
             return $selectors;
           });
         });
         it('should be set to full width (100%)', function () {
-          return this.poisonedUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
+          return poisonedUpdatePromise.then($selectors => {
             expect($selectors.effects.$poisonBox.find('.progress-bar').width()).to.eql(100.0);
 
             return $selectors;
@@ -330,7 +354,7 @@ describe('Client', () => {
     describe('Map', function () {
       context('when map data is present', function () {
         it('should render the map', function () {
-          return this.testDetailsUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
+          return originalTestDetailsUpdatePromise.then($selectors => {
 
             expect(elemIsVisible($selectors.$playerMap)).to.be.true;
 
@@ -351,15 +375,16 @@ describe('Client', () => {
         });
       });
       context('when map data is NOT present', function () {
+        let hiddenMapPromise: Promise<Client.JQueryDetailSelectors>;
         before(function () {
-          const detailsWithoutMap = _.extend({}, this.TEST_DETAILS, { map: null });
-          this.hiddenMapPromise = this.createPostUpdatePromise(detailsWithoutMap);
+          const detailsWithoutMap = _.extend({}, TEST_DETAILS, { map: null });
+          hiddenMapPromise = createPostUpdatePromise(detailsWithoutMap);
         });
         after(function (done) {
-          this.revertToOriginalTestDetails(done);
+          revertToOriginalTestDetails(done);
         });
         it('should hide the map', function () {
-          return this.hiddenMapPromise.then(($selectors: Client.JQueryDetailSelectors) => {
+          return hiddenMapPromise.then($selectors => {
             expect(elemIsHidden($selectors.$playerMap));
             expect(normalize($selectors.$playerMap.text())).to.equal('');
             return $selectors;
@@ -369,32 +394,33 @@ describe('Client', () => {
     });
     describe('Gold', function () {
       it('should appear in the view', function () {
-        return this.testDetailsUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
+        return originalTestDetailsUpdatePromise.then($selectors => {
           expect(getText($selectors, '#gold-row')).to.equal('Gold: 7890');
           return $selectors;
         });
       });
     });
     describe('Items', function () {
+      let items: InventoryJSON;
+      let testDetailsWithItems: PlayerDetailsJSON;
+      let itemsPromise: Promise<Client.JQueryDetailSelectors>;
       context('when there are items', () => {
         before(function () {
           // TODO: add items to this array!
-          this.items = [];
+          items = [];
 
-          this.testDetailsWithItems = _.assign({}, this.TEST_DETAILS, {
-            items: this.items
-          });
+          testDetailsWithItems = _.assign({}, TEST_DETAILS, { items });
 
-          this.itemsPromise = this.createPostUpdatePromise(this.testDetailsWithItems);
+          itemsPromise = createPostUpdatePromise(testDetailsWithItems);
         });
         after(function (done) {
-          this.revertToOriginalTestDetails(done);
+          revertToOriginalTestDetails(done);
         });
         it('should be tested!');
       });
       context('when there are NO items', () => {
         it('should show the proper message', function () {
-          return this.testDetailsUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
+          return itemsPromise.then($selectors => {
             expect(getText($selectors, '#items-wrapper')).to.equal('Your inventory is empty.');
 
             return $selectors;
@@ -411,8 +437,8 @@ describe('Client', () => {
   describe('Roster', function () {
     describe('updateRoster', function () {
       before(function () {
-        return this.windowPromise.then(window => {
-          const $ = window.$ as Client.JQueryCreator;
+        return clientPromise.then(client => {
+          const $ = client.$;
 
           Client.updatePlayerInfo({
             playerName: 'Alice'
@@ -432,13 +458,12 @@ describe('Client', () => {
             }
           ], $);
 
-          return window;
+          return client;
         });
       });
       it('should have the names listed alphabetically', function () {
-        return this.windowPromise.then(window => {
-          const $ = window.$ as Client.JQueryCreator;
-
+        return clientPromise.then(payload => {
+          const $ = payload.$;
           const namesInOrder = [ 'Alice', 'Bob', 'Carol' ];
 
           const names = $('.roster-name').toArray().map(
@@ -446,14 +471,14 @@ describe('Client', () => {
 
           expect(names).to.eql(namesInOrder);
 
-          return window;
+          return payload;
         });
       });
     });
     describe('handleRosterNameClick', function () {
       before(function () {
-        return this.windowPromise.then(window => {
-          const $ = window.$ as Client.JQueryCreator;
+        return clientPromise.then(payload => {
+          const $ = payload.$;
 
           Client.updatePlayerInfo({
             playerName: 'Alice'
@@ -472,13 +497,13 @@ describe('Client', () => {
           // finally, empty the input of any content
           $('#main-input').val('');
 
-          return window;
+          return payload;
         });
       });
       describe('when there is no message', function () {
         it('should create a new talk message with the clicked name', function () {
-          return this.windowPromise.then(window => {
-            const $ = window.$ as Client.JQueryCreator;
+          return clientPromise.then(payload => {
+            const $ = payload.$;
 
             const $input = $('#main-input');
 
@@ -498,14 +523,14 @@ describe('Client', () => {
 
             expect(newContent).to.equal('/t Alice ');
 
-            return window;
+            return payload;
           });
         });
       });
       describe('when the input already has text', function () {
         it('should just append the clicked name', function () {
-          return this.windowPromise.then(window => {
-            const $ = window.$ as Client.JQueryCreator;
+          return clientPromise.then(payload => {
+            const $ = payload.$;
 
             const $input = $('#main-input');
 
@@ -519,7 +544,7 @@ describe('Client', () => {
 
             expect(newContent).to.equal('/t Bob hello from Alice ');
 
-            return window;
+            return payload;
           });
         });
       });
@@ -529,76 +554,84 @@ describe('Client', () => {
     describe('handleContextChange', function () {
       context('to Game', function () {
         it('should show game information', function () {
-          return this.windowPromise.then(window => {
-            const $ = window.$ as Client.JQueryCreator;
+          return clientPromise.then(payload => {
+            const $ = payload.$;
 
             Client.handleContextChange('Game', $);
 
             expect(elemIsVisible($('#game-info-tab'))).to.be.true;
 
-            return window;
+            return payload;
           });
         });
       });
       context('to Lobby', function () {
         it('should hide game information', function () {
-          return this.windowPromise.then(window => {
-            const $ = window.$ as Client.JQueryCreator;
+          return clientPromise.then(payload => {
+            const $ = payload.$;
 
             Client.handleContextChange('Lobby', $);
 
             expect(elemIsHidden($('#game-info-tab'))).to.be.true;
 
-            return window;
+            return payload;
           });
         });
       });
     });
   });
   describe('ClientLogger', function () {
+    interface FakeConsole extends Client.SimpleClientConsole {
+      _logData: string[];
+    }
+
+    let fakeConsole: FakeConsole;
+
+    let clientLogger: Client.ClientLogger;
     beforeEach(function () {
-      this.fakeConsole = {
+      fakeConsole = {
         _logData: [],
         log(...args) {
           this._logData.push(args);
         }
       };
-      this.clientLogger = new Client.ClientLogger(this.fakeConsole);
+
+      clientLogger = new Client.ClientLogger(fakeConsole);
     });
     it('should use `info` as a default level', function () {
-      expect(this.clientLogger.level).to.eql('info');
+      expect(clientLogger.level).to.eql('info');
     });
     it('should allow a level argument in the constructor', function () {
-      const cl = new Client.ClientLogger({ log: _.noop } as Console, 'error');
+      const cl = new Client.ClientLogger({ log: _.noop }, 'error');
 
       expect(cl.level).to.eql('error');
     });
     it('should have the correct matching log levels', function () {
-      const cl = this.clientLogger as Client.ClientLogger;
+      const cl = clientLogger;
 
       expect(cl.levels).to.eql(Logger.logLevels);
     });
     it('should behave like Winston', function () {
-      const cl = this.clientLogger as Client.ClientLogger;
+      const cl = clientLogger;
 
       expect(cl.level).to.eql('info');
 
       cl.log('debug', 'Foo bar baz');
 
       // since debug < info, do not log
-      expect(this.fakeConsole._logData).to.be.empty;
+      expect(fakeConsole._logData).to.be.empty;
 
       cl.log('warn', 'quux');
 
       // since warn > info, log
-      expect(this.fakeConsole._logData[ 0 ]).to.eql([ 'warn', 'quux' ]);
+      expect(fakeConsole._logData[ 0 ]).to.eql([ 'warn', 'quux' ]);
 
       cl.level = 'debug';
 
       cl.log('debug', 'yolo');
 
       // since debug = debug, log
-      expect(this.fakeConsole._logData[ 1 ]).to.eql([ 'debug', 'yolo' ]);
+      expect(fakeConsole._logData[ 1 ]).to.eql([ 'debug', 'yolo' ]);
 
       cl.level = 'info';
     });

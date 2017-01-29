@@ -27,28 +27,32 @@ describe('Server', () => {
     socket.close();
   }
 
+  let serverPromise: Promise<Server>;
+  let gameClients: Promise<SocketIOClient.Socket>[];
+  let debugClient: Promise<SocketIOClient.Socket>;
+
   before(function () {
     const winson = createDefaultWinstonLogger('error');
     const s = new Server(3, Date.now(), true, winson);
 
     // test the server on the first free port
-    this.serverPromise = s.start(0);
+    serverPromise = s.start(0);
 
-    this.gameClients = [
-      createClient(this.serverPromise, '/game'),
-      createClient(this.serverPromise, '/game'),
-      createClient(this.serverPromise, '/game')
+    gameClients = [
+      createClient(serverPromise, '/game'),
+      createClient(serverPromise, '/game'),
+      createClient(serverPromise, '/game')
     ];
 
-    this.debugClient = createClient(this.serverPromise, '/debug');
+    debugClient = createClient(serverPromise, '/debug');
   });
   after(function () {
-    this.debugClient.then(socket => shutdownSocket(socket));
-    this.gameClients.forEach(socketPromise => socketPromise.then(socket => {
+    debugClient.then(socket => shutdownSocket(socket));
+    gameClients.forEach(socketPromise => socketPromise.then(socket => {
       shutdownSocket(socket);
     }));
 
-    (this.serverPromise as Promise<Server>).then(server => {
+    serverPromise.then(server => {
       server.stop();
     });
   });
@@ -56,10 +60,10 @@ describe('Server', () => {
   describe('getSocket', function () {
     context('when the socket is present', function () {
       it('should return the socket', function () {
-        return (this.serverPromise as Promise<Server>).then(server => {
-          const firstGameClientPromise = this.gameClients[ 0 ];
+        return serverPromise.then(server => {
+          const firstGameClientPromise = gameClients[ 0 ];
 
-          (firstGameClientPromise as Promise<ClientSocket>).then(client => {
+          firstGameClientPromise.then(client => {
             expect(server.getSocket(client.id)).to.be.ok;
             return client;
           });
@@ -70,7 +74,7 @@ describe('Server', () => {
     });
     context('when the socket is NOT present', function () {
       it('should return undefined', function () {
-        return (this.serverPromise as Promise<Server>).then(server => {
+        return serverPromise.then(server => {
           expect(server.getSocket('007')).to.be.undefined;
           return server;
         });
@@ -83,15 +87,17 @@ describe('Server', () => {
       result: string
     };
 
+    let donePromise: Promise<SocketPromiseAndResult>;
+
     before(function () {
-      this.serverPromise.then(server => {
-        expect(server.maxPlayers).to.equal(this.gameClients.length);
+      serverPromise.then(server => {
+        expect(server.maxPlayers).to.equal(gameClients.length);
 
         return server;
       });
 
-      this.donePromise = new Promise<SocketPromiseAndResult>((resolve) => {
-        const newClient = createClient(this.serverPromise, '/game');
+      donePromise = new Promise<SocketPromiseAndResult>((resolve) => {
+        const newClient = createClient(serverPromise, '/game');
 
         newClient.then(socket => {
           socket.on('rejected-from-room', () => {
@@ -105,10 +111,10 @@ describe('Server', () => {
         });
       });
 
-      return this.donePromise;
+      return donePromise;
     });
     after(function () {
-      return (this.donePromise as Promise<SocketPromiseAndResult>).then(values => {
+      return donePromise.then(values => {
         values.socketPromise.then(socket => {
           shutdownSocket(socket);
           return socket;
@@ -118,7 +124,7 @@ describe('Server', () => {
       });
     });
     it('should emit a `rejected-from-room` event', function () {
-      return (this.donePromise as Promise<SocketPromiseAndResult>).then(values => {
+      return (donePromise as Promise<SocketPromiseAndResult>).then(values => {
         expect(values.result).to.equal('GOT EVENT!');
         return values;
       });
@@ -126,7 +132,7 @@ describe('Server', () => {
   });
   describe('start', function () {
     it('should use the localhost hostname by default', function () {
-      return (this.serverPromise as Promise<Server>).then(server => {
+      return (serverPromise as Promise<Server>).then(server => {
         expect(server.address.address).to.eql(Server.LOCALHOST_ADDRESS);
         return server;
       });

@@ -3,46 +3,48 @@ import * as Cell from './cell';
 
 describe('Cell', function () {
   describe('cardinalCellDistance', function () {
+    let p1: Cell.Position;
+    let p2: Cell.Position;
     context('when the positions are the same', function () {
       before(function () {
-        this.p1 = {
+        p1 = {
           row: 0, col: 0
         };
 
-        this.p2 = {
+        p2 = {
           row: 0, col: 0
         };
       });
       it('should return zero', function () {
-        expect(Cell.cardinalPositionDistance(this.p1, this.p2)).to.eql(0);
+        expect(Cell.cardinalPositionDistance(p1, p2)).to.eql(0);
       });
     });
     context('when the positions differ by one direction', function () {
       before(function () {
-        this.p1 = {
+        p1 = {
           row: 0, col: 0
         };
 
-        this.p2 = {
+        p2 = {
           row: 0, col: 1
         };
       });
       it('should return 1', function () {
-        expect(Cell.cardinalPositionDistance(this.p1, this.p2)).to.eql(1);
+        expect(Cell.cardinalPositionDistance(p1, p2)).to.eql(1);
       });
     });
     context('when the positions differ by a diagonal', function () {
       before(function () {
-        this.p1 = {
+        p1 = {
           row: 0, col: 0
         };
 
-        this.p2 = {
+        p2 = {
           row: 1, col: 1
         };
       });
       it('should return 2', function () {
-        expect(Cell.cardinalPositionDistance(this.p1, this.p2)).to.eql(2);
+        expect(Cell.cardinalPositionDistance(p1, p2)).to.eql(2);
       });
     });
   });

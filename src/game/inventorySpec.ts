@@ -63,11 +63,11 @@ describe('Inventory', () => {
       it('should update the current amount', () => {
         const i1 = Inventory.createInventory([ createItemStack(createItem('Stew'), 1, 5) ], 5);
 
-        expect(Inventory.getItem(i1, 'Stew').stackAmount).to.equal(1);
+        expect(Inventory.getItem(i1, 'Stew') !.stackAmount).to.equal(1);
 
         const i2 = Inventory.updateInventory(i1, 'Stew', 3);
 
-        expect(Inventory.getItem(i2, 'Stew').stackAmount).to.equal(4);
+        expect(Inventory.getItem(i2, 'Stew') !.stackAmount).to.equal(4);
       });
     });
     context('when the item is NOT present in the inventory', () => {
@@ -77,7 +77,7 @@ describe('Inventory', () => {
         const i2 = Inventory.updateInventory(i1, 'Stew', 5);
 
         expect(Inventory.hasItem(i2, 'Stew')).to.be.true;
-        expect(Inventory.getItem(i2, 'Stew').stackAmount).to.equal(5);
+        expect(Inventory.getItem(i2, 'Stew') !.stackAmount).to.equal(5);
       });
       it('should throw an error if amount is non-positive', () => {
         const i1 = Inventory.createInventory([], 5);
@@ -92,6 +92,16 @@ describe('Inventory', () => {
       });
     });
     it('should not modify the argument inventory');
+  });
+  describe('removeFromInventory', function () {
+    context('when the item is not present', function () {
+      it('should throw an error', function () {
+        expect(() =>
+          Inventory.removeFromInventory(
+            Inventory.createInventory([], 1), 'Honeydew', 5)
+        ).to.throw(Error);
+      });
+    });
   });
   describe('toJSON', () => {
     it('should return the correct result');
