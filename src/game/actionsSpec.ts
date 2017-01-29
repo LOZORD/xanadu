@@ -827,6 +827,17 @@ describe('Actions', function () {
           expect(() => Actions.PICKUP_ACTION.validate(action, game)).to.throw(Error);
         });
       });
+      context('when the transaction amount is non-positive', () => {
+        let validation: Actions.ValidationResult;
+        beforeEach(() => {
+          const action = Actions.PICKUP_ACTION.parse('grab 0 cave leaf', player.character, 1);
+          validation = Actions.PICKUP_ACTION.validate(action, game);
+        });
+        it('should not be valid', () => {
+          expect(validation.isValid).to.be.false;
+          expect(validation.error).to.contain('positive');
+        });
+      });
       context('when room does not have the requested item in it', function () {
         it('should not be valid', function () {
           const action = Actions.PICKUP_ACTION.parse('grab honeydew', player.character, 0);
@@ -836,16 +847,55 @@ describe('Actions', function () {
         });
       });
       context('when the player\'s inventory is full', function () {
-        beforeEach(function () {
-          const inventory = player.character.inventory;
-          inventory.maximumCapacity = inventory.itemStacks.length;
-          expect(Inventory.inventoryIsFull(inventory)).to.be.true;
+        context('and they have a non-full stack of the item', () => {
+          beforeEach(() => {
+            player.character.inventory = Inventory.addToInventory(player.character.inventory, 'Cave Leaf', 3, 5);
+            const inventory = player.character.inventory;
+            inventory.maximumCapacity = inventory.itemStacks.length;
+            expect(Inventory.inventoryIsFull(inventory)).to.be.true;
+
+          });
+          it('should be ok when the stack does not overflow', () => {
+            const action = Actions.PICKUP_ACTION.parse('grab 2 cave leaf', player.character, 1);
+            const result = Actions.PICKUP_ACTION.validate(action, game);
+            expect(result.isValid).to.be.true;
+          });
+          it('should be invalid when the stack overflows', () => {
+            const action = Actions.PICKUP_ACTION.parse('grab 3 CAVE LEAF', player.character, 1);
+            const result = Actions.PICKUP_ACTION.validate(action, game);
+            expect(result.isValid).to.be.false;
+            expect(result.error).to.contain('5 Cave Leaf(s)!');
+          });
         });
-        it('should not be valid', function () {
-          const action = Actions.PICKUP_ACTION.parse('pick up cave leaf', player.character, 1);
-          const validation = Actions.PICKUP_ACTION.validate(action, game);
-          expect(validation.isValid).to.be.false;
-          expect(validation.error).to.contain('is full');
+        context('and they have a full stack of the item', () => {
+          let action: Actions.ItemTransaction;
+          let result: Actions.ValidationResult;
+          beforeEach(() => {
+            player.character.inventory = Inventory.addToInventory(player.character.inventory, 'Cave Leaf', 5, 5);
+            const inventory = player.character.inventory;
+            inventory.maximumCapacity = inventory.itemStacks.length;
+            expect(Inventory.inventoryIsFull(inventory)).to.be.true;
+
+            action = Actions.PICKUP_ACTION.parse('pick up 2 cave leaf', player.character, 1);
+            result = Actions.PICKUP_ACTION.validate(action, game);
+          });
+          it('should not be valid', () => {
+            expect(result.isValid).to.be.false;
+            expect(result.error).to.contain('Your current stack of Cave Leaf is full!');
+          });
+        });
+        context('and they do not have a stack of the item', () => {
+          beforeEach(() => {
+            const inventory = player.character.inventory;
+            inventory.maximumCapacity = inventory.itemStacks.length;
+            expect(Inventory.inventoryIsFull(inventory)).to.be.true;
+          });
+          it('should not be valid', function () {
+            const action = Actions.PICKUP_ACTION.parse('pick up cave leaf', player.character, 1);
+            const validation = Actions.PICKUP_ACTION.validate(action, game);
+            expect(validation.isValid).to.be.false;
+            expect(validation.error).to.contain('is full');
+          });
         });
       });
       context('when the player already has the item', function () {
@@ -863,19 +913,21 @@ describe('Actions', function () {
             expect(validation.isValid).to.be.true;
           });
         });
-        context('and their stack is full', function () {
+        context.skip('and their stack is full', function () {
           beforeEach(function () {
             player.character.inventory = Inventory.addToInventory(
               player.character.inventory, 'Cave Leaf', 2, 5
             );
             const stack = Inventory.getItem(player.character.inventory, 'Cave Leaf') !;
             expect(Item.stackIsFull(stack)).to.be.true;
+            expect(Inventory.inventoryIsFull(player.character.inventory)).to.be.false;
           });
-          it('should not be valid', function () {
+          it('should be valid', function () {
             const action = Actions.PICKUP_ACTION.parse('get cave leaf', player.character, 1);
             const validation = Actions.PICKUP_ACTION.validate(action, game);
-            expect(validation.isValid).to.be.false;
-            expect(validation.error).to.contain('current Cave Leaf stack is full');
+
+            // When performed, it should just create another stack!
+            expect(validation.isValid).to.be.true;
           });
         });
       });
@@ -890,62 +942,87 @@ describe('Actions', function () {
           expect(validation.isValid).to.be.true;
         });
       });
+      // TODO: case where there are multiple stacks of the same item in the same room
+      context('when the player requests more than there is available in the room', () => {
+        it('should not be valid', () => {
+          const action = Actions.PICKUP_ACTION.parse('get 6 cave leaf', player.character, 1);
+          const validation = Actions.PICKUP_ACTION.validate(action, game);
+          expect(validation.isValid).to.be.false;
+          expect(validation.error).to.contain('5 Cave Leaf(s) in the room');
+        });
+      });
     });
     describe('perform', function () {
       let result: Actions.PerformResult;
-      context('when the player already has the item', function () {
-        beforeEach(function () {
-          player.character.inventory =
-            Inventory.addToInventory(player.character.inventory, 'Cave Leaf', 3, 5);
-          expect(Inventory.hasItem(player.character.inventory, 'Cave Leaf')).to.be.true;
+      context('when the player does not give a transactionAmount', () => {
+        context('when the player already has the item', function () {
+          beforeEach(function () {
+            player.character.inventory =
+              Inventory.addToInventory(player.character.inventory, 'Cave Leaf', 3, 5);
+            expect(Inventory.hasItem(player.character.inventory, 'Cave Leaf')).to.be.true;
 
-          const action = Actions.PICKUP_ACTION.parse('get cave leaf', player.character, 1);
-          expect(Actions.PICKUP_ACTION.validate(action, game).isValid).to.be.true;
+            const action = Actions.PICKUP_ACTION.parse('get cave leaf', player.character, 1);
+            expect(Actions.PICKUP_ACTION.validate(action, game).isValid).to.be.true;
 
-          result = Actions.PICKUP_ACTION.perform(action, game, []);
+            result = Actions.PICKUP_ACTION.perform(action, game, []);
+          });
+          it('should not leave leftovers in the room', function () {
+            const playerStack = Inventory.getItem(player.character.inventory, 'Cave Leaf');
+            expect(playerStack).to.be.ok;
+            expect(Item.stackIsFull(playerStack!)).to.be.true;
+
+            const roomStack = Item.getItem(game.startingRoom.items, 'Cave Leaf');
+            expect(roomStack).to.be.undefined;
+          });
         });
-        it('should leave leftovers in the room', function () {
-          const playerStack = Inventory.getItem((player as Player.GamePlayer).character.inventory, 'Cave Leaf');
-          expect(playerStack).to.be.ok;
-          expect(Item.stackIsFull(playerStack!)).to.be.true;
+        context('when the player does not already have the item', function () {
+          beforeEach(function () {
+            expect(Inventory.hasItem(player.character.inventory, 'Cave Leaf')).to.be.false;
 
-          const roomStack = Item.getItem((game as Game).startingRoom.items, 'Cave Leaf') !;
-          expect(roomStack).to.be.ok;
-          expect(Item.stackIsFull(roomStack)).to.be.false;
+            const action = Actions.PICKUP_ACTION.parse('get cave leaf', player.character, 1);
+            expect(Actions.PICKUP_ACTION.validate(action, game).isValid).to.be.true;
 
-          const beforeAmount = 3;
-          const roomStackAmount = 5;
-          const amountTaken = roomStackAmount - beforeAmount;
-          expect(roomStack.stackAmount).to.eql(roomStackAmount - amountTaken);
+            result = Actions.PICKUP_ACTION.perform(action, game, []);
+          });
+          it('should take the whole stack', function () {
+            const room = game.startingRoom;
+
+            expect(Item.hasItem(room.items, 'Cave Leaf')).to.be.false;
+
+            expect(Inventory.hasItem(player.character.inventory, 'Cave Leaf'));
+            const playerStack = Inventory.getItem(player.character.inventory, 'Cave Leaf')!;
+            expect(Item.stackIsFull(playerStack));
+          });
+          it('should send the correct message', function () {
+            const pickupMessage = _.find(
+              result.messages,
+              message => {
+                return message.type === 'Game' &&
+                  _.includes(message.content, 'picked up 5 Cave Leaf');
+              });
+
+            expect(pickupMessage).to.be.ok;
+          });
         });
       });
-      context('when the player does not already have the item', function () {
-        beforeEach(function () {
+      context('when the player gives a transactionAmount', () => {
+        let performResult: Actions.PerformResult;
+        let itemAmount = {before: 0, after: 0};
+        let log: string[];
+        beforeEach(() => {
           expect(Inventory.hasItem(player.character.inventory, 'Cave Leaf')).to.be.false;
+          const action = Actions.PICKUP_ACTION.parse('pick up 2 cave leaf', player.character, 1);
+          const validation = Actions.PICKUP_ACTION.validate(action, game);
 
-          const action = Actions.PICKUP_ACTION.parse('get cave leaf', player.character, 1);
-          expect(Actions.PICKUP_ACTION.validate(action, game).isValid).to.be.true;
+          expect(validation.isValid).to.be.true;
 
-          result = Actions.PICKUP_ACTION.perform(action, game, []);
+          log = [];
+          performResult = Actions.PICKUP_ACTION.perform(action, game, log);
+
+          itemAmount.after = Inventory.getItem(player.character.inventory, 'Cave Leaf')!.stackAmount;
         });
-        it('should take the whole stack', function () {
-          const room = game.startingRoom;
-
-          expect(Item.hasItem(room.items, 'Cave Leaf')).to.be.false;
-
-          const playerStack = Inventory.getItem(player.character.inventory, 'Cave Leaf');
-
-          expect(playerStack).to.eql(caveLeafStack);
-        });
-        it('should send the correct message', function () {
-          const pickupMessage = _.find(
-            result.messages,
-            message => {
-              return message.type === 'Game' &&
-                _.includes(message.content, 'picked up 5 Cave Leaf');
-            });
-
-          expect(pickupMessage).to.be.ok;
+        it('should pick up the correct amount', () => {
+          expect(itemAmount.before + 2).to.eql(itemAmount.after);
         });
       });
     });
@@ -968,7 +1045,7 @@ describe('Actions', function () {
           it('should have the correct drop count', () => {
             const result = Actions.DROP_ACTION.parse('drop 3 nightshade', player.character, 1);
 
-            expect(result.dropCount).to.eql(3);
+            expect(result.transactionAmount).to.eql(3);
             expect(result.itemName).to.eql('Nightshade');
           });
         });
@@ -977,7 +1054,7 @@ describe('Actions', function () {
         it('should not parse one', () => {
           const result = Actions.DROP_ACTION.parse('drop nightSHAde', player.character, 1);
 
-          expect(result.dropCount).to.be.undefined;
+          expect(result.transactionAmount).to.be.undefined;
         });
       });
     });

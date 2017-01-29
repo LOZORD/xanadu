@@ -61,13 +61,9 @@ export interface AttackAction extends Action {
   times: number;
 }
 
-export interface PickupAction extends Action {
+export interface ItemTransaction extends Action {
   itemName: ItemName;
-}
-
-export interface DropAction extends Action {
-  itemName: ItemName;
-  dropCount?: number;
+  transactionAmount?: number;
 }
 
 // nothing special about pass or rest actions
@@ -641,118 +637,147 @@ export const INGEST_COMPONENT: ActionParserComponent<IngestAction> = {
 };
 
 // TODO: add ability to pick up a certain amount of an item (stack)
-export const PICKUP_ACTION: ActionParserComponent<PickupAction> = {
-  pattern: new RegExp(`^(pick up|get|grab) (${itemNames.join('|')})$`, 'i'),
-  parse(text: string, actor: Animal.Animal, timestamp: number): PickupAction {
+export const PICKUP_ACTION: ActionParserComponent<ItemTransaction> = {
+  // pattern: new RegExp(`^pick up|get|grab(\\s(\\d+))?\\s+(${itemNames.join('|')})$`, 'i'),
+  pattern: new RegExp(`^(pick up|get|grab)(\\s+(\\d+))?\\s+(${itemNames.join('|')})$`, 'i'),
+  parse(text: string, actor: Animal.Animal, timestamp: number): ItemTransaction {
     const matches = text.match(this.pattern);
 
     if (!matches) {
       throw new Error(`Could not parse PickupAction: ${text}`);
     } else {
-      const itemName = stringToItemName(matches[ 2 ]);
+      const maybeItemName = matches[ 4 ];
+      const itemName = stringToItemName(maybeItemName);
 
-      if (itemName) {
-        return {
-          actor,
-          timestamp,
-          itemName,
-          key: 'Pickup'
-        };
-      } else {
+      if (!itemName) {
         throw new Error(`Item name not found: ${text}`);
       }
+
+      let transactionAmount: number | undefined;
+
+      if (matches[ 3 ]) {
+        transactionAmount = parseInt(matches[ 3 ], 10);
+
+        if (isNaN(transactionAmount)) {
+          throw new Error(`Could not parse count: ${text}`);
+        }
+      } else {
+        transactionAmount = undefined;
+      }
+
+      return {
+        actor,
+        timestamp,
+        itemName,
+        transactionAmount,
+        key: 'Pickup'
+      };
     }
   },
-  validate(pickupAction: PickupAction, game: Game): ValidationResult {
+  validate(pickupAction: ItemTransaction, game: Game): ValidationResult {
     const cell = Map.getCell(game.map, pickupAction.actor);
 
-    if (Cell.isRoom(cell)) {
-      if (Item.hasItem(cell.items, pickupAction.itemName)) {
-        if (!Inventory.inventoryIsFull(pickupAction.actor.inventory)) {
-          if (Inventory.hasItem(pickupAction.actor.inventory, pickupAction.itemName)) {
-            const currentStack = Inventory.getItem(pickupAction.actor.inventory, pickupAction.itemName) !;
-            if (!Item.stackIsFull(currentStack)) {
-              return {
-                isValid: true
-              };
-            } else {
-              return {
-                isValid: false,
-                error: `Your current ${pickupAction.itemName} stack is full!`
-              };
-            }
-          } else {
-            return {
-              isValid: true
-            };
-          }
-        } else {
+    if (!Cell.isRoom(cell)) {
+      throw new Error(`Actor is not in a room!`);
+    }
+
+    if (!Item.hasItem(cell.items, pickupAction.itemName)) {
+      return {
+        isValid: false,
+        error: `${pickupAction.itemName} is not in the room!`
+      };
+    }
+
+    const stackToPickUp = Item.getItem(cell.items, pickupAction.itemName) !;
+
+    let amountToPickUp: number;
+
+    if (pickupAction.transactionAmount !== undefined) {
+      if (isFinite(pickupAction.transactionAmount)) {
+        if (pickupAction.transactionAmount < 1) {
           return {
             isValid: false,
-            error: `Inventory is full!`
+            error: 'Transaction amount must be positive!'
+          };
+        } else {
+          amountToPickUp = pickupAction.transactionAmount;
+        }
+      } else {
+        throw new Error(`Transaction amount exists but is not finite!`);
+      }
+    } else {
+      amountToPickUp = stackToPickUp.stackAmount;
+    }
+
+    if (stackToPickUp.stackAmount < amountToPickUp) {
+      return {
+        isValid: false,
+        error: `There is only ${stackToPickUp.stackAmount} ${stackToPickUp.item.name}(s) in the room!`
+      };
+    }
+
+    if (Inventory.inventoryIsFull(pickupAction.actor.inventory)) {
+      if (Inventory.hasItem(pickupAction.actor.inventory, pickupAction.itemName)) {
+        const playerStack = Inventory.getItem(pickupAction.actor.inventory, pickupAction.itemName) !;
+        if (Item.stackIsFull(playerStack)) {
+          return {
+            isValid: false,
+            error: `Your current stack of ${pickupAction.itemName} is full!`
+          };
+        } else if (playerStack.stackAmount + amountToPickUp > playerStack.maxStackAmount) {
+          return {
+            isValid: false,
+            error: `You can only hold ${playerStack.maxStackAmount} ${playerStack.item.name}(s)!`
+          };
+        } else {
+          return {
+            isValid: true
           };
         }
       } else {
         return {
           isValid: false,
-          error: `${pickupAction.itemName} is not in the room!`
+          error: 'You inventory is full!'
         };
       }
-    } else {
-      throw new Error(`Actor is not in a room!`);
     }
+    return {
+      isValid: true
+    };
   },
-  perform(pickupAction: PickupAction, game: Game, log: string[]): PerformResult {
-    // first remove the appropriate stack (amount) from the room
-    const itemName = pickupAction.itemName;
-    const actorInventory = pickupAction.actor.inventory;
+  perform(pickupAction: ItemTransaction, game: Game, log: string[]): PerformResult {
+    const messages: Messaging.Message[] = [];
+
     const room = Map.getCell(game.map, pickupAction.actor) as Cell.Room;
 
-    // we know that the stack will be there via validation
-    const roomStack = Item.getItem(room.items, itemName) !;
+    const stackToPickUp = Item.getItem(room.items, pickupAction.itemName) !;
 
-    let beforeActorStackSize: number;
+    let amountToPickUp: number;
 
-    if (Inventory.hasItem(actorInventory, itemName)) {
-      beforeActorStackSize = Inventory.getItem(actorInventory, itemName) !.stackAmount;
+    if (pickupAction.transactionAmount) {
+      amountToPickUp = pickupAction.transactionAmount;
     } else {
-      beforeActorStackSize = 0;
+      amountToPickUp = stackToPickUp.stackAmount;
     }
 
-    // take 0 <= room stack amount <= (room max amount) - (amount actor holds now)
-    const amountToAdd = _.clamp(roomStack.stackAmount, 0, roomStack.maxStackAmount - beforeActorStackSize);
+    stackToPickUp.stackAmount -= amountToPickUp;
 
-    // then add the stack (amount) to the actor's inventory
-    const newInventory = Inventory.addToInventory(actorInventory, itemName, amountToAdd, roomStack.maxStackAmount);
+    room.items = Item.removeEmptyStacks(room.items);
 
-    pickupAction.actor.inventory = newInventory;
+    const newActorStack = Item.createItemStack(stackToPickUp.item, amountToPickUp, stackToPickUp.maxStackAmount);
 
-    // then drop the leftovers on the floor or remove the stack
-    const stackInd = _.findIndex(room.items, stack => stack.item.name === roomStack.item.name);
-    const amountLeftOver = roomStack.stackAmount - amountToAdd;
+    pickupAction.actor.inventory.itemStacks.push(newActorStack);
 
-    if (amountLeftOver > 0) {
-      const leftOverStack = Item.createItemStack(roomStack.item, amountLeftOver, roomStack.maxStackAmount);
-      room.items[ stackInd ] = leftOverStack;
-    } else {
-      room.items = room.items.filter((_v, i) => i !== stackInd);
-    }
+    pickupAction.actor.inventory.itemStacks = Item.mergeStacks(pickupAction.actor.inventory.itemStacks);
 
-    // then return the game message
-    let messages: Messaging.Message[] = [];
+    log.push(`After PickupAction: Room (${room.row}, ${room.col}) has items: ${JSON.stringify(room.items)}`);
 
-    if (Character.isPlayerCharacter(pickupAction.actor)) {
-      const player = game.getPlayer(pickupAction.actor.playerId);
-
-      if (!player) {
-        throw new Error(`Expected player with id ${pickupAction.actor.playerId} to exist!`);
-      }
+    if (Character.isPlayerCharacter(pickupAction.actor) && game.hasPlayer(pickupAction.actor.playerId)) {
+      const player = game.getPlayer(pickupAction.actor.playerId) !;
 
       messages.push(
-        Messaging.createGameMessage(`You picked up ${amountToAdd} ${itemName}(s)!`, [ player ])
+        Messaging.createGameMessage(`You picked up ${amountToPickUp} ${stackToPickUp.item.name}(s).`, [ player ])
       );
-    } else {
-      // do nothing
     }
 
     return { messages, log };
@@ -760,9 +785,9 @@ export const PICKUP_ACTION: ActionParserComponent<PickupAction> = {
   componentKey: 'Pickup'
 };
 
-export const DROP_ACTION: ActionParserComponent<DropAction> = {
+export const DROP_ACTION: ActionParserComponent<ItemTransaction> = {
   pattern: new RegExp(`drop(\\s+(\\d+))?\\s+(${itemNames.join('|')})`, 'i'),
-  parse(text: string, actor: Animal.Animal, timestamp: number): DropAction {
+  parse(text: string, actor: Animal.Animal, timestamp: number): ItemTransaction {
     const matches = text.match(this.pattern);
 
     if (!matches) {
@@ -790,12 +815,12 @@ export const DROP_ACTION: ActionParserComponent<DropAction> = {
         actor,
         timestamp,
         itemName,
-        dropCount,
+        transactionAmount: dropCount,
         key: 'Drop'
       };
     }
   },
-  validate(dropAction: DropAction, game: Game): ValidationResult {
+  validate(dropAction: ItemTransaction, game: Game): ValidationResult {
     const cell = Map.getCell(game.map, dropAction.actor);
 
     if (!Cell.isRoom(cell)) {
@@ -812,19 +837,19 @@ export const DROP_ACTION: ActionParserComponent<DropAction> = {
     // TODO: case where inventory contains multiple stacks of the same item?
     const stackToDrop = Inventory.getItem(dropAction.actor.inventory, dropAction.itemName) !;
 
-    if (dropAction.dropCount !== undefined) {
-      if (!isFinite(dropAction.dropCount)) {
-        throw new Error(`Drop count ${dropAction.dropCount} exists but is not finite`);
+    if (dropAction.transactionAmount !== undefined) {
+      if (!isFinite(dropAction.transactionAmount)) {
+        throw new Error(`Drop count ${dropAction.transactionAmount} exists but is not finite`);
       }
 
-      if (dropAction.dropCount < 1) {
+      if (dropAction.transactionAmount < 1) {
         return {
           isValid: false,
           error: `Drop count must be positive!`
         };
       }
 
-      if (dropAction.dropCount > stackToDrop.stackAmount) {
+      if (dropAction.transactionAmount > stackToDrop.stackAmount) {
         return {
           isValid: false,
           error: `You cannot drop more than ${stackToDrop.stackAmount} ${stackToDrop.item.name}!`
@@ -836,7 +861,7 @@ export const DROP_ACTION: ActionParserComponent<DropAction> = {
       isValid: true
     };
   },
-  perform(dropAction: DropAction, game: Game, log: string[]): PerformResult {
+  perform(dropAction: ItemTransaction, game: Game, log: string[]): PerformResult {
     const messages: Messaging.Message[] = [];
     // first, remove the stack from the player's inventory
     const room = Map.getCell(game.map, dropAction.actor) as Cell.Room;
@@ -845,8 +870,8 @@ export const DROP_ACTION: ActionParserComponent<DropAction> = {
     // if the actor doesn't specify a dropCount, set it to the stack amount
     let amountToRemove: number;
 
-    if (dropAction.dropCount) {
-      amountToRemove = dropAction.dropCount;
+    if (dropAction.transactionAmount) {
+      amountToRemove = dropAction.transactionAmount;
     } else {
       amountToRemove = stackToRemove.stackAmount;
     }
