@@ -11,6 +11,7 @@ Please see the [Wiki](https://github.com/LOZORD/xanadu/wiki) for more informatio
 Contributions welcome!
 
 [![Build Status](https://travis-ci.org/LOZORD/xanadu.svg?branch=master)](https://travis-ci.org/LOZORD/xanadu)
+[![Build Status](https://ci.appveyor.com/api/projects/status/gpu3aq531v4gdirq?svg=true)](https://ci.appveyor.com/project/LOZORD/xanadu)
 [![David](https://img.shields.io/david/LOZORD/xanadu.svg)](https://david-dm.org/LOZORD/xanadu)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/53578fdb9c8049c4959db3053822d127)](https://www.codacy.com/app/ljrudberg/xanadu?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=LOZORD/xanadu&amp;utm_campaign=Badge_Grade)
 [![Codacy grade](https://img.shields.io/codacy/LOZORD/xanadu.svg)](https://www.codacy.com/app/LOZORD/xanadu)
