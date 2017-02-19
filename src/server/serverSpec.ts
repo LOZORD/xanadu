@@ -1,165 +1,287 @@
 import { expect } from 'chai';
 import * as Sinon from 'sinon';
 import Server from './server';
+import * as Socket from '../socket';
 import { createDefaultWinstonLogger } from '../logger';
-import * as ClientSocket from 'socket.io-client';
-import { Promise } from 'es6-promise';
-import { noop } from 'lodash';
+import * as Messaging from '../game/messaging';
+import Lobby from '../context/lobby';
+import Game from '../context/game';
+import * as _ from 'lodash';
+import * as Player from '../game/player';
 
-type ClientSocket = SocketIOClient.Socket;
+type MockServer = Server<Socket.MockServerSocketServer>;
+function createTestServer(maxPlayers = 3) {
+  return new Server(
+    Socket.mockSocketServerCreator,
+    maxPlayers,
+    Date.now(),
+    true,
+    createDefaultWinstonLogger('error')
+  );
+}
 
 describe('Server', () => {
-  function createClient(serverPromise: Promise<Server>, nsp: string): Promise<ClientSocket> {
-    return new Promise<ClientSocket>((resolve, _reject) => {
-      serverPromise.then(server => {
-        const uri = `http://localhost:${server.address.port}${nsp}`;
-        resolve(ClientSocket.connect(uri, {
-          forceNew: true
-        }));
-
-        return server;
+  describe('getSocket', () => {
+    let serverPromise: Promise<MockServer>;
+    let socket: Socket.Socket;
+    const socketID = '007';
+    const badID = '700';
+    before(() => {
+      const server = createTestServer();
+      serverPromise = server.start(0).then(s => {
+        socket = new Socket.MockServerSocket(socketID, '/game', s.io);
+        s.acceptSocket(socket);
+        return s;
+      });
+      return serverPromise;
+    });
+    after(() => {
+      return serverPromise.then(s => {
+        return s.stop();
       });
     });
-  }
-
-  function shutdownSocket(socket: ClientSocket): void {
-    socket.disconnect();
-    socket.close();
-  }
-
-  let serverPromise: Promise<Server>;
-  let gameClients: Promise<SocketIOClient.Socket>[];
-  let debugClient: Promise<SocketIOClient.Socket>;
-
-  before(function () {
-    const winson = createDefaultWinstonLogger('error');
-    const s = new Server(3, Date.now(), true, winson);
-
-    // test the server on the first free port
-    serverPromise = s.start(0);
-
-    gameClients = [
-      createClient(serverPromise, '/game'),
-      createClient(serverPromise, '/game'),
-      createClient(serverPromise, '/game')
-    ];
-
-    debugClient = createClient(serverPromise, '/debug');
-  });
-  after(function () {
-    debugClient.then(socket => shutdownSocket(socket));
-    gameClients.forEach(socketPromise => socketPromise.then(socket => {
-      shutdownSocket(socket);
-    }));
-
-    serverPromise.then(server => {
-      server.stop();
-    });
-  });
-
-  describe('getSocket', function () {
-    context('when the socket is present', function () {
-      it('should return the socket', function () {
+    context('when the socket is present', () => {
+      it('should return the socket', () => {
         return serverPromise.then(server => {
-          const firstGameClientPromise = gameClients[ 0 ];
-
-          firstGameClientPromise.then(client => {
-            expect(server.getSocket(client.id)).to.be.ok;
-            return client;
-          });
-
+          expect(server.getSocket(socketID)).to.be.ok;
           return server;
         });
       });
     });
-    context('when the socket is NOT present', function () {
-      it('should return undefined', function () {
+    context('when the socket is NOT present', () => {
+      it('should return undefined', () => {
         return serverPromise.then(server => {
-          expect(server.getSocket('007')).to.be.undefined;
+          expect(server.getSocket(badID)).to.be.undefined;
           return server;
         });
       });
     });
   });
-  describe('rejectSocket', function () {
-    type SocketPromiseAndResult = {
-      socketPromise: Promise<ClientSocket>,
-      result: string
-    };
-
-    let donePromise: Promise<SocketPromiseAndResult>;
-
-    before(function () {
-      serverPromise.then(server => {
-        expect(server.maxPlayers).to.equal(gameClients.length);
-
-        return server;
+  describe('rejectSocket', () => {
+    let serverPromise: Promise<MockServer>;
+    let socket: Socket.Socket;
+    const socketID = '007';
+    before(() => {
+      const server = createTestServer();
+      serverPromise = server.start(0).then(s => {
+        socket = new Socket.MockServerSocket(socketID, '/game', s.io);
+        s.rejectSocket(socket);
+        return s;
       });
-
-      donePromise = new Promise<SocketPromiseAndResult>((resolve) => {
-        const newClient = createClient(serverPromise, '/game');
-
-        newClient.then(socket => {
-          socket.on('rejected-from-room', () => {
-            resolve({
-              socketPromise: newClient,
-              result: 'GOT EVENT!'
-            });
-          });
-
-          return socket;
-        });
-      });
-
-      return donePromise;
+      return serverPromise;
     });
-    after(function () {
-      return donePromise.then(values => {
-        values.socketPromise.then(socket => {
-          shutdownSocket(socket);
-          return socket;
-        });
-
-        return values;
+    after(() => {
+      return serverPromise.then(s => {
+        return s.stop();
       });
     });
-    it('should emit a `rejected-from-room` event', function () {
-      return (donePromise as Promise<SocketPromiseAndResult>).then(values => {
-        expect(values.result).to.equal('GOT EVENT!');
-        return values;
-      });
+    it('should emit a `rejected-from-room` event', () => {
+      const allEvents = (socket as Socket.MockServerSocket).allEvents();
+      expect(allEvents).to.contain('rejected-from-room');
     });
   });
-  describe('start', function () {
-    it('should use the localhost hostname by default', function () {
-      return (serverPromise as Promise<Server>).then(server => {
+  describe('start', () => {
+    it('should use the localhost hostname by default', () => {
+      return createTestServer().start(0).then(server => {
         expect(server.address.address).to.eql(Server.LOCALHOST_ADDRESS);
-        return server;
+        return server.stop();
       });
     });
-    it('should use the hostname argument if it is given', function () {
-      const logger = createDefaultWinstonLogger();
-      const remoteConnServer = new Server(8, 9876, false, logger);
-
-      // Don't actually listen, we just care about the arguments passed
-      const stub = Sinon.stub(remoteConnServer.httpServer, 'listen', noop);
-
-      const startedServerPromise = remoteConnServer.start(8999, '0.0.0.0');
-
-      return startedServerPromise.then((server) => {
-        expect(stub.callCount).to.eql(1);
-
-        const opts = stub.firstCall.args[ 0 ];
-
-        expect(opts.port).to.eql(8999);
-        expect(opts.host).to.eql('0.0.0.0');
-
-        server.stop();
-        stub.restore();
+    it('should use the hostname argument if it given', () => {
+      return createTestServer().start(0, Server.REMOTE_CONNECTION_ADDRESS).then(server => {
+        expect(server.address.address).to.eql(Server.REMOTE_CONNECTION_ADDRESS);
+        return server.stop();
       });
     });
   });
-  describe('stop', function () {
+  describe('stop', () => {
+    let serverPromise: Promise<MockServer>;
+    let socket: Socket.Socket;
+    before(() => {
+      return serverPromise = createTestServer().start(0).then(server => {
+        socket = new Socket.MockServerSocket('007', '/game', server.io as Socket.MockServerSocketServer);
+        server.acceptSocket(socket);
+        return server.stop();
+      });
+    });
+    it('should send a `server-stopped` event', () => {
+      const allEvents = (socket as Socket.MockServerSocket).allEvents();
+      expect(allEvents).to.contain('server-stopped');
+    });
+    it('should disconnect all the sockets', () => {
+      const wasDisconnected = (socket as Socket.MockServerSocket).isClosed;
+      expect(wasDisconnected).to.be.true;
+    });
+    it('should stop the server from listening', () => {
+      return serverPromise.then(server => {
+        expect(server.httpServer.listening).to.be.false;
+      });
+    });
+  });
+  describe('handleConnection', () => {
+    context('when the current context is accepting players', () => {
+      let serverPromise: Promise<MockServer>;
+      let socket: Socket.MockServerSocket;
+      let acceptSpy: Sinon.SinonSpy;
+      before(() => {
+        acceptSpy = Sinon.spy(Server.prototype, 'acceptSocket');
+        return serverPromise = createTestServer().start(0).then(server => {
+          socket = new Socket.MockServerSocket('007', '/game', server.io);
+          server.handleConnection(socket);
+          return server;
+        });
+      });
+      after(() => {
+        return serverPromise.then(server => server.stop());
+      });
+      it('should accept the socket', () => {
+        expect(acceptSpy.called).to.be.true;
+        const socketArg = acceptSpy.firstCall.args[ 0 ] as Socket.Socket;
+        expect(socketArg.id).to.eql('007');
+      });
+    });
+    context('when the current context is NOT accepting players', () => {
+      let serverPromise: Promise<MockServer>;
+      let socket1: Socket.MockServerSocket;
+      let socket2: Socket.MockServerSocket;
+      let rejectSpy: Sinon.SinonSpy;
+      before(() => {
+        rejectSpy = Sinon.spy(Server.prototype, 'rejectSocket');
+        // Only allow 1 player!
+        return serverPromise = createTestServer(1).start(0).then(server => {
+          socket1 = new Socket.MockServerSocket('007', '/game', server.io);
+          server.handleConnection(socket1);
+          socket2 = new Socket.MockServerSocket('008', '/game', server.io);
+          server.handleConnection(socket2);
+          return server;
+        });
+      });
+      after(() => {
+        return serverPromise.then(server => server.stop());
+      });
+      it('should reject the socket', () => {
+        expect(rejectSpy.called).to.be.true;
+        const socketArg = rejectSpy.firstCall.args[ 0 ] as Socket.Socket;
+        expect(socketArg.id).to.eql('008');
+      });
+    });
+  });
+  describe('handleDisconnection', () => {
+    let serverPromise: Promise<MockServer>;
+    let socket1: Socket.MockServerSocket;
+    let socket2: Socket.MockServerSocket;
+    let sendMessageSpy: Sinon.SinonSpy;
+    before(() => {
+      return serverPromise = createTestServer(2).start(0).then(server => {
+        sendMessageSpy = Sinon.spy(server, 'sendMessage');
+        socket1 = new Socket.MockServerSocket('abc', '/game', server.io);
+        socket2 = new Socket.MockServerSocket('def', '/game', server.io);
+        server.handleConnection(socket1);
+        server.handleConnection(socket2);
+        // Then name the players.
+        server.handleMessage({
+          player: server.currentContext.getPlayer('abc') !,
+          content: 'Alice',
+          timestamp: 1234
+        }, socket1);
+
+        server.handleMessage({
+          player: server.currentContext.getPlayer('def') !,
+          content: 'Dougie',
+          timestamp: 5678
+        }, socket2);
+
+        return server;
+      }).then(server => {
+        server.handleDisconnection(socket2);
+        return server;
+      });
+    });
+    after(() => {
+      return serverPromise.then(server => server.stop());
+    });
+    it('should remove the socket\'s player from the current context', () => {
+      return serverPromise.then(server => {
+        expect(server.currentContext.hasPlayer('abc')).to.be.true;
+        expect(server.currentContext.hasPlayer('def')).to.be.false;
+        return server;
+      });
+    });
+    it('should send the updated roster', () => {
+      const events = socket1.allEvents();
+      expect(events).to.contain('roster');
+    });
+    it('should send a message to other players if the player was named', () => {
+      const sentMessage = sendMessageSpy.args.some(arg => {
+        const message: Messaging.Message = arg[ 0 ];
+        return message.content.indexOf('Dougie has left the game') >= 0;
+      });
+      expect(sentMessage).to.be.true;
+    });
+    it('should start the game if everyone else is ready');
+  });
+  describe('sendDetails', () => {
+    let serverPromise: Promise<MockServer>;
+    let socket1: Socket.MockServerSocket;
+    let socket2: Socket.MockServerSocket;
+    before(() => {
+      return serverPromise = createTestServer(4).start(0).then(server => {
+        socket1 = new Socket.MockServerSocket('123', '/game', server.io);
+        socket2 = new Socket.MockServerSocket('456', '/game', server.io);
+        server.handleConnection(socket1);
+        server.handleConnection(socket2);
+        return server;
+      });
+    });
+    after(() => {
+      return serverPromise.then(server => server.stop());
+    });
+    context('when the current context is `Lobby`', () => {
+      before(() => {
+        return serverPromise.then(server => {
+          expect(server.currentContext).to.be.an.instanceOf(Lobby);
+          return server;
+        });
+      });
+      it('should not send details', () => {
+        return serverPromise.then(server => {
+          server.sendDetails();
+          [ socket1, socket2 ].forEach(socket => {
+            expect(socket.allEvents()).not.to.contain('details');
+          });
+        });
+      });
+    });
+    context('when the current context is `Game`', () => {
+      before(() => {
+        return serverPromise.then(server => {
+          server.currentContext.getPlayer(socket1.id) !.name = 'SocketOne';
+          server.currentContext.getPlayer(socket2.id) !.name = 'SocketTwo';
+          server.changeContext();
+          expect(server.currentContext).to.be.an.instanceOf(Game);
+          return server;
+        });
+      });
+      it('should send each player their details', () => {
+        return serverPromise.then(server => {
+          server.sendDetails();
+          [ socket1, socket2 ].forEach(socket => {
+            expect(socket.allEvents()).contains('details');
+            const sentDetails = _.find(socket.emittedData, ({event}) => event === 'details') !;
+            expect(sentDetails).to.be.ok;
+            const player = server.currentContext.getPlayer(socket.id) as Player.GamePlayer;
+            expect(player).to.be.ok;
+            expect(sentDetails.data).to.eql(Player.playerDetails(player));
+          });
+          return server;
+        });
+      });
+    });
+  });
+  describe('createDebugServer', () => {
+    it('should be tested!');
+  });
+  describe('handleMessage', () => {
     it('should be tested!');
   });
 });

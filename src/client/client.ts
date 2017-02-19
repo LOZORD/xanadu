@@ -3,6 +3,7 @@ import { PlayerDetailsJSON, PlayerRosterJSON, PlayerInfo } from '../game/player'
 import { Logger, LogLevel } from '../logger';
 import { CellRepresentation, Position, CellName } from '../game/map/cell';
 import * as Character from '../game/character';
+import {Socket} from '../socket';
 
 /* CLIENT CHECK AND SETUP */
 const isRunningOnClient = typeof window !== 'undefined';
@@ -100,7 +101,7 @@ if (isRunningOnClient) {
 }
 
 /* FUNCTIONS */
-export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket, logger: Logger): () => void {
+export function onDocumentReady($: JQueryCreator, socket: Socket, logger: Logger): () => void {
   return () => {
     assignDOMListensers(socket, $, logger);
     assignClientSocketListeners(socket, $, logger);
@@ -108,7 +109,7 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket,
   };
 }
 
-export function assignDOMListensers(socket: SocketIOClient.Socket, $: JQueryCreator, logger: Logger): void {
+export function assignDOMListensers(socket: Socket, $: JQueryCreator, logger: Logger): void {
   const $form = $('#main-form');
   const $messageInput = $('#main-input');
 
@@ -136,7 +137,7 @@ export function assignDOMListensers(socket: SocketIOClient.Socket, $: JQueryCrea
   });
 }
 
-export function assignClientSocketListeners(socket: SocketIOClient.Socket, $: JQueryCreator, logger: Logger): void {
+export function assignClientSocketListeners(socket: Socket, $: JQueryCreator, logger: Logger): void {
   const $detailOutput = $('#details');
   const $detailSelectors = createSelectors($);
 
@@ -207,7 +208,8 @@ export function assignClientSocketListeners(socket: SocketIOClient.Socket, $: JQ
     updateRoster(data, $);
   });
 
-  socket.on('debug', (data) => {
+  // TODO: add a proper type/interface.
+  socket.on<{isDebugActive: boolean}>('debug', (data) => {
     if (data.isDebugActive) {
       logger.level = 'debug';
     }
@@ -285,7 +287,7 @@ export function createSelectors($: JQueryCreator): JQueryDetailSelectors {
   };
 }
 
-export function sendMessage(content: string, sender: SocketIOClient.Socket) {
+export function sendMessage(content: string, sender: Socket) {
   sender.emit('message', {
     content,
     timestamp: Date.now()
