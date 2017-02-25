@@ -636,4 +636,41 @@ describe('Client', function () {
       cl.level = 'info';
     });
   });
+  describe('finalViewSetup', () => {
+    before(() => {
+      return clientPromise.then(wjq => {
+        Client.finalViewSetup(wjq.$);
+        return wjq;
+      });
+    });
+    it('should hide player info box', () => {
+      return clientPromise.then(wjq => {
+        expect(elemIsHidden(wjq.$('#player-info'))).to.be.true;
+      });
+    });
+    it('should hide the player name', () => {
+      return clientPromise.then(wjq => {
+        expect(elemIsHidden(wjq.$('#player-info-name'))).to.be.true;
+      });
+    });
+    it('should hide the player class', () => {
+      return clientPromise.then(wjq => {
+        expect(elemIsHidden(wjq.$('#player-info-class'))).to.be.true;
+      });
+    });
+    it('should hide the game info tab', () => {
+      return clientPromise.then(wjq => {
+        expect(elemIsHidden(wjq.$('#game-info-tab'))).to.be.true;
+      });
+    });
+    it('should focus the text input', () => {
+      return clientPromise.then(wjq => {
+        expect(wjq.$('#main-input').is(':focus')).to.be.true;
+      });
+    });
+    it('should add a welcome message');
+  });
+  describe('addMessge', () => {
+    it('should be tested!');
+  });
 });
