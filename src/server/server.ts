@@ -153,10 +153,8 @@ export default class Server<S extends Socket.Server> {
     }
   }
 
-  setClientLogLevelToDebug(socket) {
-    socket.emit('debug', {
-      isDebugActive: Boolean(this.debugNS)
-    });
+  setClientLogLevelToDebug(socket: Socket.Socket) {
+    socket.emit('debug', Boolean(this.debugNS));
   }
 
   // and when they disconnect...
