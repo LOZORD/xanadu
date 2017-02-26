@@ -83,12 +83,14 @@ describe('Server', () => {
   describe('start', () => {
     it('should use the localhost hostname by default', () => {
       return createTestServer().start(0).then(server => {
+        expect(server.listening).to.be.true;
         expect(server.address.address).to.eql(Server.LOCALHOST_ADDRESS);
         return server.stop();
       });
     });
     it('should use the hostname argument if it given', () => {
       return createTestServer().start(0, Server.REMOTE_CONNECTION_ADDRESS).then(server => {
+        expect(server.listening).to.be.true;
         expect(server.address.address).to.eql(Server.REMOTE_CONNECTION_ADDRESS);
         return server.stop();
       });
@@ -101,6 +103,7 @@ describe('Server', () => {
       return serverPromise = createTestServer().start(0).then(server => {
         socket = new Socket.MockServerSocket('007', '/game', server.io as Socket.MockServerSocketServer);
         server.acceptSocket(socket);
+        expect(server.listening).to.be.true;
         return server.stop();
       });
     });
@@ -114,7 +117,7 @@ describe('Server', () => {
     });
     it('should stop the server from listening', () => {
       return serverPromise.then(server => {
-        expect(server.httpServer.listening).to.be.false;
+        expect(server.listening).to.be.false;
       });
     });
   });

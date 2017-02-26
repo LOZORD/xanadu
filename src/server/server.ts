@@ -89,6 +89,12 @@ export default class Server<S extends Socket.Server> {
     return this.httpServer.address();
   }
 
+  get listening(): boolean {
+    // Backwards compatibility for Node v4.
+    // `this.address` will be null if the server is not listening.
+    return this.httpServer.listening || Boolean(this.address);
+  }
+
   getCurrentPlayers() {
     return this.currentContext.players;
   }
