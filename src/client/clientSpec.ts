@@ -24,6 +24,11 @@ describe('Client', function () {
     return normalize($selectors._JQUERY_(idSelector).text());
   }
 
+  function getMessagesText(window: Window): string {
+    const messagesElem = window.document.getElementById('messages');
+    return (messagesElem && messagesElem.textContent) || '';
+  }
+
   // FIXME: this is not as nice as handling the actual event, but that would require using `Client.onDocumentReady`
   function createFakeEvent(preventFunc = _.noop): JQueryEventObject {
     return {
@@ -747,6 +752,7 @@ describe('Client', function () {
         }));
       });
     });
+    // TODO: test that the handler functions are called as well!
     it('should respond to `message`', () => {
       expect(clientSocket.handlers).respondsTo('message');
     });
@@ -812,6 +818,40 @@ describe('Client', function () {
       return clientPromise.then(client => {
         const text = client.window.document.querySelector('#messages') !.textContent!;
         expect(text).to.contain('at capacity');
+      });
+    });
+  });
+  describe('handleDisconnect', () => {
+    let logger = newNoopLogger();
+    before(() => {
+      return clientPromise.then(client => {
+        Client.handleDisconnect(null, logger, client.$);
+      });
+    });
+    it('should display an error message', () => {
+      return clientPromise.then(client => {
+        const text = getMessagesText(client.window);
+        expect(text).to.contain('fatal error');
+      });
+    });
+  });
+  describe('handleDebug', () => {
+    context('when `isDebugActive` is true', () => {
+      let logger = newNoopLogger();
+      before(() => {
+        Client.handleDebug(true, logger);
+      });
+      it('should set the level of the logger to `debug`', () => {
+        expect(logger.level).to.equal('debug');
+      });
+    });
+    context('when `isDebugActive` is false', () => {
+      let logger = newNoopLogger();
+      before(() => {
+        Client.handleDebug(false, logger);
+      });
+      it('should set the level of the logger to `info`', () => {
+        expect(logger.level).to.equal('info');
       });
     });
   });
