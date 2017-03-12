@@ -86,9 +86,7 @@ export class MockServerSocket implements Socket {
   }
 
   allEvents(): EventName[] {
-    return this.emittedData.reduce((acc, emission) => {
-      return acc.concat(emission.event);
-    }, [] as EventName[]);
+    return this.emittedData.map(emission => emission.event);
   }
 }
 
