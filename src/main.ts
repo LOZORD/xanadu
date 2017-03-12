@@ -2,6 +2,7 @@ import Server from './server/server';
 import { Promise } from 'es6-promise';
 import { Logger, createDefaultWinstonLogger } from './logger';
 import { extendWith } from 'lodash';
+import * as SocketIO from 'socket.io';
 
 export type CommandLineArgs = {
   maxPlayers: number,
@@ -72,7 +73,7 @@ export function parseArgs(givenArgs: string[]): CommandLineArgs {
   }
 }
 
-export function startServer(args: CommandLineArgs, logger: Logger): Promise<Server> {
+export function startServer(args: CommandLineArgs, logger: Logger): Promise<Server<SocketIO.Server>> {
   const { maxPlayers, debug, port, seed } = args;
   if (isNaN(maxPlayers) || isNaN(port) || isNaN(seed)) {
     let errMsg = 'Invalid arguments (`--with-defaults` flag is suggested):\n';
@@ -88,7 +89,7 @@ export function startServer(args: CommandLineArgs, logger: Logger): Promise<Serv
 
     return Promise.reject(new Error(errMsg));
   } else {
-    const server = new Server(maxPlayers, seed, debug, logger);
+    const server = new Server<SocketIO.Server>(SocketIO, maxPlayers, seed, debug, logger);
 
     // localhost <-> no remote connections
     let hostname: string;
@@ -121,7 +122,7 @@ if (isBeingRun()) {
 
   const serverPromise = startServer(args, winston);
 
-  serverPromise.then((server: Server) => {
+  serverPromise.then((server: Server<SocketIO.Server>) => {
     server.logger.log('info', `XANADU SERVER LISTENING ON PORT: ${server.address.port}`);
   }, (error: Error) => {
     winston.log('error', error.message);

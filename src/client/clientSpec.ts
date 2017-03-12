@@ -9,6 +9,8 @@ import { TEST_PARSE_RESULT } from '../game/map/parseGrid';
 import { mapToRepresentations } from '../game/map/map';
 import * as Logger from '../logger';
 import { InventoryJSON } from '../game/inventory';
+import * as Socket from '../socket';
+import * as Sinon from 'sinon';
 
 describe('Client', function () {
   // because of all the setup and file i/o, let 500 ms be considered "slow"
@@ -20,6 +22,11 @@ describe('Client', function () {
 
   function getText($selectors: Client.JQueryDetailSelectors, idSelector: string): string {
     return normalize($selectors._JQUERY_(idSelector).text());
+  }
+
+  function getMessagesText(window: Window): string {
+    const messagesElem = window.document.getElementById('messages');
+    return (messagesElem && messagesElem.textContent) || '';
   }
 
   // FIXME: this is not as nice as handling the actual event, but that would require using `Client.onDocumentReady`
@@ -37,13 +44,16 @@ describe('Client', function () {
     return !elemIsHidden($elem);
   }
 
+  function newNoopLogger(): Logger.Logger {
+    return new Client.ClientLogger({ log: _.noop });
+  }
+
   interface WindowAndJQuery {
     window: Window;
     $: JQueryStatic;
   }
 
   let clientPromise: Promise<WindowAndJQuery>;
-
   before(function () {
     const htmlPath = Path.resolve(__dirname,
       '..', '..', 'assets', 'client', 'index.html');
@@ -56,7 +66,7 @@ describe('Client', function () {
       // XXX: should virtualConsole be set?
       jsdom.env({
         file: htmlPath,
-        scripts: [ jqueryPath, bootstrapPath ],
+        scripts: [jqueryPath, bootstrapPath],
         done: (error, window) => {
           if (error) {
             throw error;
@@ -93,7 +103,7 @@ describe('Client', function () {
         message: 'aloha'
       })).to.eql({
         content: 'aloha',
-        styleClasses: [ 'Game' ]
+        styleClasses: ['Game']
       });
     });
     it('should work for the `Echo` type', () => {
@@ -101,7 +111,7 @@ describe('Client', function () {
         type: 'Echo',
         message: 'go north'
       })).to.eql({
-        styleClasses: [ 'Echo' ],
+        styleClasses: ['Echo'],
         content: 'go north'
       });
     });
@@ -113,7 +123,7 @@ describe('Client', function () {
           name: 'Carol'
         }
       })).to.eql({
-        styleClasses: [ 'Whisper' ],
+        styleClasses: ['Whisper'],
         content: 'Carol whispered: greetings'
       });
     });
@@ -125,7 +135,7 @@ describe('Client', function () {
           name: 'Alice'
         }
       })).to.eql({
-        styleClasses: [ 'Talk' ],
+        styleClasses: ['Talk'],
         content: 'Alice said: hola'
       });
     });
@@ -137,7 +147,7 @@ describe('Client', function () {
           name: 'Bob'
         }
       })).to.eql({
-        styleClasses: [ 'Shout' ],
+        styleClasses: ['Shout'],
         content: 'Bob shouted: help!'
       });
     });
@@ -217,7 +227,7 @@ describe('Client', function () {
     });
 
     describe('Stats', function () {
-      let statsPromise: Promise<{ [ key: string ]: string }>;
+      let statsPromise: Promise<{ [key: string]: string }>;
       before(function () {
         statsPromise = new Promise(resolve => {
           originalTestDetailsUpdatePromise.then($selectors => {
@@ -364,7 +374,7 @@ describe('Client', function () {
             const expectedMap = mapToRepresentations(TEST_PARSE_RESULT) as string[][];
 
             // add the "current position" marker to the map
-            expectedMap[ TEST_PARSE_RESULT.startingPosition.row ][ TEST_PARSE_RESULT.startingPosition.col ] = '*';
+            expectedMap[TEST_PARSE_RESULT.startingPosition.row][TEST_PARSE_RESULT.startingPosition.col] = '*';
 
             const expectedText = expectedMap.map(row => row.join('')).join('');
 
@@ -464,7 +474,7 @@ describe('Client', function () {
       it('should have the names listed alphabetically', function () {
         return clientPromise.then(payload => {
           const $ = payload.$;
-          const namesInOrder = [ 'Alice', 'Bob', 'Carol' ];
+          const namesInOrder = ['Alice', 'Bob', 'Carol'];
 
           const names = $('.roster-name').toArray().map(
             (elem => normalize($(elem).text())));
@@ -624,16 +634,225 @@ describe('Client', function () {
       cl.log('warn', 'quux');
 
       // since warn > info, log
-      expect(fakeConsole._logData[ 0 ]).to.eql([ 'warn', 'quux' ]);
+      expect(fakeConsole._logData[0]).to.eql(['warn', 'quux']);
 
       cl.level = 'debug';
 
       cl.log('debug', 'yolo');
 
       // since debug = debug, log
-      expect(fakeConsole._logData[ 1 ]).to.eql([ 'debug', 'yolo' ]);
+      expect(fakeConsole._logData[1]).to.eql(['debug', 'yolo']);
 
       cl.level = 'info';
+    });
+  });
+  describe('finalViewSetup', () => {
+    before(() => {
+      return clientPromise.then(wjq => {
+        Client.finalViewSetup(wjq.$);
+        return wjq;
+      });
+    });
+    it('should hide player info box', () => {
+      return clientPromise.then(wjq => {
+        expect(elemIsHidden(wjq.$('#player-info'))).to.be.true;
+      });
+    });
+    it('should hide the player name', () => {
+      return clientPromise.then(wjq => {
+        expect(elemIsHidden(wjq.$('#player-info-name'))).to.be.true;
+      });
+    });
+    it('should hide the player class', () => {
+      return clientPromise.then(wjq => {
+        expect(elemIsHidden(wjq.$('#player-info-class'))).to.be.true;
+      });
+    });
+    it('should hide the game info tab', () => {
+      return clientPromise.then(wjq => {
+        expect(elemIsHidden(wjq.$('#game-info-tab'))).to.be.true;
+      });
+    });
+    it('should focus the text input', () => {
+      return clientPromise.then(wjq => {
+        expect(wjq.$('#main-input').is(':focus')).to.be.true;
+      });
+    });
+    it('should add a welcome message', () => {
+      return clientPromise.then(wjq => {
+        const messages = wjq.window.document.querySelector('#messages') !;
+        const content = messages.textContent!;
+        expect(content.toLowerCase()).to.contain('welcome');
+      });
+    });
+  });
+  describe('addMessge', () => {
+    before(() => {
+      return clientPromise.then(client => {
+        Client.addMessage({
+          styleClasses: ['Game'],
+          content: 'TEST_CONTENT'
+        }, client.$);
+      });
+    });
+    it('should add the content to the message box', () => {
+      return clientPromise.then(client => {
+        const messageBoxText = client.window.document.querySelector('#messages') !.textContent;
+        expect(messageBoxText).to.contain('TEST_CONTENT');
+      });
+    });
+  });
+  describe('assignDOMListeners', () => {
+    let socketServer = new Socket.MockServerSocketServer();
+    let socket = new Socket.MockServerSocket('007', '/game', socketServer);
+    let logger = newNoopLogger();
+    before(() => {
+      return clientPromise.then(client => {
+        Client.assignDOMListensers(socket, client.$, logger);
+      });
+    });
+    context('clicking the parent container', () => {
+      before(() => {
+        return clientPromise.then(client => {
+          const pc = client.window.document.querySelector('#parent-container') ! as HTMLElement;
+          pc.click();
+        });
+      });
+      it('should focus on the message input', () => {
+        return clientPromise.then(client => {
+          expect(client.$('#main-input').is(':focus')).to.be.true;
+        });
+      });
+    });
+    context('clicking on a roster name', () => {
+      let nameClickSpy = Sinon.spy(Client.handleRosterNameClick);
+      before(() => {
+        return clientPromise.then(client => {
+          const rosterName = client.window.document.querySelector('.roster-name a') as HTMLElement;
+          rosterName.click();
+        });
+      });
+      it.skip('should call `handleRosterNameClick`', () => {
+        expect(nameClickSpy.callCount).to.eql(1);
+      });
+    });
+  });
+  describe('assignClientSocketListeners', () => {
+    let clientSocket: Socket.MockServerSocket;
+    let socketServer: Socket.MockServerSocketServer;
+    let logData: any[] = [];
+    before(() => {
+      socketServer = new Socket.MockServerSocketServer();
+      clientSocket = new Socket.MockServerSocket('007', '/game', socketServer);
+      return clientPromise.then(client => {
+        Client.assignClientSocketListeners(clientSocket, client.$, new Client.ClientLogger({
+          log(...data) {
+            logData.push([data]);
+          }
+        }));
+      });
+    });
+    // TODO: test that the handler functions are called as well!
+    it('should respond to `message`', () => {
+      expect(clientSocket.handlers).respondsTo('message');
+    });
+    it('should respond to `disconnect`', () => {
+      expect(clientSocket.handlers).respondsTo('disconnect');
+    });
+    it('should respond to `rejected-from-room`', () => {
+      expect(clientSocket.handlers).respondsTo('rejected-from-room');
+    });
+    it('should respond to `player-info`', () => {
+      expect(clientSocket.handlers).respondsTo('player-info');
+    });
+    it('should respond to `context-change`', () => {
+      expect(clientSocket.handlers).respondsTo('context-change');
+    });
+    it('should respond to `details`', () => {
+      expect(clientSocket.handlers).respondsTo('details');
+    });
+    it('should respond to `roster`', () => {
+      expect(clientSocket.handlers).respondsTo('roster');
+    });
+    it('should respond to `debug`', () => {
+      expect(clientSocket.handlers).respondsTo('debug');
+    });
+  });
+  describe('handleMessage', () => {
+    let logData: any = [];
+    let logger: Logger.Logger;
+    before(() => {
+      logger = new Client.ClientLogger({
+        log() {
+          logData.push(arguments);
+        }
+      });
+      return clientPromise.then(client => {
+        Client.handleMessage({
+          type: 'Game',
+          message: 'handleMessageTest'
+        }, logger, client.$);
+      });
+    });
+    it('should add the message', () => {
+      return clientPromise.then(client => {
+        const text = client.window.document.querySelector('#messages') !.textContent;
+        expect(text).to.contain('handleMessageTest');
+      });
+    });
+  });
+  describe('handleRejectedFromRoom', () => {
+    // let logger = new Client.ClientLogger({ log() { } });
+    let socketServer = new Socket.MockServerSocketServer();
+    let socket = new Socket.MockServerSocket('007', '/game', socketServer);
+    let disconnectSpy = Sinon.spy(socket, 'disconnect');
+    before(() => {
+      return clientPromise.then(client => {
+        Client.handleRejectedFromRoom(socket, client.$);
+      });
+    });
+    it('should disconnect the socket', () => {
+      expect(disconnectSpy.callCount).to.eql(1);
+    });
+    it('should add a message', () => {
+      return clientPromise.then(client => {
+        const text = client.window.document.querySelector('#messages') !.textContent!;
+        expect(text).to.contain('at capacity');
+      });
+    });
+  });
+  describe('handleDisconnect', () => {
+    let logger = newNoopLogger();
+    before(() => {
+      return clientPromise.then(client => {
+        Client.handleDisconnect(null, logger, client.$);
+      });
+    });
+    it('should display an error message', () => {
+      return clientPromise.then(client => {
+        const text = getMessagesText(client.window);
+        expect(text).to.contain('fatal error');
+      });
+    });
+  });
+  describe('handleDebug', () => {
+    context('when `isDebugActive` is true', () => {
+      let logger = newNoopLogger();
+      before(() => {
+        Client.handleDebug(true, logger);
+      });
+      it('should set the level of the logger to `debug`', () => {
+        expect(logger.level).to.equal('debug');
+      });
+    });
+    context('when `isDebugActive` is false', () => {
+      let logger = newNoopLogger();
+      before(() => {
+        Client.handleDebug(false, logger);
+      });
+      it('should set the level of the logger to `info`', () => {
+        expect(logger.level).to.equal('info');
+      });
     });
   });
 });

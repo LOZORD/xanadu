@@ -132,7 +132,7 @@ describe('Main (Game Runner)', () => {
       let createDebugServerStub: Sinon.SinonStub;
       let startSpy: Sinon.SinonSpy;
       let logger: Logger;
-      let defaultServerPromise: Promise<Server>;
+      let defaultServerPromise: Promise<Server<SocketIO.Server>>;
       beforeEach(function () {
         // Don't actually let our servers listen
         createServerStub
@@ -165,7 +165,7 @@ describe('Main (Game Runner)', () => {
 
         const remoteConnServerPromise = Main.startServer(remoteConnArgs, logger);
 
-        return remoteConnServerPromise.then((server: Server) => {
+        return remoteConnServerPromise.then((server: Server<SocketIO.Server>) => {
           expect(server).to.be.ok;
 
           const spy = startSpy as Sinon.SinonSpy;
@@ -180,7 +180,7 @@ describe('Main (Game Runner)', () => {
         });
       });
       it('should use localhost by default', function () {
-        return defaultServerPromise.then((server: Server) => {
+        return defaultServerPromise.then((server: Server<SocketIO.Server>) => {
           const hostname = createServerStub.firstCall.args[ 1 ];
 
           expect(hostname).to.eql(Server.LOCALHOST_ADDRESS);

@@ -3,8 +3,9 @@ import * as Path from 'path';
 import * as Http from 'http';
 import { ListenOptions } from 'net';
 import * as Express from 'express';
-import * as SocketIO from 'socket.io';
-import Context from '../context/context';
+import * as Socket from '../socket';
+// import * as SocketIO from 'socket.io';
+import { Context, ClientMessage } from '../context/context';
 import Game, { isContextGame } from '../context/game';
 import Lobby, { isContextLobby } from '../context/lobby';
 import { Message, show as showMessage, createGameMessage } from '../game/messaging';
@@ -15,24 +16,27 @@ import { Seed } from '../rng';
 import * as Map from '../game/map/map';
 import describeRoom from '../game/map/describeRoom';
 
-export default class Server {
+export default class Server<S extends Socket.Server> {
   static readonly LOCALHOST_ADDRESS = '127.0.0.1';
   static readonly REMOTE_CONNECTION_ADDRESS = '0.0.0.0';
   expressApp: Express.Express;
   httpServer: Http.Server;
-  io: SocketIO.Server;
+  io: S;
   currentContext: Context<Player.Player>;
-  sockets: SocketIO.Socket[];
-  gameNS: SocketIO.Namespace;
-  debugNS?: SocketIO.Namespace;
+  sockets: Socket.Socket[];
+  gameNS: Socket.Namespace;
+  debugNS?: Socket.Namespace;
   seed: Seed;
   maxPlayers: number;
   logger: Logger;
-  constructor(maxPlayers: number, seed: Seed, debug: boolean, logger: Logger) {
+  constructor(
+    socketServerProducer: Socket.ServerCreator<S>, maxPlayers: number,
+    seed: Seed, debug: boolean, logger: Logger
+  ) {
     this.maxPlayers = maxPlayers;
     this.expressApp = Express();
     this.httpServer = Http.createServer(this.expressApp);
-    this.io = SocketIO(this.httpServer);
+    this.io = socketServerProducer(this.httpServer);
     this.logger = logger;
 
     this.gameNS = this.io.of('/game');
@@ -48,9 +52,9 @@ export default class Server {
   }
 
   // default the hostname to localhost
-  start(port: number, hostname = Server.LOCALHOST_ADDRESS): Promise<Server> {
+  start(port: number, hostname = Server.LOCALHOST_ADDRESS): Promise<this> {
     this.logger.log('debug', 'Starting server at ', (new Date()).toString());
-    return new Promise<Server>((resolve, _reject) => {
+    return new Promise<this>((resolve, _reject) => {
       if (this.debugNS) {
         this.createDebugServer();
       }
@@ -61,21 +65,20 @@ export default class Server {
     });
   }
 
-  stop(closeCallback = _.noop): Promise<Server> {
+  stop(): Promise<this> {
     this.logger.log('debug', 'Stopping server at ', (new Date()).toString());
-    return new Promise<Server>((resolve) => {
+    return new Promise<this>((resolve) => {
       const port = this.address.port;
 
       this.getCurrentSockets().forEach(socket => {
         // TODO: refactor this so no undefined check.
         if (socket) {
-          socket.emit('server-stopped');
+          socket.emit('server-stopped', {});
           socket.disconnect(true);
         }
       });
 
       this.httpServer.close(() => {
-        closeCallback();
         this.logger.log('debug', `HTTP SERVER CLOSED! (PORT ${port})`);
         resolve(this);
       });
@@ -84,6 +87,12 @@ export default class Server {
 
   get address() {
     return this.httpServer.address();
+  }
+
+  get listening(): boolean {
+    // Backwards compatibility for Node v4.
+    // `this.address` will be null if the server is not listening.
+    return this.httpServer.listening || Boolean(this.address);
   }
 
   getCurrentPlayers() {
@@ -141,17 +150,41 @@ export default class Server {
   }
 
   // when people connect...
-  handleConnection(socket: SocketIO.Socket) {
-    socket.emit('debug', {
-      isDebugActive: Boolean(this.gameNS)
-    });
-
+  handleConnection(socket: Socket.Socket) {
+    this.setClientLogLevelToDebug(socket);
     if (this.currentContext.isAcceptingPlayers()) {
       this.acceptSocket(socket);
     } else {
       this.rejectSocket(socket);
     }
   }
+
+  setClientLogLevelToDebug(socket: Socket.Socket) {
+    socket.emit('debug', Boolean(this.debugNS));
+  }
+
+  // and when they disconnect...
+  handleDisconnection(socket: Socket.Socket) {
+    const removedPlayer = this.removePlayer(socket.id);
+    if (removedPlayer) {
+      this.logger.log('info', `\tPlayer ${removedPlayer.id + '--' + removedPlayer.name} disconnected`);
+
+      if (!Player.isAnon(removedPlayer)) {
+        const disconnectMessage =
+          this.currentContext.broadcastFromPlayer(`${removedPlayer.name} has left the game.`, removedPlayer);
+
+        this.sendMessage(disconnectMessage);
+
+        this.sendRoster();
+      }
+
+      // TODO: current context might need to be tested for update
+      // e.g. all but leaving player have given their commands
+    } else {
+      this.logger.log('info', `Unrecognized socket ${socket.id} disconnected`);
+    }
+  }
+
   changeContext() {
     if (isContextLobby(this.currentContext)) {
       this.currentContext = this.createGame(this.currentContext.players);
@@ -163,7 +196,9 @@ export default class Server {
 
       this.getCurrentSockets().forEach(socket => {
         if (socket) {
-          socket.emit('context-change', 'Game');
+          socket.emit('context-change', {
+            newContext: 'Game'
+          });
         }
       });
 
@@ -184,14 +219,16 @@ export default class Server {
 
       this.getCurrentSockets().forEach(socket => {
         if (socket) {
-          socket.emit('context-change', 'Lobby');
+          socket.emit('context-change', {
+            newContext: 'Lobby'
+          });
         }
       });
     }
 
     this.sendRoster();
   }
-  acceptSocket(socket: SocketIO.Socket) {
+  acceptSocket(socket: Socket.Socket) {
     this.logger.log('info', `Server accepted socket ${socket.id}`);
     this.sockets.push(socket);
 
@@ -202,55 +239,21 @@ export default class Server {
     // when people send _anything_ from the client
     // the game handles the message, and then passes the server a response
     // then, the server sends the response to the client
-    socket.on('message', (messageObj) => {
-      this.logger.log('debug', `Socket ${socket.id}: ${JSON.stringify(messageObj)}`);
-
-      let { isReadyForUpdate, isReadyForNextContext } = this.handleMessage(messageObj, socket);
-
-      if (isReadyForUpdate) {
-        const { messages, log } = this.currentContext.update();
-
-        messages.forEach(message => this.sendMessage(message));
-        log.forEach(logItem => this.logger.log('info', logItem));
-
-        this.sendDetails();
-
-        this.sendMessage(this.currentContext.broadcast('What is your next action?'));
-      }
-
-      if (isReadyForNextContext) {
-        this.changeContext();
-      }
+    socket.on('message', (messageObj: ClientMessage<Player.Player>) => {
+      this.handleMessage(messageObj, socket);
     });
 
     // when people disconnect
     socket.on('disconnect', () => {
-      const removedPlayer = this.removePlayer(socket.id);
-      if (removedPlayer) {
-        this.logger.log('info', `\tPlayer ${removedPlayer.id + '--' + removedPlayer.name} disconnected`);
-
-        if (!Player.isAnon(removedPlayer)) {
-          const disconnectMessage =
-            this.currentContext.broadcastFromPlayer(`${removedPlayer.name} has left the game.`, removedPlayer);
-
-          this.sendMessage(disconnectMessage);
-
-          this.sendRoster();
-        }
-
-        // TODO: current context might need to be tested for update
-        // e.g. all but leaving player have given their commands
-      } else {
-        this.logger.log('info', `Unrecognized socket ${socket.id} disconnected`);
-      }
+      this.handleDisconnection(socket);
     });
   }
 
-  rejectSocket(socket: SocketIO.Socket) {
+  rejectSocket(socket: Socket.Socket) {
     const contextStr = this.currentContext instanceof Lobby ? 'lobby' : 'game';
     const numPlayersStr = `(${this.currentContext.players.length}/${this.currentContext.maxPlayers} players)`;
     this.logger.log('info', `socket ${socket.id} rejected`, contextStr, numPlayersStr);
-    socket.emit('rejected-from-room');
+    socket.emit('rejected-from-room', {});
   }
 
   getSocket(socketId: string, server = this) {
@@ -265,7 +268,28 @@ export default class Server {
     return this.currentContext.removePlayer(socketId);
   }
 
-  handleMessage(messageObj, socket: SocketIO.Socket) {
+  handleMessage(messageObj: ClientMessage<Player.Player>, socket: Socket.Socket) {
+    this.logger.log('debug', `Socket ${socket.id}: ${JSON.stringify(messageObj)}`);
+
+    let { isReadyForUpdate, isReadyForNextContext } = this.delegateMessageAndDetectContextChanges(messageObj, socket);
+
+    if (isReadyForUpdate) {
+      const { messages, log } = this.currentContext.update();
+
+      messages.forEach(message => this.sendMessage(message));
+      log.forEach(logItem => this.logger.log('info', logItem));
+
+      this.sendDetails();
+
+      this.sendMessage(this.currentContext.broadcast('What is your next action?'));
+    }
+
+    if (isReadyForNextContext) {
+      this.changeContext();
+    }
+  }
+
+  delegateMessageAndDetectContextChanges(messageObj, socket: Socket.Socket) {
 
     messageObj.player = this.currentContext.getPlayer(socket.id);
 

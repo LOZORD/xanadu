@@ -3,6 +3,7 @@ import { PlayerDetailsJSON, PlayerRosterJSON, PlayerInfo } from '../game/player'
 import { Logger, LogLevel } from '../logger';
 import { CellRepresentation, Position, CellName } from '../game/map/cell';
 import * as Character from '../game/character';
+import { Socket } from '../socket';
 
 /* CLIENT CHECK AND SETUP */
 const isRunningOnClient = typeof window !== 'undefined';
@@ -64,7 +65,7 @@ export interface SimpleClientConsole {
 export class ClientLogger implements Logger {
   level: LogLevel;
   console: SimpleClientConsole;
-  readonly levels: LogLevel[] = [ 'error', 'warn', 'info', 'verbose', 'debug', 'silly' ];
+  readonly levels: LogLevel[] = ['error', 'warn', 'info', 'verbose', 'debug', 'silly'];
   constructor(console: SimpleClientConsole, level: LogLevel = 'info') {
     this.console = console;
     this.level = level;
@@ -100,7 +101,7 @@ if (isRunningOnClient) {
 }
 
 /* FUNCTIONS */
-export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket, logger: Logger): () => void {
+export function onDocumentReady($: JQueryCreator, socket: Socket, logger: Logger): () => void {
   return () => {
     assignDOMListensers(socket, $, logger);
     assignClientSocketListeners(socket, $, logger);
@@ -108,7 +109,7 @@ export function onDocumentReady($: JQueryCreator, socket: SocketIOClient.Socket,
   };
 }
 
-export function assignDOMListensers(socket: SocketIOClient.Socket, $: JQueryCreator, logger: Logger): void {
+export function assignDOMListensers(socket: Socket, $: JQueryCreator, logger: Logger): void {
   const $form = $('#main-form');
   const $messageInput = $('#main-input');
 
@@ -136,26 +137,19 @@ export function assignDOMListensers(socket: SocketIOClient.Socket, $: JQueryCrea
   });
 }
 
-export function assignClientSocketListeners(socket: SocketIOClient.Socket, $: JQueryCreator, logger: Logger): void {
-  const $detailOutput = $('#details');
+export function assignClientSocketListeners(socket: Socket, $: JQueryCreator, logger: Logger): void {
   const $detailSelectors = createSelectors($);
 
   /* * * MESSAGE HANDLER * * */
 
   socket.on('message', (data: ServerMessaging.MessageJSON) => {
-    logger.log('debug', 'Received message: ', data);
-    const viewMessage = processServerMessage(data);
-    addMessage(viewMessage, $);
+    handleMessage(data, logger, $);
   });
 
   /* * * DISCONNECT * * */
 
   socket.on('disconnect', (data) => {
-    addMessage({
-      content: 'The server has encountered a fatal error!',
-      styleClasses: [ 'Error' ]
-    }, $);
-    logger.log('debug', 'Error data', data);
+    handleDisconnect(data, logger, $);
   });
 
   /* * * SERVER STOPPED * * */
@@ -173,11 +167,7 @@ export function assignClientSocketListeners(socket: SocketIOClient.Socket, $: JQ
   /* * * REJECTED FROM ROOM * * */
 
   socket.on('rejected-from-room', () => {
-    addMessage({
-      content: 'The game is at capacity',
-      styleClasses: [ 'Game' ]
-    }, $);
-    socket.disconnect();
+    handleRejectedFromRoom(socket, $);
   });
 
   /* * * PLAYER INFO * * */
@@ -194,23 +184,17 @@ export function assignClientSocketListeners(socket: SocketIOClient.Socket, $: JQ
   /* * * DETAILS (RHS PANE) * * */
 
   socket.on('details', (data: PlayerDetailsJSON) => {
-    logger.log('debug', 'Got details: ', data);
-    // quasi-debug
-    $detailOutput.text(JSON.stringify(data));
-    updateDetails($detailSelectors, data);
+    handleDetails(data, logger, $detailSelectors);
   });
 
   /* * * ROSTER (RHS PANE) * * */
   socket.on('roster', (data: PlayerRosterJSON[]) => {
-    logger.log('debug', 'Got roster: ', data);
-
-    updateRoster(data, $);
+    handleRoster(data, logger, $);
   });
 
-  socket.on('debug', (data) => {
-    if (data.isDebugActive) {
-      logger.level = 'debug';
-    }
+  // TODO: add a proper type/interface.
+  socket.on('debug', (isDebugActive: boolean) => {
+    handleDebug(isDebugActive, logger);
   });
 }
 
@@ -222,11 +206,49 @@ export function finalViewSetup($: JQueryCreator): JQueryCreator {
   $('#main-input').focus();
 
   addMessage({
-    content: 'Please enter your name below...',
-    styleClasses: [ 'Game' ]
+    content: 'Welcome! Please enter your name below...',
+    styleClasses: ['Game']
   }, $);
 
   return $;
+}
+
+export function handleMessage(data: ServerMessaging.MessageJSON, logger: Logger, $: JQueryStatic) {
+  logger.log('debug', 'Received message: ', data);
+  const viewMessage = processServerMessage(data);
+  addMessage(viewMessage, $);
+}
+
+export function handleDisconnect(data: any, logger: Logger, $: JQueryStatic) {
+  logger.log('debug', 'Error data', data);
+  addMessage({
+    content: 'The server has encountered a fatal error!',
+    styleClasses: ['Error']
+  }, $);
+}
+
+export function handleRejectedFromRoom(socket: Socket, $: JQueryStatic) {
+  addMessage({
+    content: 'The game is at capacity',
+    styleClasses: ['Game']
+  }, $);
+  socket.disconnect();
+}
+
+export function handleDetails(data: PlayerDetailsJSON, logger: Logger, $detailSelectors: JQueryDetailSelectors) {
+  logger.log('debug', 'Got details: ', data);
+  updateDetails($detailSelectors, data);
+}
+
+export function handleRoster(data: PlayerRosterJSON[], logger: Logger, $: JQueryStatic) {
+  logger.log('debug', 'Got roster: ', data);
+  updateRoster(data, $);
+}
+
+export function handleDebug(isDebugActive: boolean, logger: Logger) {
+  if (isDebugActive) {
+    logger.level = 'debug';
+  }
 }
 
 export function newMessageElement(viewMessage: ViewMessage, $: JQueryCreator): JQuery {
@@ -285,7 +307,7 @@ export function createSelectors($: JQueryCreator): JQueryDetailSelectors {
   };
 }
 
-export function sendMessage(content: string, sender: SocketIOClient.Socket) {
+export function sendMessage(content: string, sender: Socket) {
   sender.emit('message', {
     content,
     timestamp: Date.now()
@@ -297,20 +319,20 @@ export function processServerMessage(data: ServerMessaging.MessageJSON): ViewMes
     case 'Game': {
       return {
         content: data.message,
-        styleClasses: [ 'Game' ]
+        styleClasses: ['Game']
       };
     }
     case 'Echo': {
       return {
         content: data.message,
-        styleClasses: [ 'Echo' ]
+        styleClasses: ['Echo']
       };
     }
     case 'Whisper': {
       if (data.from) {
         return {
           content: `${data.from.name} whispered: ${data.message}`,
-          styleClasses: [ 'Whisper' ]
+          styleClasses: ['Whisper']
         };
       } else {
         throw new Error('Got a Whisper message without a `from` field!');
@@ -320,7 +342,7 @@ export function processServerMessage(data: ServerMessaging.MessageJSON): ViewMes
       if (data.from) {
         return {
           content: `${data.from.name} said: ${data.message}`,
-          styleClasses: [ 'Talk' ]
+          styleClasses: ['Talk']
         };
       } else {
         throw new Error('Got a Talk message without a `from` field!');
@@ -330,7 +352,7 @@ export function processServerMessage(data: ServerMessaging.MessageJSON): ViewMes
       if (data.from) {
         return {
           content: `${data.from.name} shouted: ${data.message}`,
-          styleClasses: [ 'Shout' ]
+          styleClasses: ['Shout']
         };
       } else {
         throw new Error('Got a Shout message without a `from` field!');
@@ -339,7 +361,7 @@ export function processServerMessage(data: ServerMessaging.MessageJSON): ViewMes
     default: {
       return {
         content: `Unknown type for message: \`${data.message}\` (${data.type})`,
-        styleClasses: [ 'Unknown' ]
+        styleClasses: ['Unknown']
       };
     }
   }
@@ -645,7 +667,7 @@ export function classifyCell(c: CellRepresentation): CellName {
     '#': 'PermanentBarrier',
     '%': 'ExcavatableBarrier',
     '?': 'Unknown'
-  }[ c ];
+  }[c];
 }
 
 export function cellToSpan(cr: CellRepresentation, playerHere: boolean, $: JQueryCreator): JQuery {
@@ -666,8 +688,8 @@ export function colorizeMap(grid: CellRepresentation[][], currPos: Position, $: 
   const $cellContainer = $(`<div class='cells'>`);
 
   for (let rowInd = 0; rowInd < grid.length; rowInd++) {
-    for (let colInd = 0; colInd < grid[ rowInd ].length; colInd++) {
-      const currCR = grid[ rowInd ][ colInd ];
+    for (let colInd = 0; colInd < grid[rowInd].length; colInd++) {
+      const currCR = grid[rowInd][colInd];
       const playerIsHere = currPos.row === rowInd && currPos.col === colInd;
       const $span = cellToSpan(currCR, playerIsHere, $);
 

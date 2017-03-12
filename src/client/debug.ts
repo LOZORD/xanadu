@@ -1,26 +1,40 @@
-/* global io */
+import { Socket } from '../socket';
 const isRunningOnClient = typeof window !== 'undefined';
-
+const TEN_SECONDS = 10 * 1000;
 if (isRunningOnClient) {
-  const socket = io('/debug');
+  // since we're in the client, exporting is not allowed
+  // so here's a little hack that fixes the `undefined export` problem
+  const w: any = window;
+  w.exports = {};
 
-  $(document).ready(() => {
-    let target = $('#debug');
+  // Now, run the debug code.
+  $(document).ready(onDocumentReady(io('/debug'), $));
+}
 
-    let render = (data) => {
-      target.text(data);
-    };
-
-    // send 'get', get response
-    let getData = () => {
-      socket.emit('get', {});
-      setTimeout(getData, 10000);
-    };
-
+export function onDocumentReady(
+  socket: Socket, $: JQueryStatic, pollCountdown = Infinity, time = TEN_SECONDS
+): () => void {
+  return () => {
+    const $target = $('#debug');
     socket.on('debug-update', (data) => {
-      render(data);
+      render($target, data);
     });
 
-    getData();
-  });
+    beginPolling(socket, pollCountdown, time);
+  };
+}
+
+export function beginPolling(socket: Socket, pollCountdown = Infinity, time = TEN_SECONDS) {
+  let getData = (pc: number, t: number) => {
+    socket.emit('get', {});
+    if (pc > 0) {
+      setTimeout(() => getData(pc - 1, t), t);
+    }
+  };
+
+  getData(pollCountdown, time);
+}
+
+export function render($target: JQuery, data: any): void {
+  $target.text(data);
 }
