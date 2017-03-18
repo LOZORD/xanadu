@@ -71,13 +71,13 @@
     "@types/chai": "^3.4.34",
     "@types/jsdom": "^2.0.29",
     "@types/mocha": "^2.2.32",
-    "@types/sinon": "^1.16.31",
+    "@types/sinon": "^1.16.35",
     "chai": "^3.5.0",
     "david": "^11.0.0",
     "istanbul": "^0.4.4",
     "jsdom": "^9.4.1",
     "mocha": "^3.1.2",
-    "sinon": "^1.17.6",
+    "sinon": "^2.0.0",
     "tslint": "^4.0.1",
     "typescript": "^2.0.6"
   }
