@@ -127,35 +127,33 @@ describe('Main (Game Runner)', () => {
       });
     });
 
-    context('when the given args are valid', () => {
-      let createServerStub: Sinon.SinonStub;
-      let createDebugServerStub: Sinon.SinonStub;
+    context('when the given args are valid', function() {
+      let createServerSpy: Sinon.SinonSpy;
+      let createDebugServerSpy: Sinon.SinonSpy;
       let startSpy: Sinon.SinonSpy;
       let logger: Logger;
-      let defaultServerPromise: Promise<Server<SocketIO.Server>>;
+      // TODO: Any way to make this faster (and remove the .slow call)?
+      this.slow(150);
       beforeEach(function () {
-        // Don't actually let our servers listen
-        createServerStub
-          = Sinon.stub(Server.prototype, 'createServer', () => null);
-        createDebugServerStub
-          = Sinon.stub(Server.prototype, 'createDebugServer', () => null);
+        createServerSpy
+          = Sinon.spy(Server.prototype, 'createServer');
+        createDebugServerSpy
+          = Sinon.spy(Server.prototype, 'createDebugServer');
         startSpy
           = Sinon.spy(Server.prototype, 'start');
         logger = createDefaultWinstonLogger();
-        defaultServerPromise = Main.startServer(Main.DEFAULT_ARGS, logger);
       });
       afterEach(function () {
-        createServerStub.restore();
-        createDebugServerStub.restore();
-        //(Server.prototype.start as Sinon.SinonSpy).restore();
+        createServerSpy.restore();
+        createDebugServerSpy.restore();
         startSpy.restore();
       });
       it('should create and start a server', function () {
         // the default args from `parseArgs` using `--with-defaults` are valid
-        return defaultServerPromise.then(server => {
+        return Main.startServer(Main.DEFAULT_ARGS, logger).then(server => {
           expect(server).to.be.ok;
           expect(startSpy.calledOnce).to.be.true;
-          server.stop();
+          return server.stop();
         });
       });
       it('should allow remote connections if arg is given', function () {
@@ -163,29 +161,23 @@ describe('Main (Game Runner)', () => {
         remoteConnArgs.allowRemoteConnections = true;
         remoteConnArgs.port = 1337;
 
-        const remoteConnServerPromise = Main.startServer(remoteConnArgs, logger);
-
-        return remoteConnServerPromise.then((server: Server<SocketIO.Server>) => {
+        return Main.startServer(remoteConnArgs, logger).then(server => {
           expect(server).to.be.ok;
 
           const spy = startSpy as Sinon.SinonSpy;
 
-          // the first call is for the defaultServerPromise
-          const [ port, hostname ] = spy.secondCall.args;
+          const [ port, hostname ] = spy.firstCall.args;
 
           expect(port).to.eql(1337);
           expect(hostname).to.eql(Server.REMOTE_CONNECTION_ADDRESS);
 
-          server.stop();
+          return server.stop();
         });
       });
       it('should use localhost by default', function () {
-        return defaultServerPromise.then((server: Server<SocketIO.Server>) => {
-          const hostname = createServerStub.firstCall.args[ 1 ];
-
-          expect(hostname).to.eql(Server.LOCALHOST_ADDRESS);
-
-          server.stop();
+        return Main.startServer(Main.DEFAULT_ARGS, logger).then(server => {
+          expect(server.address.address).to.eql(Server.LOCALHOST_ADDRESS);
+          return server.stop();
         });
       });
     });

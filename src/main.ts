@@ -1,5 +1,4 @@
 import Server from './server/server';
-import { Promise } from 'es6-promise';
 import { Logger, createDefaultWinstonLogger } from './logger';
 import { extendWith } from 'lodash';
 import * as SocketIO from 'socket.io';
@@ -100,7 +99,7 @@ export function startServer(args: CommandLineArgs, logger: Logger): Promise<Serv
       hostname = Server.LOCALHOST_ADDRESS;
     }
 
-    return server.start(port, hostname);
+    return server.start(port, hostname).then(() => server);
   }
 }
 

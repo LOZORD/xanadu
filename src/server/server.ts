@@ -4,7 +4,6 @@ import * as Http from 'http';
 import { ListenOptions } from 'net';
 import * as Express from 'express';
 import * as Socket from '../socket';
-// import * as SocketIO from 'socket.io';
 import { Context, ClientMessage } from '../context/context';
 import Game, { isContextGame } from '../context/game';
 import Lobby, { isContextLobby } from '../context/lobby';
@@ -19,11 +18,12 @@ import describeRoom from '../game/map/describeRoom';
 export default class Server<S extends Socket.Server> {
   static readonly LOCALHOST_ADDRESS = '127.0.0.1';
   static readonly REMOTE_CONNECTION_ADDRESS = '0.0.0.0';
+  static readonly GAME_NAMESPACE = '/game';
+  static readonly DEBUG_NAMESPACE = '/debug';
   expressApp: Express.Express;
   httpServer: Http.Server;
   io: S;
   currentContext: Context<Player.Player>;
-  sockets: Socket.Socket[];
   gameNS: Socket.Namespace;
   debugNS?: Socket.Namespace;
   seed: Seed;
@@ -46,26 +46,32 @@ export default class Server<S extends Socket.Server> {
     }
 
     this.seed = seed;
-    this.sockets = [];
     // server starts out as having a lobby context
     this.currentContext = this.createEmptyLobby();
   }
 
-  // default the hostname to localhost
-  start(port: number, hostname = Server.LOCALHOST_ADDRESS): Promise<this> {
+  start(port = 0, hostname = Server.LOCALHOST_ADDRESS): Promise<void> {
+    if (this.listening) {
+      return Promise.resolve<void>();
+    }
     this.logger.log('debug', 'Starting server at ', (new Date()).toString());
-    return new Promise<this>((resolve, _reject) => {
+
+    return this.createServer(port, hostname).then(() => {
+      this.createGameServer();
+
       if (this.debugNS) {
         this.createDebugServer();
       }
 
-      this.createServer(port, hostname);
-
-      resolve(this);
+      this.logger.log('debug', `Server is listening on port: ${this.address.port}`);
     });
   }
 
   stop(): Promise<this> {
+    if (!this.listening) {
+      return Promise.resolve(this);
+    }
+
     this.logger.log('debug', 'Stopping server at ', (new Date()).toString());
     return new Promise<this>((resolve) => {
       const port = this.address.port;
@@ -103,7 +109,7 @@ export default class Server<S extends Socket.Server> {
     return this.getCurrentPlayers().map(player => this.getSocket(player.id));
   }
 
-  createServer(port: number, hostname: string) {
+  createServer(port: number, hostname: string): Promise<this> {
     const NODE_MODULES = Path.join(__dirname, '..', '..', 'node_modules');
     const PATHS = {
       CLIENT_ASSETS: Path.join(__dirname, '..', '..', 'assets', 'client'),
@@ -120,10 +126,12 @@ export default class Server<S extends Socket.Server> {
 
     const opts: ListenOptions = { port, host: hostname };
 
-    this.httpServer.listen(opts, () => {
-      this.logger.log('debug', `Server is listening on port: ${this.address.port}`);
+    return new Promise(resolve => {
+      this.httpServer.listen(opts, () => resolve(this));
     });
+  }
 
+  createGameServer() {
     this.gameNS.on('connection', (socket) => {
       this.handleConnection(socket);
     });
@@ -196,9 +204,7 @@ export default class Server<S extends Socket.Server> {
 
       this.getCurrentSockets().forEach(socket => {
         if (socket) {
-          socket.emit('context-change', {
-            newContext: 'Game'
-          });
+          socket.emit('context-change', 'Game');
         }
       });
 
@@ -219,18 +225,16 @@ export default class Server<S extends Socket.Server> {
 
       this.getCurrentSockets().forEach(socket => {
         if (socket) {
-          socket.emit('context-change', {
-            newContext: 'Lobby'
-          });
+          socket.emit('context-change', 'Lobby');
         }
       });
     }
 
     this.sendRoster();
   }
+
   acceptSocket(socket: Socket.Socket) {
     this.logger.log('info', `Server accepted socket ${socket.id}`);
-    this.sockets.push(socket);
 
     this.addPlayer(socket.id);
 
@@ -254,6 +258,18 @@ export default class Server<S extends Socket.Server> {
     const numPlayersStr = `(${this.currentContext.players.length}/${this.currentContext.maxPlayers} players)`;
     this.logger.log('info', `socket ${socket.id} rejected`, contextStr, numPlayersStr);
     socket.emit('rejected-from-room', {});
+  }
+
+  get gameSockets() {
+    return _.values(this.gameNS.sockets);
+  }
+
+  get debugSockets() {
+    return this.debugNS ? _.values(this.debugNS.sockets) : [];
+  }
+
+  get sockets(): Socket.Socket[] {
+    return this.gameSockets.concat(this.debugSockets);
   }
 
   getSocket(socketId: string, server = this) {
@@ -338,6 +354,7 @@ export default class Server<S extends Socket.Server> {
       recipientSocket.emit('message', messageJSON);
     });
   }
+
   sendDetails() {
     if (isContextGame(this.currentContext)) {
       this.currentContext.players.forEach(player => {
@@ -353,6 +370,7 @@ export default class Server<S extends Socket.Server> {
       // do nothing
     }
   }
+
   sendRoster() {
     const rosterInformation = this.currentContext.getRosterData();
 

@@ -15,6 +15,7 @@ export interface DataHandler<T> {
 export type NamespaceName = string;
 
 export interface Namespace {
+  sockets: { [ id: string ]: Socket };
   on(event: EventName, handler: DataHandler<Socket>);
 }
 
@@ -30,7 +31,7 @@ export interface ServerCreator<S extends Server> {
 
 export class MockServerSocket implements Socket {
   emittedData: { event: EventName, data: any }[] = [];
-  handlers: { [event: string]: DataHandler<any> } = {};
+  handlers: { [ event: string ]: DataHandler<any> } = {};
   isClosed = false;
   constructor(
     public id: ID, public namespaceName: NamespaceName,
@@ -49,7 +50,7 @@ export class MockServerSocket implements Socket {
   }
 
   on(eventName: EventName, handler: DataHandler<any>) {
-    this.handlers[eventName] = handler;
+    this.handlers[ eventName ] = handler;
   }
 
   respondsTo(eventName: EventName): boolean {
@@ -57,8 +58,8 @@ export class MockServerSocket implements Socket {
   }
 
   handleData(eventName: EventName, data: any) {
-    if (this.handlers[eventName]) {
-      this.handlers[eventName](data);
+    if (this.handlers[ eventName ]) {
+      this.handlers[ eventName ](data);
     } else {
       throw new Error('Tried to handle data!');
     }
@@ -66,7 +67,7 @@ export class MockServerSocket implements Socket {
 
   get namespace(): MockServerNamespace | null {
     if (this.socketServer) {
-      return this.socketServer[this.namespaceName];
+      return this.socketServer[ this.namespaceName ];
     } else {
       return null;
     }
@@ -81,6 +82,10 @@ export class MockServerSocket implements Socket {
   }
 
   disconnect(close = false) {
+    if (this.namespace) {
+      this.namespace.onSocketDisconnect(this);
+    }
+
     this.isClosed = close;
     this.socketServer = null;
   }
@@ -92,40 +97,44 @@ export class MockServerSocket implements Socket {
 
 export class MockServerNamespace implements Namespace {
   name: NamespaceName;
-  sockets: Socket[];
+  sockets: { [ id: string ]: Socket } = {};
   onSocketConnectHandler: DataHandler<Socket>;
   constructor(public socketServer: MockServerSocketServer) { }
   on(eventName: EventName, handler: DataHandler<Socket>) {
-    if (eventName === 'connection') {
+    if (eventName === 'connection' || eventName === 'connect') {
       this.onSocketConnectHandler = handler;
     } else {
       throw new Error(`Unknown namespace event to handle: ${eventName}`);
     }
   }
   onSocketConnect(socket: Socket) {
-    this.sockets.push(socket);
+    this.sockets[ socket.id ] = socket;
     this.onSocketConnectHandler(socket);
+  }
+
+  onSocketDisconnect(socket: Socket) {
+    delete this.sockets[ socket.id ];
   }
 }
 
 export class MockServerSocketServer implements Server {
-  namespaces: { [name: string]: MockServerNamespace } = {};
+  namespaces: { [ name: string ]: MockServerNamespace } = {};
   of(name: NamespaceName) {
-    if (this.namespaces[name]) {
+    if (this.namespaces[ name ]) {
       throw new Error('Tried to create an already existing namespace!');
     } else {
-      this.namespaces[name] = new MockServerNamespace(this);
+      this.namespaces[ name ] = new MockServerNamespace(this);
 
-      return this.namespaces[name];
+      return this.namespaces[ name ];
     }
   }
   registerHandler(id: ID, name: NamespaceName, eventName: EventName, handler: DataHandler<any>) {
     return id.length + name.length + eventName.length + handler.length;
   }
 
-  createSocket(id: ID, name: NamespaceName): Socket {
+  createAndHandleSocket(id: ID, name: NamespaceName): MockServerSocket {
     const newSocket = new MockServerSocket(id, name, this);
-    this.namespaces[name].onSocketConnect(newSocket);
+    this.namespaces[ name ].onSocketConnect(newSocket);
     return newSocket;
   }
 }

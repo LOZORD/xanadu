@@ -655,7 +655,7 @@ export function handleContextChange(newContext: ContextMode, $: JQueryCreator): 
   } else if (newContext === 'Lobby') {
     $('#game-info-tab').hide();
   } else {
-    throw new Error(`Unkown context mode: ${newContext}`);
+    throw new Error(`Unknown context mode: ${JSON.stringify(newContext)}`);
   }
 }
 

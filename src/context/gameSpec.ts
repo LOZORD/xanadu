@@ -39,12 +39,12 @@ describe('Game', () => {
         createPlayer('r2d2', 'R2D2')
       ]);
 
-      player1 = game.getPlayer('vader') !;
-      player2 = game.getPlayer('yoda') !;
-      player3 = game.getPlayer('r2d2') !;
+      player1 = game.getPlayer('vader')!;
+      player2 = game.getPlayer('yoda')!;
+      player3 = game.getPlayer('r2d2')!;
 
       // now, force all the players to the same allegiance so they can communicate freely
-      [ player1, player2, player3 ].forEach((player: GamePlayer) => {
+      [player1, player2, player3].forEach((player: GamePlayer) => {
         player.character.allegiance = 'Eastern';
       });
     });
@@ -122,7 +122,7 @@ describe('Game', () => {
         });
         it('should have sent a shout message to the other players', function () {
           const shout = _.find(responses as Messaging.Message[],
-            (message) => message.type === 'Shout') !;
+            (message) => message.type === 'Shout')!;
 
           expect(shout).to.be.ok;
           expect(shout.content).to.equal('HELP!');
@@ -143,10 +143,10 @@ describe('Game', () => {
         });
         it('should have sent a whisper message ot the other player', function () {
           const whisper = _.find(responses as Messaging.Message[],
-            message => message.type === 'Whisper') !;
+            message => message.type === 'Whisper')!;
 
           expect(whisper).to.be.ok;
-          expect(whisper.to[ 0 ].id).to.eql(player3.id);
+          expect(whisper.to[0].id).to.eql(player3.id);
           expect(whisper.content).to.eql('darth is a sith');
         });
       });
@@ -217,7 +217,7 @@ describe('Game', () => {
     it('should return true when the game has ended', function () {
       expect(game.isReadyForNextContext()).to.be.false;
 
-      const gamePlayers = [ 'foo', 'bar', 'baz' ].map(playerId => {
+      const gamePlayers = ['foo', 'bar', 'baz'].map(playerId => {
         const somePlayer = game.getPlayer(playerId);
 
         if (!somePlayer) {
@@ -228,12 +228,12 @@ describe('Game', () => {
       });
 
       // kill the first two, the last one escapes
-      gamePlayers[ 0 ].character.stats.health = 0;
-      gamePlayers[ 1 ].character.stats.health = 0;
+      gamePlayers[0].character.stats.health = 0;
+      gamePlayers[1].character.stats.health = 0;
 
       expect(game.isReadyForNextContext()).to.be.false;
 
-      gamePlayers[ 2 ].character.hasEscaped = true;
+      gamePlayers[2].character.hasEscaped = true;
 
       expect(game.isReadyForNextContext()).to.be.true;
     });
@@ -249,8 +249,8 @@ describe('Game', () => {
         createPlayer('456', 'Bob')
       ]);
 
-      p1 = game.getPlayerByName('Alice') !;
-      p2 = game.getPlayerByName('Bob') !;
+      p1 = game.getPlayerByName('Alice')!;
+      p2 = game.getPlayerByName('Bob')!;
     });
 
     it('should work with move actions', function () {
@@ -332,8 +332,8 @@ describe('Game', () => {
         expect(game.isReadyForUpdate()).to.be.true;
 
         // force the moves to be returned regardless of true sorting order
-        getSortedActionsStub = Sinon.stub(game, 'getSortedActions', () => {
-          return [ p1.character.nextAction, p2.character.nextAction ];
+        getSortedActionsStub = Sinon.stub(game, 'getSortedActions').callsFake(() => {
+          return [p1.character.nextAction, p2.character.nextAction];
         });
       });
       after(function () {
@@ -353,7 +353,7 @@ describe('Game', () => {
         expect(deathLogMessage).to.exist;
 
         const deathNoticeMessage = _.find(results.messages, msg => {
-          const toPlayer = msg.to[ 0 ];
+          const toPlayer = msg.to[0];
 
           return toPlayer.id === p2.id && msg.content.indexOf('died before') > -1;
         });
@@ -407,8 +407,8 @@ describe('Game', () => {
         createPlayer('leia', 'Leia')
       ]);
 
-      player1 = game.getPlayer('luke') !;
-      player2 = game.getPlayer('leia') !;
+      player1 = game.getPlayer('luke')!;
+      player2 = game.getPlayer('leia')!;
     });
 
     it('should return the other player', function () {
@@ -431,9 +431,9 @@ describe('Game', () => {
         createPlayer('789', 'Carol')
       ]);
 
-      player1 = game.getPlayer('123') !;
-      player2 = game.getPlayer('456') !;
-      player3 = game.getPlayer('789') !;
+      player1 = game.getPlayer('123')!;
+      player2 = game.getPlayer('456')!;
+      player3 = game.getPlayer('789')!;
 
       player1.character.stats = {
         health: 50,
@@ -445,9 +445,9 @@ describe('Game', () => {
       player2.character.stats.agility = 1;
       player3.character.stats.agility = 1;
 
-      expect(game.getPlayer('123') !.character.stats.agility)
-        .to.be.greaterThan(game.getPlayer('456') !.character.stats.agility).and
-        .to.be.greaterThan(game.getPlayer('789') !.character.stats.agility);
+      expect(game.getPlayer('123')!.character.stats.agility)
+        .to.be.greaterThan(game.getPlayer('456')!.character.stats.agility).and
+        .to.be.greaterThan(game.getPlayer('789')!.character.stats.agility);
 
       game.handleMessage({
         content: 'go south',
@@ -473,13 +473,13 @@ describe('Game', () => {
       sortedActions = game.getSortedActions();
     });
     it('should sort first by player agility', function () {
-      const firstActor = sortedActions[ 0 ].actor as Character.Character;
+      const firstActor = sortedActions[0].actor as Character.Character;
       expect(firstActor.playerId).to.eql(player1.id);
     });
     it('should sort second by timestamp', function () {
-      const secondActor = sortedActions[ 1 ].actor as Character.Character;
+      const secondActor = sortedActions[1].actor as Character.Character;
       expect(secondActor.playerId).to.equal(player3.id);
-      const thirdActor = sortedActions[ 2 ].actor as Character.Character;
+      const thirdActor = sortedActions[2].actor as Character.Character;
       expect(thirdActor.playerId).to.equal(player2.id);
     });
   });
@@ -487,7 +487,7 @@ describe('Game', () => {
   describe('convertPlayer', function () {
     let game: Game;
     before(function () {
-      game = new Game(8, [ {
+      game = new Game(8, [{
         id: '123', name: 'Alice'
       }], {
           numModifiers: {
@@ -516,7 +516,7 @@ describe('Game', () => {
 
         lobby.addPlayer('007', 'James_Bond');
 
-        player = lobby.getPlayer('007') !;
+        player = lobby.getPlayer('007')!;
 
         lobby.handleMessage({
           player,
