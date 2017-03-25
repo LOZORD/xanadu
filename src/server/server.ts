@@ -72,21 +72,44 @@ export default class Server<S extends Socket.Server> {
       return Promise.resolve(this);
     }
 
-    this.logger.log('debug', 'Stopping server at ', (new Date()).toString());
-    return new Promise<this>((resolve) => {
-      const port = this.address.port;
+    this.logger.log('debug', 'NUMBER OF SOCKETS BEFORE DISCONNECTING: ', this.allSockets.length);
 
-      this.getCurrentSockets().forEach(socket => {
-        // TODO: refactor this so no undefined check.
-        if (socket) {
-          socket.emit('server-stopped', {});
-          socket.disconnect(true);
-        }
+    this.getCurrentSockets().forEach(socket => {
+      // TODO: refactor this so no undefined check.
+      if (socket) {
+        socket.emit('STOP', {});
+        socket.emit('server-stopped', {});
+        socket.disconnect(true);
+        // (socket as any).destroy();
+      }
+    });
+
+    this.logger.log('debug', 'NUMBER OF SOCKETS AFTER DISCONNECTING: ', this.allSockets.length);
+
+    this.logger.log('debug', 'Stopping server at ', (new Date()).toString());
+    return new Promise<this>(resolve => {
+      const port = this.address.port;
+      const beforeTS = Date.now();
+      this.logger.log('debug', 'STARTED PROMISE AT ', beforeTS);
+
+      this.io.close(() => {
+        this.logger.log('debug', 'NUMBER OF SOCKETS AFTER IO CLOSE: ', this.allSockets.length);
+        const ioCloseNow = Date.now();
+        this.logger.log('debug', 'DONE CLOSING IO AT ', ioCloseNow, ioCloseNow - beforeTS);
       });
 
       this.httpServer.close(() => {
+        const afterTS = Date.now();
+        this.logger.log('debug', 'ENDED PROMISE AT ', afterTS);
+        this.logger.log('debug', 'RUN DELTA OF ', afterTS - beforeTS);
         this.logger.log('debug', `HTTP SERVER CLOSED! (PORT ${port})`);
         resolve(this);
+      });
+
+      this.allSockets.forEach(socket => {
+        if ((socket as any).destroy) {
+          (socket as any).destroy();
+        }
       });
     });
   }
@@ -270,6 +293,13 @@ export default class Server<S extends Socket.Server> {
 
   get sockets(): Socket.Socket[] {
     return this.gameSockets.concat(this.debugSockets);
+  }
+
+  get allSockets(): Socket.Socket[] {
+    return _.chain(this.io.nsps)
+      .values<Socket.Namespace>()
+      .map(namespace => _.values(namespace.sockets))
+      .flatten<Socket.Socket>().value();
   }
 
   getSocket(socketId: string, server = this) {

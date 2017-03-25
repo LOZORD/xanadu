@@ -88,7 +88,8 @@ export class ClientLogger implements Logger {
 function main() {
   const socket = io('/game', {
     // don't attempt to reconnect if the server dies
-    reconnection: false
+    reconnection: false,
+    forceNew: true
   });
 
   const clientLogger = new ClientLogger(console);
@@ -150,6 +151,12 @@ export function assignClientSocketListeners(socket: Socket, $: JQueryCreator, lo
 
   socket.on('disconnect', (data) => {
     handleDisconnect(data, logger, $);
+  });
+
+  socket.on('STOP', () => {
+    addMessage({ styleClasses: ['Error'], content: 'STOPPED' }, $);
+    socket.disconnect();
+    (socket as any).destroy();
   });
 
   /* * * SERVER STOPPED * * */

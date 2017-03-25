@@ -31,30 +31,30 @@ export function parseArgs(givenArgs: string[]): CommandLineArgs {
 
   let i = 0;
   while (i < givenArgs.length) {
-    if (givenArgs[ i ] === '--no-debug') {
+    if (givenArgs[i] === '--no-debug') {
       args.debug = false;
       i++;
-    } else if (givenArgs[ i ] === '--debug') {
+    } else if (givenArgs[i] === '--debug') {
       args.debug = true;
       i++;
-    } else if (givenArgs[ i ] === '--port') {
-      let port = parseInt(givenArgs[ i + 1 ], 10);
+    } else if (givenArgs[i] === '--port') {
+      let port = parseInt(givenArgs[i + 1], 10);
       if (port < 0 || port > 65535) {
         port = NaN;
       }
       args.port = port;
       i += 2;
-    } else if (givenArgs[ i ] === '--maxPlayers') {
-      let maxPlayers = parseInt(givenArgs[ i + 1 ], 10);
+    } else if (givenArgs[i] === '--maxPlayers') {
+      let maxPlayers = parseInt(givenArgs[i + 1], 10);
       if (maxPlayers < 2) {
         maxPlayers = NaN;
       }
       args.maxPlayers = maxPlayers;
       i += 2;
-    } else if (givenArgs[ i ] === '--seed') {
-      args.seed = parseInt(givenArgs[ i + 1 ], 10);
+    } else if (givenArgs[i] === '--seed') {
+      args.seed = parseInt(givenArgs[i + 1], 10);
       i += 2;
-    } else if (givenArgs[ i ] === '--allowRemoteConnections') {
+    } else if (givenArgs[i] === '--allowRemoteConnections') {
       args.allowRemoteConnections = true;
       i++;
     } else {
@@ -128,20 +128,26 @@ if (isBeingRun()) {
     process.exit(1);
   });
 
-  // const endMain = (): void => {
-  //   serverPromise.then((server: Server) => {
-  //     server.logger.log('info', 'STOPPING XANADU SERVER...');
+  if (process.argv.some(arg => arg.indexOf('autokill') >= 0)) {
+    console.log('AUTOKILLING IN 20 SECONDS!');
+    setTimeout(() => {
+      process.kill(process.pid, 'SIGINT');
+    }, 20 * 1000);
+  }
 
-  //     const port = server.address.port;
-
-  //     server.stop().then((stoppedServer) => {
-  //       stoppedServer.logger.log('info', `XANADU SERVER STOPPED (PORT ${port})`);
-  //       stoppedServer.logger.log('info', 'Exiting...');
-  //       process.exit(0);
-  //     });
-  //     return server;
-  //   });
-  // };
-
-  // FIXME: process.on('SIGINT', endMain);
+  process.on('SIGINT', () => {
+    serverPromise.then(server => {
+      const port = server.address.port;
+      server.logger.log('debug', 'STOPPING XANADU SERVER...');
+      return server.stop().then(() => {
+        server.logger.log('info', `SERVER STOPPED! (PORT ${port})\nGoodbye!`);
+      }, (error: Error) => {
+        winston.log('error', error.message);
+        process.exit(1);
+      });
+    }, error => {
+      winston.log('error', error.message);
+      process.exit(1);
+    });
+  });
 }
