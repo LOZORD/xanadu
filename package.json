@@ -63,7 +63,7 @@
     "es6-promise": "4.1.0",
     "express": "4.15.2",
     "jquery": "3.2.1",
-    "lodash": "4.14.2",
+    "lodash": "4.17.4",
     "socket.io": "1.7.3",
     "winston": "2.3.1"
   },
@@ -80,5 +80,15 @@
     "sinon": "1.17.7",
     "tslint": "4.5.1",
     "typescript": "2.1.6"
+  },
+  "david": {
+    "ignore": [
+      "@types/lodash",
+      "@types/sinon",
+      "lodash",
+      "sinon",
+      "tslint",
+      "typescript"
+    ]
   }
 }
