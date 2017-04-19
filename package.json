@@ -71,22 +71,19 @@
     "@types/chai": "3.5.1",
     "@types/jsdom": "2.0.30",
     "@types/mocha": "2.2.41",
-    "@types/sinon": "1.16.36",
+    "@types/sinon": "2.1.2",
     "chai": "3.5.0",
     "david": "11.0.0",
     "istanbul": "0.4.5",
     "jsdom": "9.12.0",
     "mocha": "3.2.0",
-    "sinon": "1.17.7",
+    "sinon": "2.1.0",
     "tslint": "4.5.1",
     "typescript": "2.1.6"
   },
   "david": {
     "ignore": [
       "@types/lodash",
-      "@types/sinon",
-      "lodash",
-      "sinon",
       "tslint",
       "typescript"
     ]
