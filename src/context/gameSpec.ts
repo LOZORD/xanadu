@@ -332,7 +332,7 @@ describe('Game', () => {
         expect(game.isReadyForUpdate()).to.be.true;
 
         // force the moves to be returned regardless of true sorting order
-        getSortedActionsStub = Sinon.stub(game, 'getSortedActions', () => {
+        getSortedActionsStub = Sinon.stub(game, 'getSortedActions').callsFake(() => {
           return [ p1.character.nextAction, p2.character.nextAction ];
         });
       });

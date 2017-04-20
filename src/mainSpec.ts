@@ -136,9 +136,9 @@ describe('Main (Game Runner)', () => {
       beforeEach(function () {
         // Don't actually let our servers listen
         createServerStub
-          = Sinon.stub(Server.prototype, 'createServer', () => null);
+          = Sinon.stub(Server.prototype, 'createServer').callsFake(() => null);
         createDebugServerStub
-          = Sinon.stub(Server.prototype, 'createDebugServer', () => null);
+          = Sinon.stub(Server.prototype, 'createDebugServer').callsFake(() => null);
         startSpy
           = Sinon.spy(Server.prototype, 'start');
         logger = createDefaultWinstonLogger();
