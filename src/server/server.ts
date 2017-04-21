@@ -196,9 +196,7 @@ export default class Server<S extends Socket.Server> {
 
       this.getCurrentSockets().forEach(socket => {
         if (socket) {
-          socket.emit('context-change', {
-            newContext: 'Game'
-          });
+          socket.emit('context-change', 'Game');
         }
       });
 
@@ -219,9 +217,7 @@ export default class Server<S extends Socket.Server> {
 
       this.getCurrentSockets().forEach(socket => {
         if (socket) {
-          socket.emit('context-change', {
-            newContext: 'Lobby'
-          });
+          socket.emit('context-change', 'Lobby');
         }
       });
     }
