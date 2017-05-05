@@ -103,8 +103,9 @@ export default class Lobby extends Context<Player.LobbyPlayer> {
       return player;
     } else if (Player.isGamePlayer(player)) {
       return {
-        id: player.id,
         name: player.name,
+        socketId: player.socketId,
+        persistentId: player.persistentId,
         isReady: false,
         primordialCharacter: {
           className: player.character.characterClass.className,
@@ -115,7 +116,8 @@ export default class Lobby extends Context<Player.LobbyPlayer> {
     } else {
       return {
         name: player.name,
-        id: player.id,
+        persistentId: player.persistentId,
+        socketId: player.socketId,
         isReady: false,
         primordialCharacter: {
           className: 'None',

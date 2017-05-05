@@ -7,6 +7,7 @@ import * as Messaging from '../game/messaging';
 import Lobby from '../context/lobby';
 import Game from '../context/game';
 import * as _ from 'lodash';
+import * as shortid from 'shortid';
 import * as Player from '../game/player';
 
 type MockServer = Server<Socket.MockServerSocketServer>;
@@ -103,6 +104,7 @@ describe('Server', () => {
       return serverPromise = createTestServer().start(0).then(server => {
         socket = new Socket.MockServerSocket('007', '/game', server.io as Socket.MockServerSocketServer);
         server.acceptSocket(socket);
+        server.assignPlayer(socket, null);
         expect(server.listening).to.be.true;
         return server.stop();
       });
@@ -118,6 +120,70 @@ describe('Server', () => {
     it('should stop the server from listening', () => {
       return serverPromise.then(server => {
         expect(server.listening).to.be.false;
+      });
+    });
+  });
+  describe('assignPlayer', () => {
+    context('when two players with different persistentIds join', () => {
+      let serverPromise: Promise<MockServer>;
+      let socket1: Socket.MockServerSocket;
+      let socket2: Socket.MockServerSocket;
+      let createSpy: Sinon.SinonSpy;
+      let generateSpy: Sinon.SinonStub;
+      let i: number;
+      before(() => {
+        createSpy = Sinon.spy(Server.prototype, 'addPlayer');
+        i = 1;
+        generateSpy = Sinon.stub(shortid, 'generate').callsFake(() => `id${i++}`);
+        return serverPromise = createTestServer().start(0).then(server => {
+          socket1 = new Socket.MockServerSocket('001', '/game', server.io);
+          socket2 = new Socket.MockServerSocket('002', '/game', server.io);
+          server.sockets.push(socket1);
+          server.sockets.push(socket2);
+          server.assignPlayer(socket1, null);
+          server.assignPlayer(socket2, 'id2');
+          return server;
+        });
+      });
+      after(() => {
+        createSpy.restore();
+        generateSpy.restore();
+        return serverPromise.then(server => server.stop());
+      });
+      it('should accept both players', () => {
+        expect(createSpy.calledWith(socket1.id)).to.be.true;
+        expect(createSpy.calledWith(socket2.id)).to.be.true;
+      });
+    });
+    context('when a player with a valid persistentId rejoins', () => {
+      let serverPromise: Promise<MockServer>;
+      let socket1: Socket.MockServerSocket;
+      let socket2: Socket.MockServerSocket;
+      let createSpy: Sinon.SinonSpy;
+      let generateSpy: Sinon.SinonStub;
+      let i: number;
+      before(() => {
+        createSpy = Sinon.spy(Server.prototype, 'addPlayer');
+        i = 1;
+        generateSpy = Sinon.stub(shortid, 'generate').callsFake(() => `id${i++}`);
+        return serverPromise = createTestServer().start(0).then(server => {
+          socket1 = new Socket.MockServerSocket('001', '/game', server.io);
+          socket2 = new Socket.MockServerSocket('002', '/game', server.io);
+          server.sockets.push(socket1);
+          server.sockets.push(socket2);
+          server.assignPlayer(socket1, null);
+          server.assignPlayer(socket2, 'id1');
+          return server;
+        });
+      });
+      after(() => {
+        createSpy.restore();
+        generateSpy.restore();
+        return serverPromise.then(server => server.stop());
+      });
+      it('should only accept the player once', () => {
+        expect(createSpy.calledWith(socket1.id)).to.be.true;
+        expect(createSpy.calledWith(socket2.id)).to.be.false;
       });
     });
   });
@@ -154,6 +220,7 @@ describe('Server', () => {
         return serverPromise = createTestServer(1).start(0).then(server => {
           socket1 = new Socket.MockServerSocket('007', '/game', server.io);
           server.handleConnection(socket1);
+          server.assignPlayer(socket1, null);
           socket2 = new Socket.MockServerSocket('008', '/game', server.io);
           server.handleConnection(socket2);
           return server;
@@ -174,22 +241,26 @@ describe('Server', () => {
     let socket1: Socket.MockServerSocket;
     let socket2: Socket.MockServerSocket;
     let sendMessageSpy: Sinon.SinonSpy;
+    let clock: Sinon.SinonFakeTimers;
     before(() => {
+      clock = Sinon.useFakeTimers();
       return serverPromise = createTestServer(2).start(0).then(server => {
         sendMessageSpy = Sinon.spy(server, 'sendMessage');
         socket1 = new Socket.MockServerSocket('abc', '/game', server.io);
         socket2 = new Socket.MockServerSocket('def', '/game', server.io);
         server.handleConnection(socket1);
+        server.assignPlayer(socket1, null);
         server.handleConnection(socket2);
+        server.assignPlayer(socket2, null);
         // Then name the players.
         server.handleMessage({
-          player: server.currentContext.getPlayer('abc') !,
+          player: server.currentContext.getPlayerBySocketId('abc') !,
           content: 'Alice',
           timestamp: 1234
         }, socket1);
 
         server.handleMessage({
-          player: server.currentContext.getPlayer('def') !,
+          player: server.currentContext.getPlayerBySocketId('def') !,
           content: 'Dougie',
           timestamp: 5678
         }, socket2);
@@ -197,16 +268,18 @@ describe('Server', () => {
         return server;
       }).then(server => {
         server.handleDisconnection(socket2);
+        clock.tick(Server.PLAYER_TIMEOUT + 100);
         return server;
       });
     });
     after(() => {
+      clock.restore();
       return serverPromise.then(server => server.stop());
     });
     it('should remove the socket\'s player from the current context', () => {
       return serverPromise.then(server => {
-        expect(server.currentContext.hasPlayer('abc')).to.be.true;
-        expect(server.currentContext.hasPlayer('def')).to.be.false;
+        expect(server.currentContext.hasPlayerBySocketId('abc')).to.be.true;
+        expect(server.currentContext.hasPlayerBySocketId('def')).to.be.false;
         return server;
       });
     });
@@ -232,7 +305,9 @@ describe('Server', () => {
         socket1 = new Socket.MockServerSocket('123', '/game', server.io);
         socket2 = new Socket.MockServerSocket('456', '/game', server.io);
         server.handleConnection(socket1);
+        server.assignPlayer(socket1, null);
         server.handleConnection(socket2);
+        server.assignPlayer(socket2, null);
         return server;
       });
     });
@@ -258,8 +333,8 @@ describe('Server', () => {
     context('when the current context is `Game`', () => {
       before(() => {
         return serverPromise.then(server => {
-          server.currentContext.getPlayer(socket1.id) !.name = 'SocketOne';
-          server.currentContext.getPlayer(socket2.id) !.name = 'SocketTwo';
+          server.currentContext.getPlayerBySocketId(socket1.id) !.name = 'SocketOne';
+          server.currentContext.getPlayerBySocketId(socket2.id) !.name = 'SocketTwo';
           server.changeContext();
           expect(server.currentContext).to.be.an.instanceOf(Game);
           return server;
@@ -272,7 +347,7 @@ describe('Server', () => {
             expect(socket.allEvents()).contains('details');
             const sentDetails = _.find(socket.emittedData, ({event}) => event === 'details') !;
             expect(sentDetails).to.be.ok;
-            const player = server.currentContext.getPlayer(socket.id) as Player.GamePlayer;
+            const player = server.currentContext.getPlayerBySocketId(socket.id) as Player.GamePlayer;
             expect(player).to.be.ok;
             expect(sentDetails.data).to.eql(Player.playerDetails(player));
           });

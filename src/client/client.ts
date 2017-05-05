@@ -142,6 +142,13 @@ export function assignClientSocketListeners(socket: Socket, $: JQueryCreator, lo
 
   /* * * MESSAGE HANDLER * * */
 
+  socket.on('id-request', () => {
+    const id = localStorage.getItem('persistentId');
+    socket.emit('id-response', { id });
+  });
+
+  socket.on('set-persistentId', ({ id }) => localStorage.setItem('persistentId', id));
+
   socket.on('message', (data: ServerMessaging.MessageJSON) => {
     handleMessage(data, logger, $);
   });

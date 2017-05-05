@@ -33,10 +33,11 @@ describe('Actions', function () {
     let player: Player.GamePlayer;
     before(function () {
       game = new Game(8, [ {
-        id: '007',
+        socketId: '007',
+        persistentId: '007',
         name: 'James_Bond'
       }]);
-      player = game.getPlayer('007') !;
+      player = game.getPlayerBySocketId('007') !;
     });
     describe('parse', function () {
       it('parsing should return a MoveAction', function () {
@@ -125,10 +126,11 @@ describe('Actions', function () {
     let player: Player.GamePlayer;
     before(function () {
       game = new Game(8, [ {
-        id: '007',
+        socketId: '007',
+        persistentId: '007',
         name: 'James_Bond'
       }]);
-      player = game.getPlayer('007') !;
+      player = game.getPlayerBySocketId('007') !;
     });
 
     describe('parse', function () {
@@ -168,11 +170,12 @@ describe('Actions', function () {
     let player: Player.GamePlayer;
     before(function () {
       game = new Game(8, [ {
-        id: '007',
+        socketId: '007',
+        persistentId: '007',
         name: 'James_Bond'
       }]);
 
-      player = game.getPlayer('007') !;
+      player = game.getPlayerBySocketId('007') !;
     });
     describe('parse', function () {
       it('should return a RestAction', function () {
@@ -197,11 +200,12 @@ describe('Actions', function () {
     let player: Player.GamePlayer;
     beforeEach(function () {
       game = new Game(8, [ {
-        id: '007',
+        socketId: '007',
+        persistentId: '007',
         name: 'James_Bond'
       }]);
 
-      player = game.getPlayer('007') !;
+      player = game.getPlayerBySocketId('007') !;
 
       // make the player's character's inventory big enough for the testing items
       player.character.inventory.maximumCapacity = 100;
@@ -411,16 +415,18 @@ describe('Actions', function () {
     let p2: Player.GamePlayer;
     beforeEach(function () {
       game = new Game(8, [ {
-        id: 'alice',
+        socketId: 'alice',
+        persistentId: 'alice',
         name: 'Alice'
       }, {
-        id: 'bob',
+        socketId: 'bob',
+        persistentId: 'bob',
         name: 'Bob'
       }]);
 
       // let's give Alice some weapons!
-      p1 = game.getPlayer('alice') !;
-      p2 = game.getPlayer('bob') !;
+      p1 = game.getPlayerBySocketId('alice') !;
+      p2 = game.getPlayerBySocketId('bob') !;
 
       const aliceOrigInv = p1.character.inventory;
 
@@ -777,13 +783,14 @@ describe('Actions', function () {
     let caveLeafStack: Item.ItemStack<Item.Item>;
     beforeEach(function () {
       const p: Player.Player = {
-        id: '007',
+        socketId: '007',
+        persistentId: '007',
         name: 'James_Bond'
       };
 
       game = new Game(4, [ p ]);
 
-      player = game.getPlayer('007') !;
+      player = game.getPlayerBySocketId('007') !;
 
       caveLeafStack = Item.createItemStack(createItem('Cave Leaf'), 5, 5);
 
@@ -1032,8 +1039,8 @@ describe('Actions', function () {
     let player: Player.GamePlayer;
 
     beforeEach(() => {
-      game = new Game(4, [ { id: '007', name: 'James_Bond' }]);
-      player = game.getPlayer('007') !;
+      game = new Game(4, [ { socketId: '007', name: 'James_Bond', persistentId: '007' }]);
+      player = game.getPlayerBySocketId('007') !;
 
       expect(Inventory.hasItem(player.character.inventory, 'Nightshade')).to.be.false;
       player.character.inventory = Inventory.addToInventory(player.character.inventory, 'Nightshade', 4, 5);
@@ -1119,7 +1126,7 @@ describe('Actions', function () {
           expect(roomStack.stackAmount).to.eql(3);
         });
         it('should give the correct game message', () => {
-          const playerMessage = _.find(result.messages, (message) => message.to[ 0 ].id === player.id) !;
+          const playerMessage = _.find(result.messages, (message) => message.to[ 0 ].socketId === player.socketId) !;
           expect(playerMessage).to.exist;
           expect(playerMessage.content).to.contain('dropped 3 Nightshade');
         });

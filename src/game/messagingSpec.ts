@@ -8,12 +8,14 @@ describe('Server Messaging', () => {
   let player2: Player;
   before(function () {
     player1 = {
-      id: '007',
+      socketId: '007',
+      persistentId: '007',
       name: 'James_Bond'
     };
 
     player2 = {
-      id: '117',
+      socketId: '117',
+      persistentId: '117',
       name: 'Master_Chief'
     };
   });
@@ -83,17 +85,20 @@ describe('Server Messaging', () => {
     let result: Messaging.NameSpan;
     before(function () {
       player1 = {
-        id: 'sponge',
+        socketId: 'sponge',
+        persistentId: 'sponge',
         name: 'Spongebob'
       };
 
       player2 = {
-        id: 'starfish',
+        socketId: 'starfish',
+        persistentId: 'starfish',
         name: 'Patrick'
       };
 
       player3 = {
-        id: 'octopus',
+        socketId: 'octopus',
+        persistentId: 'octopus',
         name: 'Squidward'
       };
 

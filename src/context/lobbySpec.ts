@@ -12,19 +12,21 @@ describe('Lobby', () => {
     it('should return true iff all players are ready', () => {
       const lobby = new Lobby(8, [ {
         name: 'Foo',
-        id: 'foo'
+        socketId: 'foo',
+        persistentId: 'foo'
       }, {
         name: 'Bar',
-        id: 'bar'
+        socketId: 'bar',
+        persistentId: 'bar'
       }]);
 
-      const foo = lobby.getPlayer('foo');
+      const foo = lobby.getPlayerBySocketId('foo');
 
       foo!.isReady = true;
 
       expect(lobby.isReadyForNextContext()).to.be.false;
 
-      const bar = lobby.getPlayer('bar');
+      const bar = lobby.getPlayerBySocketId('bar');
 
       bar!.isReady = true;
 
@@ -40,11 +42,12 @@ describe('Lobby', () => {
         let messages: Messaging.Message[];
         beforeEach(function () {
           lobby = new Lobby(8, [ {
-            id: '007',
+            socketId: '007',
+            persistentId: '007',
             name: null
           }]);
 
-          player = lobby.getPlayer('007') !;
+          player = lobby.getPlayerBySocketId('007') !;
 
           messages =
             lobby.handleMessage({
@@ -70,9 +73,9 @@ describe('Lobby', () => {
         it('should ask for another name', () => {
           const lobby = new Lobby(8, []);
 
-          lobby.addPlayer('007');
+          lobby.addPlayer('007', '007');
 
-          const p1 = lobby.getPlayer('007');
+          const p1 = lobby.getPlayerBySocketId('007');
 
           if (p1) {
             lobby.handleMessage({
@@ -86,9 +89,9 @@ describe('Lobby', () => {
 
           // now to work with invalid naming attempts
 
-          lobby.addPlayer('008');
+          lobby.addPlayer('008', '008');
 
-          const p2 = lobby.getPlayer('008');
+          const p2 = lobby.getPlayerBySocketId('008');
 
           let m2: Messaging.Message[];
           if (p2) {
@@ -130,9 +133,9 @@ describe('Lobby', () => {
       it('should change the player\'s state on `ready` and broadcast', () => {
         const lobby = new Lobby(8, []);
 
-        lobby.addPlayer('007');
+        lobby.addPlayer('007', '007');
 
-        const p1 = lobby.getPlayer('007');
+        const p1 = lobby.getPlayerBySocketId('007');
 
         if (p1) {
           lobby.handleMessage({
@@ -170,8 +173,8 @@ describe('Lobby', () => {
       let lobby: Lobby;
       before(function () {
         lobby = new Lobby(8, [
-          { id: '123', name: 'Alice' },
-          { id: '456', name: 'Bob' }
+          { socketId: '123', persistentId: '123', name: 'Alice' },
+          { socketId: '456', persistentId: '456', name: 'Bob' }
         ]);
 
         const bob = lobby.getPlayerByName('Bob');
@@ -238,7 +241,8 @@ describe('Lobby', () => {
     let player: LobbyPlayer;
     beforeEach(function () {
       player = {
-        id: '007',
+        socketId: '007',
+        persistentId: '007',
         name: 'James_Bond',
         isReady: false,
         primordialCharacter: {

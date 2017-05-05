@@ -3,9 +3,10 @@ import * as Path from 'path';
 import * as Http from 'http';
 import { ListenOptions } from 'net';
 import * as Express from 'express';
+import * as shortid from 'shortid';
 import * as Socket from '../socket';
 // import * as SocketIO from 'socket.io';
-import { Context, ClientMessage } from '../context/context';
+import { Context, ClientMessage, PersistentIdMessage } from '../context/context';
 import Game, { isContextGame } from '../context/game';
 import Lobby, { isContextLobby } from '../context/lobby';
 import { Message, show as showMessage, createGameMessage } from '../game/messaging';
@@ -19,6 +20,7 @@ import describeRoom from '../game/map/describeRoom';
 export default class Server<S extends Socket.Server> {
   static readonly LOCALHOST_ADDRESS = '127.0.0.1';
   static readonly REMOTE_CONNECTION_ADDRESS = '0.0.0.0';
+  static readonly PLAYER_TIMEOUT = 120000;
   expressApp: Express.Express;
   httpServer: Http.Server;
   io: S;
@@ -29,6 +31,7 @@ export default class Server<S extends Socket.Server> {
   seed: Seed;
   maxPlayers: number;
   logger: Logger;
+  timeouts: { [key: string]: NodeJS.Timer };
   constructor(
     socketServerProducer: Socket.ServerCreator<S>, maxPlayers: number,
     seed: Seed, debug: boolean, logger: Logger
@@ -49,6 +52,8 @@ export default class Server<S extends Socket.Server> {
     this.sockets = [];
     // server starts out as having a lobby context
     this.currentContext = this.createEmptyLobby();
+
+    this.timeouts = {};
   }
 
   // default the hostname to localhost
@@ -100,7 +105,7 @@ export default class Server<S extends Socket.Server> {
   }
 
   getCurrentSockets() {
-    return this.getCurrentPlayers().map(player => this.getSocket(player.id));
+    return this.getCurrentPlayers().map(player => this.getSocket(player.socketId));
   }
 
   createServer(port: number, hostname: string) {
@@ -149,6 +154,35 @@ export default class Server<S extends Socket.Server> {
     }
   }
 
+  // when the client sends a persistent id, if it has one, to see if there is an existing player it
+  // can be assigned
+  assignPlayer(socket: Socket.Socket, id: string | null): void {
+    this.logger.log('info', `Received id ${id}`);
+
+    const createPlayer = () => {
+      const persistentId = shortid.generate();
+      const newPlayer = this.addPlayer(socket.id, persistentId);
+      this.logger.log('info', `Creating player ${newPlayer.persistentId}`);
+      socket.emit('set-persistentId', { id: newPlayer.persistentId });
+    };
+
+    if (id === null) {
+      createPlayer();
+    } else {
+      this.logger.log('info', this.currentContext.players.map(p => p.persistentId));
+      const foundPlayer = this.currentContext.getPlayerByPersistentId(id);
+      if (foundPlayer === undefined) {
+        this.logger.log('info', `Could not find player with id ${id}`);
+        createPlayer();
+      } else {
+        this.logger.log('info', `Found player ${foundPlayer.persistentId}`);
+        foundPlayer.socketId = socket.id;
+        clearTimeout(this.timeouts[id]);
+      }
+    }
+    this.sendRoster();
+  }
+
   // when people connect...
   handleConnection(socket: Socket.Socket) {
     this.setClientLogLevelToDebug(socket);
@@ -165,21 +199,28 @@ export default class Server<S extends Socket.Server> {
 
   // and when they disconnect...
   handleDisconnection(socket: Socket.Socket) {
-    const removedPlayer = this.removePlayer(socket.id);
-    if (removedPlayer) {
-      this.logger.log('info', `\tPlayer ${removedPlayer.id + '--' + removedPlayer.name} disconnected`);
+    const foundPlayer = this.currentContext.getPlayerBySocketId(socket.id);
+    if (foundPlayer) {
+      this.timeouts[foundPlayer.persistentId] = setTimeout(() => {
+        const removedPlayer = this.removePlayer(socket.id);
+        if (removedPlayer) {
+          this.logger.log('info', `\tPlayer ${removedPlayer.socketId + '--' + removedPlayer.name} disconnected`);
 
-      if (!Player.isAnon(removedPlayer)) {
-        const disconnectMessage =
-          this.currentContext.broadcastFromPlayer(`${removedPlayer.name} has left the game.`, removedPlayer);
+          if (!Player.isAnon(removedPlayer)) {
+            const disconnectMessage =
+              this.currentContext.broadcastFromPlayer(`${removedPlayer.name} has left the game.`, removedPlayer);
 
-        this.sendMessage(disconnectMessage);
+            this.sendMessage(disconnectMessage);
 
-        this.sendRoster();
-      }
+            this.sendRoster();
+          }
 
-      // TODO: current context might need to be tested for update
-      // e.g. all but leaving player have given their commands
+          // TODO: current context might need to be tested for update
+          // e.g. all but leaving player have given their commands
+        } else {
+          this.logger.log('info', `Unrecognized socket ${socket.id} disconnected`);
+        }
+      }, Server.PLAYER_TIMEOUT);
     } else {
       this.logger.log('info', `Unrecognized socket ${socket.id} disconnected`);
     }
@@ -228,10 +269,6 @@ export default class Server<S extends Socket.Server> {
     this.logger.log('info', `Server accepted socket ${socket.id}`);
     this.sockets.push(socket);
 
-    this.addPlayer(socket.id);
-
-    this.sendRoster();
-
     // when people send _anything_ from the client
     // the game handles the message, and then passes the server a response
     // then, the server sends the response to the client
@@ -243,6 +280,11 @@ export default class Server<S extends Socket.Server> {
     socket.on('disconnect', () => {
       this.handleDisconnection(socket);
     });
+
+    socket.on('id-response', (msg: PersistentIdMessage) => {
+      this.assignPlayer(socket, msg.id);
+    });
+    socket.emit('id-request', {});
   }
 
   rejectSocket(socket: Socket.Socket) {
@@ -256,8 +298,8 @@ export default class Server<S extends Socket.Server> {
     return _.find(server.sockets, (s) => s.id === socketId);
   }
 
-  addPlayer(socketId: string): void {
-    this.currentContext.addPlayer(socketId);
+  addPlayer(socketId: string, persistentId: string): Player.Player {
+    return this.currentContext.addPlayer(socketId, persistentId);
   }
 
   removePlayer(socketId: string): Player.Player | undefined {
@@ -287,7 +329,7 @@ export default class Server<S extends Socket.Server> {
 
   delegateMessageAndDetectContextChanges(messageObj, socket: Socket.Socket) {
 
-    messageObj.player = this.currentContext.getPlayer(socket.id);
+    messageObj.player = this.currentContext.getPlayerBySocketId(socket.id);
 
     const beforeState = messageObj.player.state as Player.PlayerState;
 
@@ -325,10 +367,10 @@ export default class Server<S extends Socket.Server> {
     const recipients = message.to;
 
     recipients.forEach(recipientPlayer => {
-      const recipientSocket = this.getSocket(recipientPlayer.id);
+      const recipientSocket = this.getSocket(recipientPlayer.socketId);
 
       if (!recipientSocket) {
-        throw new Error(`Could not find socket with id: ${recipientPlayer.id}`);
+        throw new Error(`Could not find socket with id: ${recipientPlayer.socketId}`);
       }
 
       recipientSocket.emit('message', messageJSON);
@@ -337,12 +379,12 @@ export default class Server<S extends Socket.Server> {
   sendDetails() {
     if (isContextGame(this.currentContext)) {
       this.currentContext.players.forEach(player => {
-        const socket = this.getSocket(player.id);
+        const socket = this.getSocket(player.socketId);
 
         if (socket) {
           socket.emit('details', Player.playerDetails(player));
         } else {
-          throw new Error(`Expected socket with id "${player.id}" to exist!`);
+          throw new Error(`Expected socket with id "${player.socketId}" to exist!`);
         }
       });
     } else {
@@ -353,13 +395,13 @@ export default class Server<S extends Socket.Server> {
     const rosterInformation = this.currentContext.getRosterData();
 
     this.getCurrentPlayers().forEach(player => {
-      const socket = this.getSocket(player.id);
+      const socket = this.getSocket(player.socketId);
 
       if (socket) {
         socket.emit('player-info', Player.getPlayerInfo(player));
         socket.emit('roster', rosterInformation);
       } else {
-        throw new Error(`Expected socket with id "${player.id}" to exist!`);
+        throw new Error(`Expected socket with id "${player.socketId}" to exist!`);
       }
     });
   }

@@ -11,7 +11,10 @@ export type PlayerState = 'Anon' | 'Preparing' | 'Ready' | 'Playing' | 'Dead' | 
 
 export interface Player {
   // this is the id of the socket on which the player is connected
-  id: string;
+  socketId: string;
+  // this is an id for identifying a player across different connections. meant to be useless to
+  // everything except the Context in which players are stored and the Server which generates them.
+  readonly persistentId: string;
   name: string | null;
 }
 
@@ -66,9 +69,8 @@ export interface PlayerRosterJSON {
   numModifiers?: number;
 }
 
-export
-  function createPlayer(id: string, name: string): Player {
-  return { id, name };
+export function createPlayer(socketId: string, persistentId: string, name: string): Player {
+  return { socketId, persistentId, name };
 }
 
 export function isAnon(p: Player): boolean {

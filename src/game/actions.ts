@@ -145,7 +145,7 @@ export const MOVE_COMPONENT: ActionParserComponent<MoveAction> = {
     const messages: Messaging.Message[] = [];
 
     if (Character.isPlayerCharacter(move.actor)) {
-      const player = game.getPlayer(move.actor.playerId);
+      const player = game.getPlayerBySocketId(move.actor.playerId);
 
       if (!player) {
         throw new Error(`Tried to move a non-present player! Id: ${move.actor.playerId}`);
@@ -190,7 +190,7 @@ export const PASS_COMPONENT: ActionParserComponent<PassAction> = {
     const messages: Messaging.Message[] = [];
 
     if (Character.isPlayerCharacter(passAction.actor)) {
-      const player = game.getPlayer(passAction.actor.playerId);
+      const player = game.getPlayerBySocketId(passAction.actor.playerId);
 
       if (player) {
         messages.push(Messaging.createGameMessage('You performed no action.', [ player ]));
@@ -245,7 +245,7 @@ export const REST_COMPONENT: ActionParserComponent<RestAction> = {
       const wasExhausted = Character.meterIsActive(actor.effects.exhaustion);
       actor.effects.exhaustion.current = actor.effects.exhaustion.maximum;
 
-      const player = game.getPlayer(actor.playerId);
+      const player = game.getPlayerBySocketId(actor.playerId);
 
       if (!player) {
         throw new Error(`Tried to perform a RestAction with a non-present player! Id: ${actor.playerId}`);
@@ -442,7 +442,7 @@ export const ATTACK_COMPONENT: ActionParserComponent<AttackAction> = {
     targetPlayer.character.stats.health = Math.max(0, targetPlayer.character.stats.health - totalDamage);
 
     if (Character.isPlayerCharacter(attackAction.actor)) {
-      const actorPlayer = game.getPlayer(attackAction.actor.playerId);
+      const actorPlayer = game.getPlayerBySocketId(attackAction.actor.playerId);
 
       if (!actorPlayer) {
         throw new Error('Expected AttackAction actor to exist!');
@@ -459,7 +459,7 @@ export const ATTACK_COMPONENT: ActionParserComponent<AttackAction> = {
     let attackerName: string;
 
     if (Character.isPlayerCharacter(attackAction.actor)) {
-      const actorPlayer = game.getPlayer(attackAction.actor.playerId);
+      const actorPlayer = game.getPlayerBySocketId(attackAction.actor.playerId);
 
       if (!actorPlayer) {
         throw new Error('Expected AttackAction actor to exist!');
@@ -478,7 +478,7 @@ export const ATTACK_COMPONENT: ActionParserComponent<AttackAction> = {
 
     if (Animal.isDead(targetPlayer.character)) {
       if (Character.isPlayerCharacter(attackAction.actor)) {
-        const actorPlayer = game.getPlayer(attackAction.actor.playerId);
+        const actorPlayer = game.getPlayerBySocketId(attackAction.actor.playerId);
 
         if (!actorPlayer) {
           throw new Error('Expected AttackAction actor to exist!');
@@ -572,7 +572,7 @@ export const INGEST_COMPONENT: ActionParserComponent<IngestAction> = {
 
       if (Character.isPlayerCharacter(actor)) {
         // then update any effects on the character
-        const player = game.getPlayer(actor.playerId);
+        const player = game.getPlayerBySocketId(actor.playerId);
 
         if (!player) {
           throw new Error(`Tried to perform an IngestAction with a non-present player! Id: ${actor.playerId}`);
@@ -772,8 +772,8 @@ export const PICKUP_ACTION: ActionParserComponent<ItemTransaction> = {
 
     log.push(`After PickupAction: Room (${room.row}, ${room.col}) has items: ${JSON.stringify(room.items)}`);
 
-    if (Character.isPlayerCharacter(pickupAction.actor) && game.hasPlayer(pickupAction.actor.playerId)) {
-      const player = game.getPlayer(pickupAction.actor.playerId) !;
+    if (Character.isPlayerCharacter(pickupAction.actor) && game.hasPlayerBySocketId(pickupAction.actor.playerId)) {
+      const player = game.getPlayerBySocketId(pickupAction.actor.playerId) !;
 
       messages.push(
         Messaging.createGameMessage(`You picked up ${amountToPickUp} ${stackToPickUp.item.name}(s).`, [ player ])
@@ -888,8 +888,8 @@ export const DROP_ACTION: ActionParserComponent<ItemTransaction> = {
 
     log.push(`After DropAction: Room (${room.row}, ${room.col}) has items: ${JSON.stringify(room.items)}`);
 
-    if (Character.isPlayerCharacter(dropAction.actor) && game.hasPlayer(dropAction.actor.playerId)) {
-      const player = game.getPlayer(dropAction.actor.playerId) !;
+    if (Character.isPlayerCharacter(dropAction.actor) && game.hasPlayerBySocketId(dropAction.actor.playerId)) {
+      const player = game.getPlayerBySocketId(dropAction.actor.playerId) !;
       messages.push(
         Messaging.createGameMessage(`You dropped ${amountToRemove} ${stackToRemove.item.name}(s).`, [ player ])
       );

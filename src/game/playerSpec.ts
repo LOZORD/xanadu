@@ -7,7 +7,8 @@ describe('Player', function () {
     context('when the (lobby) player has no name', function () {
       it('should return `Anon`', function () {
         const player: Player.LobbyPlayer = {
-          id: '1234',
+          socketId: '1234',
+          persistentId: 'testId',
           name: null,
           primordialCharacter: {
             allegiance: 'None',
@@ -23,7 +24,8 @@ describe('Player', function () {
     context('when the (lobby) player is not ready', function () {
       it('should return `Preparing`', function () {
         const player: Player.LobbyPlayer = {
-          id: '1234',
+          socketId: '1234',
+          persistentId: 'testId',
           name: 'Foobar',
           primordialCharacter: {
             allegiance: 'None',
@@ -39,7 +41,8 @@ describe('Player', function () {
     context('when the (lobby) player is ready', function () {
       it('should return `Ready`', function () {
         const player: Player.LobbyPlayer = {
-          id: '1234',
+          socketId: '1234',
+          persistentId: 'testId',
           name: 'Foobar',
           primordialCharacter: {
             allegiance: 'None',
@@ -55,13 +58,14 @@ describe('Player', function () {
     context('when the (game) player in playing', function () {
       it('should return `Playing`', function () {
         const player: Player.Player = {
-          id: '1234',
+          socketId: '1234',
+          persistentId: 'testId',
           name: 'Foobar'
         };
 
         const game = new Game(8, [ player ]);
 
-        const gamePlayer = game.getPlayer('1234');
+        const gamePlayer = game.getPlayerBySocketId('1234');
 
         expect(Player.getPlayerState(gamePlayer!)).to.eql('Playing');
       });
@@ -69,13 +73,14 @@ describe('Player', function () {
     context('when the (game) player is dead', function () {
       it('should return `Dead`', function () {
         const player: Player.Player = {
-          id: '1234',
+          socketId: '1234',
+          persistentId: 'testId',
           name: 'Foobar'
         };
 
         const game = new Game(8, [ player ]);
 
-        const gamePlayer = game.getPlayer('1234');
+        const gamePlayer = game.getPlayerBySocketId('1234');
 
         gamePlayer!.character.stats.health = 0;
 
@@ -85,13 +90,14 @@ describe('Player', function () {
     context('whe the (game) player has escaped', function () {
       it('should return `Spectating`', function () {
         const player: Player.Player = {
-          id: '1234',
+          socketId: '1234',
+          persistentId: 'testId',
           name: 'Foobar'
         };
 
         const game = new Game(8, [ player ]);
 
-        const gamePlayer = game.getPlayer('1234');
+        const gamePlayer = game.getPlayerBySocketId('1234');
 
         gamePlayer!.character.hasEscaped = true;
 

@@ -15,41 +15,55 @@ export interface ClientMessage<P extends Player> {
   timestamp: number;
 }
 
+export interface PersistentIdMessage {
+  id: string | null;
+}
+
 // A Context is a mutable container of Players. Other classes, like Game,
 // can own a Context that they use for dispatch.
 export abstract class Context<P extends Player> {
   players: P[];
   maxPlayers: number;
 
-  getPlayer(id: string): P | undefined {
-    return _.find(this.players, (player) => player.id === id);
+  getPlayerByPersistentId(persistentId: string): P | undefined {
+    return _.find(this.players, player => player.persistentId === persistentId);
+  }
+
+  getPlayerBySocketId(socketId: string): P | undefined {
+    return _.find(this.players, (player) => player.socketId === socketId);
   }
 
   getPlayerByName(name: string): P | undefined {
     return _.find(this.players, (player) => player.name === name);
   }
 
-  hasPlayer(id: string): boolean {
-    return this.getPlayer(id) !== undefined;
+  hasPlayerByPersistentId(persistentId: string): boolean {
+    return this.getPlayerByPersistentId(persistentId) !== undefined;
+  }
+
+  hasPlayerBySocketId(socketId: string): boolean {
+    return this.getPlayerBySocketId(socketId) !== undefined;
   }
 
   hasPlayerByName(name: string): boolean {
     return this.getPlayerByName(name) !== undefined;
   }
 
-  addPlayer(id: string, name: string | null = null): void {
-    if (this.hasPlayer(id)) {
-      throw new Error(`Player with id ${id} already exists!`);
+  addPlayer(socketId: string, persistentId: string, name: string | null = null): Player.Player {
+    if (this.hasPlayerBySocketId(socketId)) {
+      throw new Error(`Player with id ${socketId} already exists!`);
     } else if (this.isAcceptingPlayers()) {
-      this.players.push(this.convertPlayer({ id, name }));
+      const newPlayer = this.convertPlayer({ socketId, persistentId, name });
+      this.players.push(newPlayer);
+      return newPlayer;
     } else {
       throw new Error('Attempted to add a player when not accepting!');
     }
   }
 
-  removePlayer(id: string): P | undefined {
-    const removedPlayer = this.getPlayer(id);
-    this.players = _.filter(this.players, p => p.id !== id);
+  removePlayer(socketId: string): P | undefined {
+    const removedPlayer = this.getPlayerBySocketId(socketId);
+    this.players = _.filter(this.players, p => p.socketId !== socketId);
     return removedPlayer;
   }
 

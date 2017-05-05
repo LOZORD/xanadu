@@ -96,8 +96,8 @@ export default class Game extends Context<Player.GamePlayer> {
           // do we even need to send a message?
           if (Character.isPlayerCharacter(animal)) {
             // don't send a shout to the shouter!
-            if (animal.playerId !== player.id) {
-              const maybePlayer = this.getPlayer(animal.playerId);
+            if (animal.playerId !== player.socketId) {
+              const maybePlayer = this.getPlayerBySocketId(animal.playerId);
               if (maybePlayer) {
                 toPlayers.push(maybePlayer);
               } else {
@@ -217,7 +217,7 @@ export default class Game extends Context<Player.GamePlayer> {
           let newMessages: Message[];
 
           if (Character.isPlayerCharacter(action.actor)) {
-            const actorPlayer = this.getPlayer(action.actor.playerId);
+            const actorPlayer = this.getPlayerBySocketId(action.actor.playerId);
 
             if (actorPlayer) {
               newMessages = messages.concat(Messaging.createGameMessage(
@@ -270,7 +270,7 @@ export default class Game extends Context<Player.GamePlayer> {
       return player;
     } else if (Player.isLobbyPlayer(player)) {
       const character = Character.createCharacter(
-        this, player.id, this.map.startingPosition,
+        this, player.socketId, this.map.startingPosition,
         player.primordialCharacter.className,
         player.primordialCharacter.allegiance,
         this.generateModifiers(player.primordialCharacter.numModifiers)
@@ -281,13 +281,14 @@ export default class Game extends Context<Player.GamePlayer> {
       }
 
       return {
-        id: player.id,
+        socketId: player.socketId,
+        persistentId: player.persistentId,
         name: player.name,
         character
       };
     } else {
       const character = Character.createCharacter(
-        this, player.id, this.map.startingPosition,
+        this, player.socketId, this.map.startingPosition,
         'None', 'None', Character.createEmptyModifiers()
       );
 
@@ -296,7 +297,8 @@ export default class Game extends Context<Player.GamePlayer> {
       }
 
       return {
-        id: player.id,
+        socketId: player.socketId,
+        persistentId: player.persistentId,
         name: player.name,
         character
       };

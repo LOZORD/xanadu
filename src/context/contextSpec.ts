@@ -16,13 +16,13 @@ describe('Context (tested via Lobby)', () => {
     });
     testContext('when there is room available', () => {
       it('should add the player', function () {
-        context.addPlayer('007');
-        expect(context.hasPlayer('007')).to.be.true;
+        context.addPlayer('007', '007');
+        expect(context.hasPlayerBySocketId('007')).to.be.true;
       });
     });
-    testContext('when the id is already present', () => {
+    testContext('when the socketId is already present', () => {
       it('should throw an error', function () {
-        const add007 = () => context.addPlayer('007');
+        const add007 = () => context.addPlayer('007', '007');
         // not present
         expect(add007).not.to.throw(Error);
         // present
@@ -31,7 +31,7 @@ describe('Context (tested via Lobby)', () => {
     });
     testContext('when the game is full', () => {
       it('should throw an error', function () {
-        const ap = (id) => (() => context.addPlayer(id));
+        const ap = (id) => (() => context.addPlayer(id, 'id1'));
         expect(ap('foo')).not.to.throw(Error);
         expect(ap('bar')).not.to.throw(Error);
         expect(ap('baz')).to.throw(Error);
@@ -44,14 +44,15 @@ describe('Context (tested via Lobby)', () => {
     beforeEach(function () {
       context = new Lobby(8, [ {
         name: 'James_Bond',
-        id: '007'
+        persistentId: '007',
+        socketId: '007'
       }]);
     });
     testContext('when the player is present', () => {
       it('should remove and return the player', function () {
         const bond = context.removePlayer('007') !;
-        expect(bond.id).to.equal('007');
-        expect(context.hasPlayer('007')).to.be.false;
+        expect(bond.socketId).to.equal('007');
+        expect(context.hasPlayerBySocketId('007')).to.be.false;
         expect(context.players.length).to.equal(0);
       });
     });
@@ -68,9 +69,9 @@ describe('Context (tested via Lobby)', () => {
     let players: Player[];
     before(function () {
       players = [
-        { name: 'Alex', id: 'guitar' },
-        { name: 'Geddy', id: 'bass' },
-        { name: 'Neil', id: 'drums' }
+        { name: 'Alex', socketId: 'guitar', persistentId: 'guitar' },
+        { name: 'Geddy', socketId: 'bass', persistentId: 'bass' },
+        { name: 'Neil', socketId: 'drums', persistentId: 'drums' }
       ];
 
       context = new Lobby(8, players);
@@ -84,14 +85,15 @@ describe('Context (tested via Lobby)', () => {
   describe('validateName', () => {
     it('should validate against "subset" names', () => {
       const player1: Player = {
-        id: '007',
+        socketId: '007',
+        persistentId: '007',
         name: 'James_Bond'
       };
 
       const player2: Player = {
-        id: '2112',
+        socketId: '2112',
+        persistentId: '2112',
         name: 'Geddy_Lee'
-
       };
 
       const context = new Lobby(8, [ player1, player2 ]);
@@ -109,9 +111,9 @@ describe('Context (tested via Lobby)', () => {
     before(function () {
       const lobby = new Lobby(8, []);
 
-      lobby.addPlayer('abc');
-      lobby.addPlayer('def', 'Darwin');
-      lobby.addPlayer('ghi', 'Georgia');
+      lobby.addPlayer('abc', 'abc');
+      lobby.addPlayer('def', 'def', 'Darwin');
+      lobby.addPlayer('ghi', 'def', 'Georgia');
 
       context = lobby;
     });

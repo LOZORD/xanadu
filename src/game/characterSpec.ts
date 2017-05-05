@@ -14,9 +14,9 @@ describe('Character', function () {
     // };
 
     // function setup(setup: UpdateSetup) {
-    //   setup.game = new Game(8, [ {id: '007', name: 'James_Bond'} ]);
+    //   setup.game = new Game(8, [ {socketId: '007', name: 'James_Bond'} ]);
 
-    //   setup.player = setup.game.getPlayer('007')!;
+    //   setup.player = setup.game.getPlayerBySocketId('007')!;
 
     //   // self.player.character = Character.createCharacter(self.game, self.player);
     // }
@@ -32,8 +32,8 @@ describe('Character', function () {
     // });
 
     beforeEach(() => {
-      game = new Game(8, [ { id: '007', name: 'James_Bond' }]);
-      player = game.getPlayer('007') !;
+      game = new Game(8, [ { socketId: '007', persistentId: '007', name: 'James_Bond' }]);
+      player = game.getPlayerBySocketId('007') !;
     });
     context('when the character has no active effects', function () {
       beforeEach(function () {
@@ -180,11 +180,11 @@ describe('Character', function () {
     let game: Game;
     let player: Player.GamePlayer;
     beforeEach(function () {
-      game = new Game(8, [ { id: '404', name: 'Missingno' }]);
+      game = new Game(8, [ { socketId: '404', persistentId: '404', name: 'Missingno' }]);
 
-      player = game.getPlayer('404') !;
+      player = game.getPlayerBySocketId('404') !;
 
-      // this.player.character = Character.createCharacter(this.game, this.player.id);
+      // this.player.character = Character.createCharacter(this.game, this.player.socketId);
     });
     context('when the player doesn\'t have an action', function () {
       it('should throw an error');
@@ -343,24 +343,24 @@ describe('Character', function () {
   describe('createCharacter', function () {
     let game: Game;
     before(function () {
-      const p1 = Player.createPlayer('1', 'Alice');
-      const p2 = Player.createPlayer('2', 'Bob');
+      const p1 = Player.createPlayer('1', 'alice', 'Alice');
+      const p2 = Player.createPlayer('2', 'bob', 'Bob');
 
       game = new Game(8, [ p1, p2 ]);
 
-      const gp1 = (game as Game).getPlayer('1');
-      const gp2 = (game as Game).getPlayer('2');
+      const gp1 = (game as Game).getPlayerBySocketId('1');
+      const gp2 = (game as Game).getPlayerBySocketId('2');
 
       if (gp1 && gp2) {
-        gp1.character = Character.createCharacter(game, gp1.id, game.startingRoom, 'Shaman');
-        gp2.character = Character.createCharacter(game, gp2.id, game.startingRoom, 'Shaman');
+        gp1.character = Character.createCharacter(game, gp1.socketId, game.startingRoom, 'Shaman');
+        gp2.character = Character.createCharacter(game, gp2.socketId, game.startingRoom, 'Shaman');
       } else {
         throw new Error('Test players are not present!');
       }
     });
     it('should create distinct characters', function () {
-      const gp1 = game.getPlayer('1');
-      const gp2 = game.getPlayer('2');
+      const gp1 = game.getPlayerBySocketId('1');
+      const gp2 = game.getPlayerBySocketId('2');
 
       if (gp1 && gp2) {
         const origHealth = gp1.character.stats.health;
