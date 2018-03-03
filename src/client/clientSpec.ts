@@ -12,7 +12,7 @@ import { InventoryJSON } from '../game/inventory';
 import * as Socket from '../socket';
 import * as Sinon from 'sinon';
 
-describe('Client', function () {
+describe('Client', function() {
   // because of all the setup and file i/o, let 500 ms be considered "slow"
   this.slow(500);
 
@@ -54,7 +54,7 @@ describe('Client', function () {
   }
 
   let clientPromise: Promise<WindowAndJQuery>;
-  before(function () {
+  before(function() {
     const htmlPath = Path.resolve(__dirname,
       '..', '..', 'assets', 'client', 'index.html');
     const jqueryPath = Path.resolve(__dirname,
@@ -72,7 +72,7 @@ describe('Client', function () {
             throw error;
           } else {
             if ((window as any).$) {
-              (window as any).$(window.document).ready(function () {
+              (window as any).$(window.document).ready(function() {
                 resolve({
                   window,
                   $: (window as any).$
@@ -88,8 +88,8 @@ describe('Client', function () {
 
     return clientPromise;
   });
-  after(function () {
-    return clientPromise.then(({window}) => {
+  after(function() {
+    return clientPromise.then(({ window }) => {
       window.close();
       return window;
     }, (error) => {
@@ -153,7 +153,7 @@ describe('Client', function () {
     });
     it('should default to `Unknown`');
   });
-  describe('updateDetails', function () {
+  describe('updateDetails', function() {
     const TEST_DETAILS: PlayerDetailsJSON = {
       stats: {
         current: {
@@ -198,8 +198,6 @@ describe('Client', function () {
         }
       }
     };
-    let testDetails: PlayerDetailsJSON;
-
     function createPostUpdatePromise(details: PlayerDetailsJSON): Promise<Client.JQueryDetailSelectors> {
       return new Promise(resolve => {
         clientPromise.then(payload => {
@@ -218,33 +216,31 @@ describe('Client', function () {
 
     let originalTestDetailsUpdatePromise: Promise<Client.JQueryDetailSelectors>;
 
-    before(function () {
-      testDetails = TEST_DETAILS;
-
+    before(function() {
       originalTestDetailsUpdatePromise = createPostUpdatePromise(TEST_DETAILS);
 
       return originalTestDetailsUpdatePromise;
     });
 
-    describe('Stats', function () {
+    describe('Stats', function() {
       let statsPromise: Promise<{ [key: string]: string }>;
-      before(function () {
+      before(function() {
         statsPromise = new Promise(resolve => {
           originalTestDetailsUpdatePromise.then($selectors => {
             const gt = _.curry(getText)($selectors);
 
             resolve({
-              'HLT 3/13': gt('#details-health'),
-              'AGL 4/14': gt('#details-agility'),
-              'INT 5/15': gt('#details-intelligence'),
-              'STR 6/16': gt('#details-strength')
+              'HLT 3 / 13': gt('#details-health'),
+              'AGL 4 / 14': gt('#details-agility'),
+              'INT 5 / 15': gt('#details-intelligence'),
+              'STR 6 / 16': gt('#details-strength')
             });
 
             return $selectors;
           });
         });
       });
-      it('should have updated the stats', function () {
+      it('should have updated the stats', function() {
         return statsPromise.then((results) => {
           _.forEach(results, (actual, expected) => {
             expect(expected).to.eql(actual);
@@ -254,13 +250,13 @@ describe('Client', function () {
         });
       });
     });
-    describe('Modifiers', function () {
+    describe('Modifiers', function() {
       it('should be implemented and tested!');
     });
-    describe('Effects', function () {
-      context('when the character is immortal', function () {
+    describe('Effects', function() {
+      context('when the character is immortal', function() {
         let immortalUpdatePromise: Promise<Client.JQueryDetailSelectors>;
-        before(function () {
+        before(function() {
           const newDetails: PlayerDetailsJSON = _.cloneDeep(TEST_DETAILS);
 
           newDetails.effects.immortality.isActive = true;
@@ -269,10 +265,10 @@ describe('Client', function () {
 
           return immortalUpdatePromise;
         });
-        after(function (done) {
+        after(function(done) {
           revertToOriginalTestDetails(done);
         });
-        it('should show the immortality meter', function () {
+        it('should show the immortality meter', function() {
           return immortalUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
             expect(elemIsVisible($selectors.effects.$immortalityBox)).to.be.true;
             expect(
@@ -281,7 +277,7 @@ describe('Client', function () {
             return $selectors;
           });
         });
-        it('should max the intransient meters', function () {
+        it('should max the intransient meters', function() {
           return immortalUpdatePromise.then(($selectors: Client.JQueryDetailSelectors) => {
             const intransientMeters = [
               $selectors.effects.$exhaustionBox, $selectors.effects.$hungerBox
@@ -296,10 +292,10 @@ describe('Client', function () {
           });
         });
       });
-      context('when the character is addicted', function () {
+      context('when the character is addicted', function() {
         let newDetails: PlayerDetailsJSON;
         let addictedUpdatePromise: Promise<Client.JQueryDetailSelectors>;
-        before(function () {
+        before(function() {
           newDetails = _.cloneDeep(TEST_DETAILS);
 
           newDetails.effects.addiction.isActive = true;
@@ -308,16 +304,16 @@ describe('Client', function () {
 
           return addictedUpdatePromise;
         });
-        after(function (done) {
+        after(function(done) {
           revertToOriginalTestDetails(done);
         });
-        it('should show the addiction meter', function () {
+        it('should show the addiction meter', function() {
           return addictedUpdatePromise.then($selectors => {
             expect(elemIsVisible($selectors.effects.$addictionBox.find('.progress-bar'))).to.be.true;
             return $selectors;
           });
         });
-        it('should have the correct amount for the addiction meter', function () {
+        it('should have the correct amount for the addiction meter', function() {
           return addictedUpdatePromise.then($selectors => {
             const expectedPercent =
               100.0 *
@@ -330,10 +326,10 @@ describe('Client', function () {
           });
         });
       });
-      context('when the character is poisoned', function () {
+      context('when the character is poisoned', function() {
         let newDetails: PlayerDetailsJSON;
         let poisonedUpdatePromise: Promise<Client.JQueryDetailSelectors>;
-        before(function () {
+        before(function() {
           newDetails = _.cloneDeep(TEST_DETAILS);
 
           newDetails.effects.poison.isActive = true;
@@ -342,17 +338,17 @@ describe('Client', function () {
 
           return poisonedUpdatePromise;
         });
-        after(function (done) {
+        after(function(done) {
           revertToOriginalTestDetails(done);
         });
-        it('should show the poison meter', function () {
+        it('should show the poison meter', function() {
           return poisonedUpdatePromise.then($selectors => {
             expect(elemIsVisible($selectors.effects.$poisonBox.find('.progress-bar'))).to.be.true;
 
             return $selectors;
           });
         });
-        it('should be set to full width (100%)', function () {
+        it('should be set to full width (100%)', function() {
           return poisonedUpdatePromise.then($selectors => {
             expect($selectors.effects.$poisonBox.find('.progress-bar').width()).to.eql(100.0);
 
@@ -361,9 +357,9 @@ describe('Client', function () {
         });
       });
     });
-    describe('Map', function () {
-      context('when map data is present', function () {
-        it('should render the map', function () {
+    describe('Map', function() {
+      context('when map data is present', function() {
+        it('should render the map', function() {
           return originalTestDetailsUpdatePromise.then($selectors => {
 
             expect(elemIsVisible($selectors.$playerMap)).to.be.true;
@@ -384,16 +380,16 @@ describe('Client', function () {
           });
         });
       });
-      context('when map data is NOT present', function () {
+      context('when map data is NOT present', function() {
         let hiddenMapPromise: Promise<Client.JQueryDetailSelectors>;
-        before(function () {
+        before(function() {
           const detailsWithoutMap = _.extend({}, TEST_DETAILS, { map: null });
           hiddenMapPromise = createPostUpdatePromise(detailsWithoutMap);
         });
-        after(function (done) {
+        after(function(done) {
           revertToOriginalTestDetails(done);
         });
-        it('should hide the map', function () {
+        it('should hide the map', function() {
           return hiddenMapPromise.then($selectors => {
             expect(elemIsHidden($selectors.$playerMap));
             expect(normalize($selectors.$playerMap.text())).to.equal('');
@@ -402,20 +398,20 @@ describe('Client', function () {
         });
       });
     });
-    describe('Gold', function () {
-      it('should appear in the view', function () {
+    describe('Gold', function() {
+      it('should appear in the view', function() {
         return originalTestDetailsUpdatePromise.then($selectors => {
           expect(getText($selectors, '#gold-row')).to.equal('Gold: 7890');
           return $selectors;
         });
       });
     });
-    describe('Items', function () {
+    describe('Items', function() {
       let items: InventoryJSON;
       let testDetailsWithItems: PlayerDetailsJSON;
       let itemsPromise: Promise<Client.JQueryDetailSelectors>;
       context('when there are items', () => {
-        before(function () {
+        before(function() {
           // TODO: add items to this array!
           items = [];
 
@@ -423,13 +419,13 @@ describe('Client', function () {
 
           itemsPromise = createPostUpdatePromise(testDetailsWithItems);
         });
-        after(function (done) {
+        after(function(done) {
           revertToOriginalTestDetails(done);
         });
         it('should be tested!');
       });
       context('when there are NO items', () => {
-        it('should show the proper message', function () {
+        it('should show the proper message', function() {
           return itemsPromise.then($selectors => {
             expect(getText($selectors, '#items-wrapper')).to.equal('Your inventory is empty.');
 
@@ -439,14 +435,14 @@ describe('Client', function () {
       });
     });
   });
-  describe('Player Info', function () {
-    describe('updatePlayerInfo', function () {
+  describe('Player Info', function() {
+    describe('updatePlayerInfo', function() {
       it('should be tested!');
     });
   });
-  describe('Roster', function () {
-    describe('updateRoster', function () {
-      before(function () {
+  describe('Roster', function() {
+    describe('updateRoster', function() {
+      before(function() {
         return clientPromise.then(client => {
           const $ = client.$;
 
@@ -471,7 +467,7 @@ describe('Client', function () {
           return client;
         });
       });
-      it('should have the names listed alphabetically', function () {
+      it('should have the names listed alphabetically', function() {
         return clientPromise.then(payload => {
           const $ = payload.$;
           const namesInOrder = ['Alice', 'Bob', 'Carol'];
@@ -485,8 +481,8 @@ describe('Client', function () {
         });
       });
     });
-    describe('handleRosterNameClick', function () {
-      before(function () {
+    describe('handleRosterNameClick', function() {
+      before(function() {
         return clientPromise.then(payload => {
           const $ = payload.$;
 
@@ -510,8 +506,8 @@ describe('Client', function () {
           return payload;
         });
       });
-      describe('when there is no message', function () {
-        it('should create a new talk message with the clicked name', function () {
+      describe('when there is no message', function() {
+        it('should create a new talk message with the clicked name', function() {
           return clientPromise.then(payload => {
             const $ = payload.$;
 
@@ -537,8 +533,8 @@ describe('Client', function () {
           });
         });
       });
-      describe('when the input already has text', function () {
-        it('should just append the clicked name', function () {
+      describe('when the input already has text', function() {
+        it('should just append the clicked name', function() {
           return clientPromise.then(payload => {
             const $ = payload.$;
 
@@ -560,10 +556,10 @@ describe('Client', function () {
       });
     });
   });
-  describe('Context Change', function () {
-    describe('handleContextChange', function () {
-      context('to Game', function () {
-        it('should show game information', function () {
+  describe('Context Change', function() {
+    describe('handleContextChange', function() {
+      context('to Game', function() {
+        it('should show game information', function() {
           return clientPromise.then(payload => {
             const $ = payload.$;
 
@@ -575,8 +571,8 @@ describe('Client', function () {
           });
         });
       });
-      context('to Lobby', function () {
-        it('should hide game information', function () {
+      context('to Lobby', function() {
+        it('should hide game information', function() {
           return clientPromise.then(payload => {
             const $ = payload.$;
 
@@ -590,7 +586,7 @@ describe('Client', function () {
       });
     });
   });
-  describe('ClientLogger', function () {
+  describe('ClientLogger', function() {
     interface FakeConsole extends Client.SimpleClientConsole {
       _logData: string[];
     }
@@ -598,7 +594,7 @@ describe('Client', function () {
     let fakeConsole: FakeConsole;
 
     let clientLogger: Client.ClientLogger;
-    beforeEach(function () {
+    beforeEach(function() {
       fakeConsole = {
         _logData: [],
         log(...args) {
@@ -608,20 +604,20 @@ describe('Client', function () {
 
       clientLogger = new Client.ClientLogger(fakeConsole);
     });
-    it('should use `info` as a default level', function () {
+    it('should use `info` as a default level', function() {
       expect(clientLogger.level).to.eql('info');
     });
-    it('should allow a level argument in the constructor', function () {
+    it('should allow a level argument in the constructor', function() {
       const cl = new Client.ClientLogger({ log: _.noop }, 'error');
 
       expect(cl.level).to.eql('error');
     });
-    it('should have the correct matching log levels', function () {
+    it('should have the correct matching log levels', function() {
       const cl = clientLogger;
 
       expect(cl.levels).to.eql(Logger.logLevels);
     });
-    it('should behave like Winston', function () {
+    it('should behave like Winston', function() {
       const cl = clientLogger;
 
       expect(cl.level).to.eql('info');
@@ -680,7 +676,7 @@ describe('Client', function () {
     });
     it('should add a welcome message', () => {
       return clientPromise.then(wjq => {
-        const messages = wjq.window.document.querySelector('#messages') !;
+        const messages = wjq.window.document.querySelector('#messages')!;
         const content = messages.textContent!;
         expect(content.toLowerCase()).to.contain('welcome');
       });
@@ -697,7 +693,7 @@ describe('Client', function () {
     });
     it('should add the content to the message box', () => {
       return clientPromise.then(client => {
-        const messageBoxText = client.window.document.querySelector('#messages') !.textContent;
+        const messageBoxText = client.window.document.querySelector('#messages')!.textContent;
         expect(messageBoxText).to.contain('TEST_CONTENT');
       });
     });
@@ -708,13 +704,13 @@ describe('Client', function () {
     let logger = newNoopLogger();
     before(() => {
       return clientPromise.then(client => {
-        Client.assignDOMListensers(socket, client.$, logger);
+        Client.assignDOMListensers(client.window.document, socket, client.$, logger);
       });
     });
     context('clicking the parent container', () => {
       before(() => {
         return clientPromise.then(client => {
-          const pc = client.window.document.querySelector('#parent-container') ! as HTMLElement;
+          const pc = client.window.document.querySelector('#parent-container')! as HTMLElement;
           pc.click();
         });
       });
@@ -796,7 +792,7 @@ describe('Client', function () {
     });
     it('should add the message', () => {
       return clientPromise.then(client => {
-        const text = client.window.document.querySelector('#messages') !.textContent;
+        const text = client.window.document.querySelector('#messages')!.textContent;
         expect(text).to.contain('handleMessageTest');
       });
     });
@@ -816,7 +812,7 @@ describe('Client', function () {
     });
     it('should add a message', () => {
       return clientPromise.then(client => {
-        const text = client.window.document.querySelector('#messages') !.textContent!;
+        const text = client.window.document.querySelector('#messages')!.textContent!;
         expect(text).to.contain('at capacity');
       });
     });

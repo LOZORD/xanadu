@@ -60,133 +60,146 @@ X88% : '%8888"    "888*""888"    ""   'Y"   "888*""888"  `"888*""     `Y"   'YP
 					<h1 id='player-info-name'>player name</h1>
 					<h2 id='player-info-class'>class name</h2>
 				</div>
-				<div id='tab-container'>
-					<ul id='tab-navs' class='nav nav-tabs nav-justified' role='tablist'>
-						<li role='presentation' class='active' id='roster-tab'>
-							<a href='#roster' aria-controls='roster' role='tab' data-toggle='tab'>
-                  Roster
-                </a>
-						</li>
-						<li role='presentation' id='game-info-tab'>
-							<a href='#game-info' aria-controls='game-info' role='tab' data-toggle='tab'>
-                  Game Information
-                </a>
-						</li>
-					</ul>
-					<div class='tab-content container-fluid'>
-						<div role='tabpanel' class='tab-pane active' id='roster'>
-							<div id='roster-header'>
-								<div class='row'>
-									<div class='col-xs-4'>
-										<h4>Name</h4>
-									</div>
-									<div class='col-xs-2'>
-										<h4>State</h4>
-									</div>
-									<div class='col-xs-2'>
-										<h4>Class</h4>
-									</div>
-									<div class='col-xs-2'>
-										<h4>Allegiance</h4>
-									</div>
-									<div class='col-xs-2'>
-										<h4># Mdfrs</h4>
-									</div>
+				<div id='tab-buttons'>
+					<button id='roster-tab' class='tab-button active'>
+						Roster
+					</button>
+					<button id='game-info-tab' class='tab-button'>
+						Game Information
+					</button>
+				</div>
+				<div id='tab-contents'>
+					<div id='roster' class='tab-content'>
+						<div id='roster-header'>
+							<div class='row'>
+								<div class='col-xs-4'>
+									<h4>Name</h4>
+								</div>
+								<div class='col-xs-2'>
+									<h4>State</h4>
+								</div>
+								<div class='col-xs-2'>
+									<h4>Class</h4>
+								</div>
+								<div class='col-xs-2'>
+									<h4>Allegiance</h4>
+								</div>
+								<div class='col-xs-2'>
+									<h4># Mdfrs</h4>
 								</div>
 							</div>
-							<div id='roster-data'></div>
 						</div>
-						<div role='tabpanel' class='tab-pane' id='game-info'>
-							<div id='details-wrapper'>
-								<div class='row' id='details-stats'>
-									<div class='col-xs-3' id='details-health'>
-										<h3>HLT</h3>
-										<span id='health-current'></span>/<span id='health-max'></span>
-									</div>
-									<div class='col-xs-3' id='details-agility'>
-										<h3>AGL</h3>
-										<span id='agility-current'></span>/<span id='agility-max'></span>
-									</div>
-									<div class='col-xs-3' id='details-intelligence'>
-										<h3>INT</h3>
-										<span id='intelligence-current'></span>/<span id='intelligence-max'></span>
-									</div>
-									<div class='col-xs-3' id='details-strength'>
-										<h3>STR</h3>
-										<span id='strength-current'></span>/<span id='strength-max'></span>
-									</div>
+						<div id='roster-data'></div>
+					</div>
+					<div id='game-info' class='tab-content'>
+						<div id='details-wrapper'>
+							<div class='row' id='details-stats'>
+								<div class='col-xs-3' id='details-health'>
+									<h3>HLT</h3>
+									<span class='metric'>
+										<span id='health-current'></span>
+										<span>/</span>
+										<span id='health-max'></span>
+									</span>
 								</div>
-								<div class='row' id='modifier-and-effect-stats'>
-									<div class='col-xs-6'>
-										<h3>Modifiers</h3>
-										<ul id='modifier-stats-list'>
-											<li><strong>Some Modifier</strong>: x/y</li>
-											<li><strong>Some Modifier</strong>: x/y</li>
-											<li><strong>Some Modifier</strong>: x/y</li>
-										</ul>
-									</div>
-									<div class='col-xs-6'>
-										<h3>Effects</h3>
-										<div id='effect-data'>
-											<div id='effect-addiction-box'>
-												<div id='effect-addiction-bar' class='progress'>
-													<div class='progress-bar' role='progressbar'>
-														Addiction
-													</div>
+								<div class='col-xs-3' id='details-agility'>
+									<h3>AGL</h3>
+									<span class='metric'>
+										<span id='agility-current'></span>
+										<span>/</span>
+										<span id='agility-max'></span>
+									</span>
+								</div>
+								<div class='col-xs-3' id='details-intelligence'>
+									<h3>INT</h3>
+									<span class='metric'>
+										<span id='intelligence-current'></span>
+										<span>/</span>
+										<span id='intelligence-max'></span>
+									</span>
+								</div>
+								<div class='col-xs-3' id='details-strength'>
+									<h3>STR</h3>
+									<span class='metric'>
+										<span id='strength-current'></span>
+										<span>/</span>
+										<span id='strength-max'></span>
+									</span>
+								</div>
+							</div>
+							<div class='row' id='modifier-and-effect-stats'>
+								<div class='col-xs-6'>
+									<h3>Modifiers</h3>
+									<ul id='modifier-stats-list'>
+										<li>
+											<strong>Some Modifier</strong>: x/y</li>
+										<li>
+											<strong>Some Modifier</strong>: x/y</li>
+										<li>
+											<strong>Some Modifier</strong>: x/y</li>
+									</ul>
+								</div>
+								<div class='col-xs-6'>
+									<h3>Effects</h3>
+									<div id='effect-data'>
+										<div id='effect-addiction-box'>
+											<div id='effect-addiction-bar' class='progress'>
+												<div class='progress-bar' role='progressbar'>
+													Addiction
 												</div>
 											</div>
-											<div id='effect-exhaustion-box'>
-												<div id='effect-exhaustion-bar' class='progress'>
-													<div class='progress-bar' role='progressbar'>
-														Exhaustion
-													</div>
+										</div>
+										<div id='effect-exhaustion-box'>
+											<div id='effect-exhaustion-bar' class='progress'>
+												<div class='progress-bar' role='progressbar'>
+													Exhaustion
 												</div>
 											</div>
-											<div id='effect-hunger-box'>
-												<div id='effect-hunger-bar' class='progress'>
-													<div class='progress-bar' role='progressbar'>
-														Hunger
-													</div>
+										</div>
+										<div id='effect-hunger-box'>
+											<div id='effect-hunger-bar' class='progress'>
+												<div class='progress-bar' role='progressbar'>
+													Hunger
 												</div>
 											</div>
-											<div id='effect-poison-box'>
-												<div id='effect-poison-bar' class='progress'>
-													<div class='progress-bar' role='progressbar'>
-														Poison
-													</div>
+										</div>
+										<div id='effect-poison-box'>
+											<div id='effect-poison-bar' class='progress'>
+												<div class='progress-bar' role='progressbar'>
+													Poison
 												</div>
 											</div>
-											<div id='effect-immortality-box'>
-												<div id='effect-immortality-bar' class='progress'>
-													<div class='progress-bar' role='progressbar'>
-														Immortality
-													</div>
+										</div>
+										<div id='effect-immortality-box'>
+											<div id='effect-immortality-bar' class='progress'>
+												<div class='progress-bar' role='progressbar'>
+													Immortality
 												</div>
 											</div>
 										</div>
 									</div>
 								</div>
 							</div>
-							<hr>
-							<div id='inventory-wrapper'>
-								<h3>Inventory</h3>
-								<div class='row' id='gold-row'>
-									<div class='col-xs-3'>
-										<h4>Gold: </h4>
-									</div>
-									<div class='col-xs-9'>
-										<h4 id='gold-amount'>gold here</h4>
-									</div>
+						</div>
+						<hr>
+						<div id='inventory-wrapper'>
+							<h3>Inventory</h3>
+							<div class='row' id='gold-row'>
+								<div class='col-xs-3'>
+									<h4>Gold: </h4>
 								</div>
-								<div class='row'>
-									<div class='col-xs-12 container' id='items-wrapper'></div>
+								<div class='col-xs-9'>
+									<h4 id='gold-amount'>gold here</h4>
 								</div>
 							</div>
-							<hr>
-							<div id='map-wrapper'>
-								<h3>Map</h3>
-								<pre id='player-map'></pre>
+							<div class='row'>
+								<div class='col-xs-12 container' id='items-wrapper'></div>
 							</div>
+						</div>
+						<hr>
+						<div id='map-wrapper'>
+							<h3>Map</h3>
+							<pre id='player-map'></pre>
 						</div>
 					</div>
 				</div>

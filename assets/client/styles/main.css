@@ -165,6 +165,7 @@ body {
   max-height: 15vh;
 }
 
+/*
 #tab-container #tab-navs {
   border-color: var(--xanadu-near-black);
   margin-bottom: 1em;
@@ -200,6 +201,48 @@ body {
   border-style: solid;
   border-width: 0 1px 1px 1px;
   padding-bottom: 1em;
+}
+*/
+
+#tab-buttons {
+  overflow: hidden;
+  border: 1px solid var(--xanadu-grey);
+  background-color: var(--xanadu-near-black);
+}
+
+#tab-buttons button {
+  background-color: inherit;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 0.5em 0.75em;
+}
+
+#tab-buttons button + button {
+  border-right: 1px solid var(--xanadu-grey);
+  border-left: 1px solid var(--xanadu-grey);
+}
+
+#tab-buttons button:hover {
+  background-color: var(--xanadu-red);
+  color: var(--xanadu-near-black);
+}
+
+#tab-buttons button.active {
+  background-color: var(--xanadu-red);
+  color: var(--xanadu-near-black);
+}
+
+#tab-contents .tab-content {
+  display: none;
+  padding: 0.3em 0.5em;
+  border: 1px solid var(--xanadu-near-black);
+  border-top: none;
+}
+
+#tab-contents .tab-content.active {
+  display: grid;
 }
 
 #roster #roster-header {

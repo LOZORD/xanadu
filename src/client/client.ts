@@ -93,7 +93,7 @@ function main() {
 
   const clientLogger = new ClientLogger(console);
 
-  $(document).ready(onDocumentReady($, socket, clientLogger));
+  $(document).ready(onDocumentReady(document, $, socket, clientLogger));
 }
 
 if (isRunningOnClient) {
@@ -101,26 +101,23 @@ if (isRunningOnClient) {
 }
 
 /* FUNCTIONS */
-export function onDocumentReady($: JQueryCreator, socket: Socket, logger: Logger): () => void {
+export function onDocumentReady(document: Document, $: JQueryCreator, socket: Socket, logger: Logger): () => void {
   return () => {
-    assignDOMListensers(socket, $, logger);
+    assignDOMListensers(document, socket, $, logger);
     assignClientSocketListeners(socket, $, logger);
     finalViewSetup($);
   };
 }
 
-export function assignDOMListensers(socket: Socket, $: JQueryCreator, logger: Logger): void {
+export function assignDOMListensers(document: Document, socket: Socket, $: JQueryCreator, logger: Logger): void {
   const $form = $('#main-form');
   const $messageInput = $('#main-input');
 
   $('#parent-container').click(() => $messageInput.focus());
 
-  $('#tab-navs a').click(function (event) {
-    event.preventDefault();
-    $(this).tab('show');
-  });
+  setUpTabs(document);
 
-  $('#roster-data').on('click', '.roster-name a', function (event) {
+  $('#roster-data').on('click', '.roster-name a', function(event) {
     handleRosterNameClick($(this), $messageInput, event);
   });
 
@@ -135,6 +132,58 @@ export function assignDOMListensers(socket: Socket, $: JQueryCreator, logger: Lo
       sendMessage(msg, socket);
     }
   });
+}
+
+export function setUpTabs(document: Document) {
+  // Active roster tab on startup.
+  activateTabContent(document, 0);
+
+  const buttonContainer = document.getElementById('tab-buttons');
+  if (!buttonContainer) {
+    throw new Error('tab buttons container not present in DOM');
+  }
+
+  buttonContainer.addEventListener('click', event => {
+    event.preventDefault();
+    if (!(event.target instanceof HTMLElement)) {
+      return;
+    }
+    const tabButtons = queryElements(document, '#tab-buttons button');
+    const buttonInd = tabButtons.indexOf(event.target);
+
+    if (buttonInd < 0) {
+      return;
+    }
+
+    activateTabContent(document, buttonInd);
+  });
+}
+
+export function activateTabContent(document: Document, tabIndex: number) {
+  queryElements(document, '#tab-buttons button').forEach((button, index) => {
+    if (index === tabIndex) {
+      button.classList.add('active');
+    } else {
+      button.classList.remove('active');
+    }
+  });
+
+  queryElements(document, '#tab-contents .tab-content').forEach((content, index) => {
+    if (index === tabIndex) {
+      content.classList.add('active');
+    } else {
+      content.classList.remove('active');
+    }
+  });
+}
+
+export function queryElements(document: Document, query: string): HTMLElement[] {
+  const nodeList = document.querySelectorAll(query);
+  if (nodeList.length === 0) {
+    return [];
+  }
+
+  return Array.prototype.slice.call(nodeList);
 }
 
 export function assignClientSocketListeners(socket: Socket, $: JQueryCreator, logger: Logger): void {
