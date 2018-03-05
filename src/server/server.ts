@@ -109,14 +109,13 @@ export default class Server<S extends Socket.Server> {
       CLIENT_ASSETS: Path.join(__dirname, '..', '..', 'assets', 'client'),
       CLIENT_SCRIPTS: Path.join(__dirname, '..', 'client'),
       NODE_MODULES,
-      JQUERY: Path.join(NODE_MODULES, 'jquery', 'dist'),
-      BOOTSTRAP: Path.join(NODE_MODULES, 'bootstrap', 'dist')
+      // TODO(lozord): Remove jQuery.
+      JQUERY: Path.join(NODE_MODULES, 'jquery', 'dist')
     };
 
     this.expressApp.use(Express.static(PATHS.CLIENT_ASSETS));
     this.expressApp.use('/scripts', Express.static(PATHS.CLIENT_SCRIPTS));
     this.expressApp.use('/jquery', Express.static(PATHS.JQUERY));
-    this.expressApp.use('/bootstrap', Express.static(PATHS.BOOTSTRAP));
 
     const opts: ListenOptions = { port, host: hostname };
 

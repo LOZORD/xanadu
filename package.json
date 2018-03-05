@@ -46,7 +46,6 @@
   },
   "homepage": "https://github.com/LOZORD/xanadu#readme",
   "dependencies": {
-    "@types/bootstrap": "3.3.33",
     "@types/chance": "0.7.32",
     "@types/es6-promise": "0.0.32",
     "@types/express": "4.0.35",
@@ -58,7 +57,6 @@
     "@types/socket.io": "1.4.29",
     "@types/socket.io-client": "1.4.29",
     "@types/winston": "2.3.1",
-    "bootstrap": "3.3.7",
     "chance": "1.0.6",
     "es6-promise": "4.1.0",
     "express": "4.15.2",
@@ -82,10 +80,6 @@
     "typescript": "2.1.6"
   },
   "david": {
-    "ignore": [
-      "@types/lodash",
-      "tslint",
-      "typescript"
-    ]
+    "ignore": []
   }
 }

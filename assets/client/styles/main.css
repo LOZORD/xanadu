@@ -6,6 +6,7 @@
   --xanadu-black:       black;
   --xanadu-near-black:  #222;
   --xanadu-white:       white;
+  --xanadu-dark-grey: #404040;
   --xanadu-grey:        grey;
   --xanadu-red:         #FF7F7F;
   --xanadu-green:       #63C78D;
@@ -32,45 +33,61 @@ body {
   font-family: var(--xanadu-fonts);
   background-color: var(--xanadu-black);
   color: var(--xanadu-white);
+  display: flex;
+  margin: 0 auto;
+}
+
+#root-container {
+  display: flex;
+  justify-content: space-around;
+  margin: 0 auto;
+  padding-top: 0.5vh;
 }
 
 #parent-container {
+  display: flex;
+  justify-content: space-between;
   border: 1px solid var(--xanadu-grey);
-  margin-top: 0.5vh;
+  margin: 0 auto;
   width: 99vw;
   height: 99vh;
 }
 
-#parent-container > .row{
-  height: 100%;
-}
-
 #left-half, #right-half {
-  height: 95vh;
-  padding: 1em;
+  display: flex;
   height: 100%;
+  width: 50%;
+  flex-direction: column;
 }
 
 #form-wrapper {
-  position: absolute;
-  bottom: 1px;
-  left: 1px;
   width: 100%;
+  border: none;
+  padding: 0 0;
+  height: 5vh;
+  outline: none;
+  background-color: var(--xanadu-near-black);    
+}
+
+#main-form {
+  margin: 1vh 1vw;
 }
 
 #main-input {
-  border: none;
-  padding: 1vh 0 1vh 1vw;
   width: 100%;
   outline: none;
-  height: 5vh;
   color: var(--xanadu-white);
-  background-color: var(--xanadu-near-black);
+  outline: none;
+  font-family: var(--xanadu-fonts);
+  background-color: var(--xanadu-near-black);  
+  border: none;
+  font-size: 1em;
 }
 
 #messages-wrapper {
   overflow-y: scroll;
-  height: 90vh;
+  height: 100%;
+  width: 100%;
 }
 
 #messages {
@@ -78,12 +95,15 @@ body {
   margin: 0;
   padding: 0;
   overflow-y: scroll;
+  white-space: pre-line;
+  overflow-wrap: break-word;
 }
 
 /* TODO: should the font-size be changed globally? */
 /* I think 1.10-1.15em might be good */
 #messages pre {
   font-size: 1em;
+  white-space: pre-line;
 }
 
 #messages #logo {
@@ -107,10 +127,10 @@ body {
 }
 
 #messages li {
-  border-radius: 0;
-  border-left: 1px solid var(--xanadu-near-black);
-  border-right: 1px solid var(--xanadu-near-black);
-  margin-bottom: 0.5vh;
+  border-left: 1px solid var(--xanadu-dark-grey);
+  border-right: 1px solid var(--xanadu-dark-grey);
+  margin: 0.5vh;
+  padding: 0 0.5vw;
 }
 
 #messages li pre {
@@ -166,6 +186,7 @@ body {
 }
 
 /*
+FIXME: Fix the layout of the RHS pane.
 #tab-container #tab-navs {
   border-color: var(--xanadu-near-black);
   margin-bottom: 1em;
@@ -208,15 +229,23 @@ body {
   overflow: hidden;
   border: 1px solid var(--xanadu-grey);
   background-color: var(--xanadu-near-black);
+  display: flex;
+  flex-direction: row;
 }
 
 #tab-buttons button {
+  display: flex;
+  flex-direction: column;
   background-color: inherit;
   float: left;
   border: none;
   outline: none;
   cursor: pointer;
   padding: 0.5em 0.75em;
+  font-family: var(--xanadu-fonts);
+  color: var(--xanadu-white);
+  padding: 1em;
+  font-size: 1em;
 }
 
 #tab-buttons button + button {
@@ -226,12 +255,12 @@ body {
 
 #tab-buttons button:hover {
   background-color: var(--xanadu-red);
-  color: var(--xanadu-near-black);
+  color: var(--xanadu-white);
 }
 
 #tab-buttons button.active {
   background-color: var(--xanadu-red);
-  color: var(--xanadu-near-black);
+  color: var(--xanadu-white);
 }
 
 #tab-contents .tab-content {
@@ -243,6 +272,16 @@ body {
 
 #tab-contents .tab-content.active {
   display: grid;
+}
+
+#tab-contents .tab-content .row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+#roster-header .name, #roster-data .roster-name {
+  width: 25%;
 }
 
 #roster #roster-header {
