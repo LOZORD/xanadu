@@ -401,7 +401,7 @@ describe('Client', function() {
     describe('Gold', function() {
       it('should appear in the view', function() {
         return originalTestDetailsUpdatePromise.then($selectors => {
-          expect(getText($selectors, '#gold-row')).to.equal('Gold: 7890');
+          expect(getText($selectors, '#gold-row')).to.equal('Gold 7890');
           return $selectors;
         });
       });
