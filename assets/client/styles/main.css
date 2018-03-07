@@ -340,12 +340,12 @@ FIXME: Fix the layout of the RHS pane.
 }
 
 #roster-header .row {
-  padding: 0 5px;
+  padding: 0 10px;
 }
 
 #roster #roster-data div.row {
   margin-bottom: 1em;
-  padding: 0 5px;
+  padding: 0 10px;
   font-size: 1.25em;
   word-wrap: break-word;
 }
