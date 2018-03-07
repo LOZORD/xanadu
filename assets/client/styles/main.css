@@ -29,6 +29,54 @@
   --xanadu-losat-blue:      #85C3C7;
 }
 
+.col-xs-1 {
+  width: 8.333333%;
+}
+
+.col-xs-2 {
+  width: 16.666667%;
+}
+
+.col-xs-3 {
+  width: 25%;
+}
+
+.col-xs-4 {
+  width: 33.333333%;
+}
+
+.col-xs-5 {
+  width: 41.666667%;
+}
+
+.col-xs-6 {
+  width: 50%;
+}
+
+.col-xs-7 {
+  width: 58.333333%;
+}
+
+.col-xs-8 {
+  width: 66.666667%;
+}
+
+.col-xs-9 {
+  width: 75%;
+}
+
+.col-xs-10 {
+  width: 83.333333%;
+}
+
+.col-xs-11 {
+  width: 91.666667%;
+}
+
+.col-xs-12 {
+  width: 100%;
+}
+
 body {
   font-family: var(--xanadu-fonts);
   background-color: var(--xanadu-black);
@@ -283,10 +331,6 @@ FIXME: Fix the layout of the RHS pane.
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-}
-
-#roster-header .name, #roster-data .roster-name {
-  width: 25%;
 }
 
 #roster #roster-header {
