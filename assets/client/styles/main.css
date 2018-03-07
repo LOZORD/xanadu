@@ -374,6 +374,7 @@ FIXME: Fix the layout of the RHS pane.
   background-color: var(--xanadu-black);
   color: var(--xanadu-white);
   border: 1px solid var(--xanadu-near-black);
+  min-height: 150px;
 }
 
 #player-map span {
@@ -414,6 +415,15 @@ FIXME: Fix the layout of the RHS pane.
   height: 33%;
 }
 
+#inventory-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+#gold-row {
+  font-weight: bold;
+}
+
 #gold-amount {
   text-align: center;
   color: var(--xanadu-yellow);
@@ -422,13 +432,30 @@ FIXME: Fix the layout of the RHS pane.
 div.item-box {
  width: 100%;
  margin: 0;
- height: 5vh;
  border-top: 1px solid var(--xanadu-grey);
  /* border-bottom: 1px solid grey; */
 }
 
+.item-box:last-child {
+  border-bottom: 1px solid var(--xanadu-grey);
+}
+
 div.item-box:nth-child(odd) {
   background-color: var(--xanadu-near-black);
+}
+
+.item-name, .item-data {
+  padding-top: 1.33em;
+  padding-bottom: 1.33em;
+}
+
+.item-name {
+  margin-right: 50px;
+  text-align: right;
+}
+
+.item-data {
+  text-align: center;
 }
 
 #items-wrapper {
@@ -453,7 +480,7 @@ div.item-condition.poor-condition {
 }
 
 div.item-stack {
-  background-color: var(--xanadu-grey);
+  background-color: var(--xanadu-dark-grey);
 }
 
 #map-wrapper {
