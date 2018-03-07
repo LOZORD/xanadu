@@ -85,7 +85,7 @@ body {
 }
 
 #messages-wrapper {
-  overflow-y: scroll;
+  overflow-y: auto;
   height: 100%;
   width: 100%;
 }
@@ -94,7 +94,7 @@ body {
   list-style-type: none;
   margin: 0;
   padding: 0;
-  overflow-y: scroll;
+  overflow-y: auto;
   white-space: pre-line;
   overflow-wrap: break-word;
 }
@@ -316,7 +316,7 @@ FIXME: Fix the layout of the RHS pane.
 }
 
 #player-map {
-  overflow: scroll;
+  overflow: auto;
   background-color: var(--xanadu-black);
   color: var(--xanadu-white);
   border: 1px solid var(--xanadu-near-black);
@@ -378,7 +378,7 @@ div.item-box:nth-child(odd) {
 }
 
 #items-wrapper {
-  overflow: scroll;
+  overflow: auto;
 }
 
 div.item-condition, div.item-stack {
