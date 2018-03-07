@@ -228,6 +228,7 @@ FIXME: Fix the layout of the RHS pane.
 #tab-buttons {
   overflow: hidden;
   border: 1px solid var(--xanadu-grey);
+  border-right: none;
   background-color: var(--xanadu-near-black);
   display: flex;
   flex-direction: row;
