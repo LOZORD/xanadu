@@ -264,6 +264,10 @@ FIXME: Fix the layout of the RHS pane.
   color: var(--xanadu-white);
 }
 
+#tab-contents {
+  overflow: auto;
+}
+
 #tab-contents .tab-content {
   display: none;
   padding: 0.3em 0.5em;
