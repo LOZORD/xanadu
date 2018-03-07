@@ -295,8 +295,13 @@ FIXME: Fix the layout of the RHS pane.
   padding-bottom: 0.25em;
 }
 
+#roster-header .row {
+  padding: 0 5px;
+}
+
 #roster #roster-data div.row {
   margin-bottom: 1em;
+  padding: 0 5px;
   font-size: 1.25em;
   word-wrap: break-word;
 }
