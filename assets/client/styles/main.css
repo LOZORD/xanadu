@@ -29,6 +29,7 @@
   --xanadu-losat-blue:      #85C3C7;
 }
 
+/* TODO: Change the prefix since `col-xs` is no longer meaningful without Bootstrap. */
 .col-xs-1 {
   width: 8.333333%;
 }
